@@ -46,8 +46,8 @@ EXTERN_C FILTER_DLL __declspec(dllexport) * __stdcall GetFilterTable(void)
 {
 	theApp.load(track_def);
 
-	static TCHAR filterName[] = TEXT("音声波形表示");
-	static TCHAR filterInformation[] = TEXT("音声波形表示 version 1.0.0 by 蛇色");
+	static TCHAR filterName[] = TEXT("アイテム内音声波形");
+	static TCHAR filterInformation[] = TEXT("アイテム内音声波形 version 1.0.1 by 蛇色");
 
 	static FILTER_DLL filter =
 	{

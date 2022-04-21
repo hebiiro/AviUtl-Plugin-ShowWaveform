@@ -109,8 +109,8 @@ BOOL CShowWaveformApp::func_init(FILTER *fp)
 
 	fp->exfunc->add_menu_item(fp, (LPSTR)"選択アイテムを更新", fp->hwnd, CHECK_UPDATE_SELECTED_ITEM, 0, 0);
 	fp->exfunc->add_menu_item(fp, (LPSTR)"すべてのアイテムを更新", fp->hwnd, CHECK_UPDATE_ALL_ITEMS, 0, 0);
-	fp->exfunc->add_menu_item(fp, (LPSTR)"選択アイテムの波形を削除", fp->hwnd, CHECK_DELETE_SELECTED_ITEM, 0, 0);
-	fp->exfunc->add_menu_item(fp, (LPSTR)"すべてのアイテムの波形を削除", fp->hwnd, CHECK_DELETE_ALL_ITEMS, 0, 0);
+	fp->exfunc->add_menu_item(fp, (LPSTR)"選択アイテムの波形を消去", fp->hwnd, CHECK_DELETE_SELECTED_ITEM, 0, 0);
+	fp->exfunc->add_menu_item(fp, (LPSTR)"すべてのアイテムの波形を消去", fp->hwnd, CHECK_DELETE_ALL_ITEMS, 0, 0);
 
 	return TRUE;
 }
@@ -126,9 +126,13 @@ BOOL CShowWaveformApp::func_proc(FILTER *fp, FILTER_PROC_INFO *fpip)
 {
 	MY_TRACE(_T("CShowWaveformApp::func_proc()\n"));
 
-	if (!fp->check[CHECK_UPDATE_ALWAYS])
-		return FALSE;
+	if (fp->exfunc->is_saving(fpip->editp))
+		return FALSE; // 音声を保存するときは何もしない。
 
+	if (!fp->check[CHECK_UPDATE_ALWAYS])
+		return FALSE; // 「随時更新」にチェックが入ってないときは何もしない。
+
+	// マップ内の無効なオブジェクトを削除する。
 	for (auto it = m_waveformMap.begin(); it != m_waveformMap.end();)
 	{
 		auls::EXEDIT_OBJECT* object = it->first;
@@ -143,9 +147,8 @@ BOOL CShowWaveformApp::func_proc(FILTER *fp, FILTER_PROC_INFO *fpip)
 		}
 	}
 
+	// 音声波形の取得に必要なデータを取得する。
 	GetWaveform gw(fp);
-
-	int c = m_waveformMap.size();
 
 	for (auto it = m_waveformMap.begin(); it != m_waveformMap.end(); it++)
 	{
@@ -153,8 +156,9 @@ BOOL CShowWaveformApp::func_proc(FILTER *fp, FILTER_PROC_INFO *fpip)
 		WaveformPtr waveform = it->second;
 
 		if (memcmp(object, &waveform->m_objectCopy, sizeof(waveform->m_objectCopy)) == 0)
-			continue;
+			continue; // オブジェクトの状態に変化がないときは何もしない。
 
+		// 音声波形を更新する。
 		gw.get(object);
 	}
 
@@ -172,6 +176,7 @@ BOOL CShowWaveformApp::func_update(FILTER *fp, int status)
 		status == FILTER_UPDATE_STATUS_CHECK + CHECK_SHOW_WAVEFORM ||
 		status == FILTER_UPDATE_STATUS_CHECK + CHECK_SHOW_TEXT)
 	{
+		// 拡張編集ウィンドウを再描画する。
 		::InvalidateRect(Exedit_GetExeditWindow(), 0, FALSE);
 	}
 
