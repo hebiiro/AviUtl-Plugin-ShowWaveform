@@ -95,15 +95,16 @@
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>../AviUtl/</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../../;../../AviUtl/aviutl_exedit_sdk/</AdditionalIncludeDirectories>
       <StructMemberAlignment>Default</StructMemberAlignment>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableUAC>false</EnableUAC>
       <ModuleDefinitionFile>ShowWaveform.def</ModuleDefinitionFile>
-      <AdditionalLibraryDirectories>../</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>../../</AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent>
       <Command>copy /B /Y "$(TargetDir)$(TargetFileName)" "C:\AviUtl110_test\Plugins\$(TargetName).auf"</Command>
@@ -119,8 +120,9 @@
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>../AviUtl/</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../../;../../AviUtl/aviutl_exedit_sdk/</AdditionalIncludeDirectories>
       <StructMemberAlignment>Default</StructMemberAlignment>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -129,7 +131,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableUAC>false</EnableUAC>
       <ModuleDefinitionFile>ShowWaveform.def</ModuleDefinitionFile>
-      <AdditionalLibraryDirectories>../</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>../../</AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent>
       <Command>copy /B /Y "$(TargetDir)$(TargetFileName)" "C:\AviUtl110_test\Plugins\$(TargetName).auf"</Command>
@@ -143,15 +145,16 @@
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>../AviUtl/</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../../;../../AviUtl/aviutl_exedit_sdk/</AdditionalIncludeDirectories>
       <StructMemberAlignment>Default</StructMemberAlignment>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableUAC>false</EnableUAC>
       <ModuleDefinitionFile>ShowWaveform.def</ModuleDefinitionFile>
-      <AdditionalLibraryDirectories>../</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>../../</AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent>
       <Command>copy /B /Y "$(TargetDir)$(TargetFileName)" "C:\AviUtl110_test\Plugins\$(TargetName).auf"</Command>
@@ -167,8 +170,9 @@
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>../AviUtl/</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../../;../../AviUtl/aviutl_exedit_sdk/</AdditionalIncludeDirectories>
       <StructMemberAlignment>Default</StructMemberAlignment>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -177,20 +181,17 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableUAC>false</EnableUAC>
       <ModuleDefinitionFile>ShowWaveform.def</ModuleDefinitionFile>
-      <AdditionalLibraryDirectories>../</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>../../</AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent>
       <Command>copy /B /Y "$(TargetDir)$(TargetFileName)" "C:\AviUtl110_test\Plugins\$(TargetName).auf"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="..\AviUtl\aulslib\aviutl.h" />
-    <ClInclude Include="..\AviUtl\aulslib\exedit.h" />
-    <ClInclude Include="..\AviUtl\aulslib\lua.h" />
-    <ClInclude Include="..\AviUtl\aulslib\memref.h" />
-    <ClInclude Include="..\AviUtl\aulslib\memref2.h" />
-    <ClInclude Include="..\Common\MyTracer.h" />
-    <ClInclude Include="..\Common\Profile.h" />
+    <ClInclude Include="..\..\Common\AviUtlInternal.h" />
+    <ClInclude Include="..\..\Common\Hook.h" />
+    <ClInclude Include="..\..\Common\Profile.h" />
+    <ClInclude Include="..\..\Common\Tracer.h" />
     <ClInclude Include="ShowWaveform.h" />
     <ClInclude Include="pch.h" />
   </ItemGroup>

@@ -17,8 +17,6 @@ CShowWaveformApp::CShowWaveformApp()
 	m_fp = 0;
 	m_currentDrawObject = 0;
 
-	m_FrameToX = 0;
-
 	m_penColor = RGB(0x00, 0xff, 0xff);
 	m_brushColor = RGB(0x00, 0xff, 0xff);
 }
@@ -66,32 +64,19 @@ void CShowWaveformApp::load(int* track_def)
 	getPrivateProfileInt(fileName, L"Config", L"sampleInc", track_def[1]);
 	getPrivateProfileInt(fileName, L"Config", L"scaleDiv", track_def[2]);
 	getPrivateProfileInt(fileName, L"Config", L"showType", track_def[3]);
+	getPrivateProfileInt(fileName, L"Config", L"updateMode", track_def[4]);
 }
 
 BOOL CShowWaveformApp::func_init(FILTER *fp)
 {
 	MY_TRACE(_T("CShowWaveformApp::func_init()\n"));
 
+	m_auin.init();
+
 	m_fp = fp;
 
-	// 拡張編集の関数や変数を取得する。
-	DWORD exedit = (DWORD)::GetModuleHandle(_T("exedit.auf"));
-	g_exeditWindow = (HWND*)(exedit + 0x177A44);
-	g_settingDialog = (HWND*)(exedit + 0x1539C8);
-	g_objectTable = (auls::EXEDIT_OBJECT**)(exedit + 0x168FA8);
-	g_filterTable = (auls::EXEDIT_FILTER**)(exedit + 0x187C98);
-	g_objectIndex = (int*)(exedit + 0x177A10);
-	g_filterIndex = (int*)(exedit + 0x14965C);
-	g_objectCount = (int*)(exedit + 0x146250);
-	g_currentSceneObjectCount = (int*)(exedit + 0x15918C);
-	g_objectData = (auls::EXEDIT_OBJECT**)(exedit + 0x1E0FA4);
-	g_objectExdata = (BYTE**)(exedit + 0x1E0FA8);
-	g_nextObject = (int*)(exedit + 0x1592d8);
-	g_editp = (void**)(exedit + 0x1a532c);
-	true_DrawObject = (Type_DrawObject)(exedit + 0x00037060);
-	m_FrameToX = (Type_FrameToX)(exedit + 0x00032BD0);
-
-	hookAbsoluteCall(exedit + 0x0003794B, drawObjectText);
+	true_DrawObject = m_auin.GetDrawObject();
+	hookAbsoluteCall(m_auin.GetExedit() + 0x0003794B, drawObjectText);
 
 	DetourTransactionBegin();
 	DetourUpdateThread(::GetCurrentThread());
@@ -129,15 +114,18 @@ BOOL CShowWaveformApp::func_proc(FILTER *fp, FILTER_PROC_INFO *fpip)
 	if (fp->exfunc->is_saving(fpip->editp))
 		return FALSE; // 音声を保存するときは何もしない。
 
-	if (!fp->check[CHECK_UPDATE_ALWAYS])
-		return FALSE; // 「随時更新」にチェックが入ってないときは何もしない。
+	int updateMode = fp->track[TRACK_UPDATE_MODE];
+
+	if (updateMode == 0)
+		return FALSE; // 更新モードが 0 のときは何もしない。
 
 	// マップ内の無効なオブジェクトを削除する。
 	for (auto it = m_waveformMap.begin(); it != m_waveformMap.end();)
 	{
-		auls::EXEDIT_OBJECT* object = it->first;
+		ExEdit::Object* object = it->first;
 
-		if (!object->exists || !(object->type & auls::EXEDIT_OBJECT::TYPE_SOUND))
+		if (!(object->flag & ExEdit::Object::Flag::Exist) ||
+			!(object->flag & ExEdit::Object::Flag::Sound))
 		{
 			m_waveformMap.erase(it++);
 		}
@@ -147,19 +135,55 @@ BOOL CShowWaveformApp::func_proc(FILTER *fp, FILTER_PROC_INFO *fpip)
 		}
 	}
 
-	// 音声波形の取得に必要なデータを取得する。
-	GetWaveform gw(fp);
-
-	for (auto it = m_waveformMap.begin(); it != m_waveformMap.end(); it++)
+	if (updateMode == 1) // すでに波形を作成済みのオブジェクトを更新する。
 	{
-		auls::EXEDIT_OBJECT* object = it->first;
-		WaveformPtr waveform = it->second;
+		// 音声波形の取得に必要なデータを取得する。
+		GetWaveform gw(fp);
 
-		if (memcmp(object, &waveform->m_objectCopy, sizeof(waveform->m_objectCopy)) == 0)
-			continue; // オブジェクトの状態に変化がないときは何もしない。
+		// 音声波形マップにあるオブジェクトを列挙する。
+		for (auto it = m_waveformMap.begin(); it != m_waveformMap.end(); it++)
+		{
+			ExEdit::Object* object = it->first;
+			WaveformPtr waveform = it->second;
 
-		// 音声波形を更新する。
-		gw.get(object);
+			// オブジェクトの状態を調べる。
+			if (memcmp(object, &waveform->m_objectCopy, sizeof(waveform->m_objectCopy)) == 0)
+				continue; // オブジェクトの状態に変化がないときは何もしない。
+
+			// 音声波形を更新する。
+			gw.get(object);
+		}
+	}
+	else if (updateMode == 2) // すべての音声オブジェクトを更新する。
+	{
+		// 音声波形の取得に必要なデータを取得する。
+		GetWaveform gw(fp);
+
+		// 現在のシーン内のアイテムを列挙する。
+		int c = m_auin.GetCurrentSceneObjectCount();
+		for (int i = 0; i < c; i++)
+		{
+			// オブジェクトを取得する。
+			ExEdit::Object* object = m_auin.GetSortedObject(i);
+
+			// オブジェクトのフラグを調べる。
+			if (!(object->flag & ExEdit::Object::Flag::Sound))
+				continue; // 音声波形を取得できるのはサウンドタイプのアイテムのみ。
+
+			// すでに音声波形が作成済みならオブジェクトが更新状態か調べる。
+			auto it = m_waveformMap.find(object);
+			if (it != m_waveformMap.end())
+			{
+				WaveformPtr waveform = it->second;
+
+				// オブジェクトの状態を調べる。
+				if (memcmp(object, &waveform->m_objectCopy, sizeof(waveform->m_objectCopy)) == 0)
+					continue; // オブジェクトの状態に変化がないときは何もしない。
+			}
+
+			// 音声波形を更新する。
+			gw.get(object);
+		}
 	}
 
 	return FALSE;
@@ -177,7 +201,7 @@ BOOL CShowWaveformApp::func_update(FILTER *fp, int status)
 		status == FILTER_UPDATE_STATUS_CHECK + CHECK_SHOW_TEXT)
 	{
 		// 拡張編集ウィンドウを再描画する。
-		::InvalidateRect(Exedit_GetExeditWindow(), 0, FALSE);
+		::InvalidateRect(m_auin.GetExeditWindow(), 0, FALSE);
 	}
 
 	return TRUE;
@@ -232,12 +256,12 @@ void CShowWaveformApp::getWaveform(FILTER *fp)
 	GetWaveform gw(fp);
 
 	// 選択アイテムを取得する。
-	int objectIndex = Exedit_GetCurrentObjectIndex();
+	int objectIndex = m_auin.GetCurrentObjectIndex();
 	MY_TRACE_INT(objectIndex);
 	if (objectIndex < 0) return;
 
 	// 中間点元を取得する。
-	int midptLeader = Exedit_GetObject(objectIndex)->index_midpt_leader;
+	int midptLeader = m_auin.GetObject(objectIndex)->index_midpt_leader;
 	MY_TRACE_INT(midptLeader);
 	if (midptLeader >= 0)
 		objectIndex = midptLeader; // 中間点がある場合は中間点元のオブジェクト ID を取得
@@ -245,7 +269,7 @@ void CShowWaveformApp::getWaveform(FILTER *fp)
 	while (objectIndex >= 0)
 	{
 		// オブジェクトを取得する。
-		auls::EXEDIT_OBJECT* object = Exedit_GetObject(objectIndex);
+		ExEdit::Object* object = m_auin.GetObject(objectIndex);
 		MY_TRACE_HEX(object);
 		if (!object) break;
 
@@ -262,7 +286,7 @@ void CShowWaveformApp::getWaveform(FILTER *fp)
 			break; // 中間点が存在しない場合はここでループ終了。
 
 		// 次の区間のオブジェクトを取得する。
-		objectIndex = Exedit_GetNextObjectIndex(objectIndex);
+		objectIndex = m_auin.GetNextObjectIndex(objectIndex);
 	}
 }
 
@@ -278,11 +302,11 @@ void CShowWaveformApp::getAllWaveform(FILTER *fp)
 //	m_waveformMap.clear();
 
 	// 現在のシーンのアイテムを列挙する。
-	int c = Exedit_GetCurrentSceneObjectCount();
+	int c = m_auin.GetCurrentSceneObjectCount();
 	for (int i = 0; i < c; i++)
 	{
-		auls::EXEDIT_OBJECT* object = Exedit_GetSortedObject(i);
-		if (!(object->type & auls::EXEDIT_OBJECT::TYPE_SOUND))
+		ExEdit::Object* object = m_auin.GetSortedObject(i);
+		if (!(object->flag & ExEdit::Object::Flag::Sound))
 			continue; // 音声波形を取得できるのはサウンドタイプのアイテムのみ。
 
 		// アイテムの音声波形を取得する。
@@ -296,12 +320,12 @@ void CShowWaveformApp::deleteWaveform(FILTER *fp)
 	MY_TRACE(_T("CShowWaveformApp::deleteWaveform()\n"));
 
 	// 選択アイテムを取得する。
-	int objectIndex = Exedit_GetCurrentObjectIndex();
+	int objectIndex = m_auin.GetCurrentObjectIndex();
 	MY_TRACE_INT(objectIndex);
 	if (objectIndex < 0) return;
 
 	// 中間点元を取得する。
-	int midptLeader = Exedit_GetObject(objectIndex)->index_midpt_leader;
+	int midptLeader = m_auin.GetObject(objectIndex)->index_midpt_leader;
 	MY_TRACE_INT(midptLeader);
 	if (midptLeader >= 0)
 		objectIndex = midptLeader; // 中間点がある場合は中間点元のオブジェクト ID を取得
@@ -309,7 +333,7 @@ void CShowWaveformApp::deleteWaveform(FILTER *fp)
 	while (objectIndex >= 0)
 	{
 		// オブジェクトを取得する。
-		auls::EXEDIT_OBJECT* object = Exedit_GetObject(objectIndex);
+		ExEdit::Object* object = m_auin.GetObject(objectIndex);
 		MY_TRACE_HEX(object);
 		if (!object) break;
 
@@ -326,11 +350,11 @@ void CShowWaveformApp::deleteWaveform(FILTER *fp)
 			break; // 中間点が存在しない場合はここでループ終了。
 
 		// 次の区間のオブジェクトを取得する。
-		objectIndex = Exedit_GetNextObjectIndex(objectIndex);
+		objectIndex = m_auin.GetNextObjectIndex(objectIndex);
 	}
 
 	// 拡張編集ウィンドウを再描画する。
-	::InvalidateRect(Exedit_GetExeditWindow(), 0, FALSE);
+	::InvalidateRect(m_auin.GetExeditWindow(), 0, FALSE);
 }
 
 // すべてのアイテムの音声波形を消去する。
@@ -342,7 +366,7 @@ void CShowWaveformApp::deleteAllWaveform(FILTER *fp)
 	m_waveformMap.clear();
 
 	// 拡張編集ウィンドウを再描画する。
-	::InvalidateRect(Exedit_GetExeditWindow(), 0, FALSE);
+	::InvalidateRect(m_auin.GetExeditWindow(), 0, FALSE);
 }
 
 // 音声波形の取得に必要なデータを取得する。
@@ -352,9 +376,9 @@ CShowWaveformApp::GetWaveform::GetWaveform(FILTER *fp)
 	startTime = ::timeGetTime();
 
 	// AviUtl フィルタオブジェクトを取得する。
-	filter = auls::AviUtl_GetFilter(fp, "拡張編集(音声)");
+	filter = theApp.m_auin.GetFilter(fp, "拡張編集(音声)");
 	// エディットハンドルを取得する。
-	editp = theApp.Exedit_GetEditp();
+	editp = theApp.m_auin.GetEditp();
 
 	// ファイル情報を取得する。
 	fp->exfunc->get_file_info(editp, &fi);
@@ -372,8 +396,8 @@ CShowWaveformApp::GetWaveform::GetWaveform(FILTER *fp)
 	fpi.editp = editp;
 
 	// フレーム増加数とサンプル増加数を取得する。
-	frameInc = std::max(1, fp->track[TRACK_FRAME_INC]);
-	sampleInc = std::max(1, fp->track[TRACK_SAMPLE_INC]);
+	frameInc = max(1, fp->track[TRACK_FRAME_INC]);
+	sampleInc = max(1, fp->track[TRACK_SAMPLE_INC]);
 	sampleInc *= fi.audio_ch;
 }
 
@@ -391,11 +415,11 @@ CShowWaveformApp::GetWaveform::~GetWaveform()
 	::SetWindowText(theApp.m_fp->hwnd, text);
 
 	// 拡張編集ウィンドウを再描画する。
-	::InvalidateRect(theApp.Exedit_GetExeditWindow(), 0, FALSE);
+	::InvalidateRect(theApp.m_auin.GetExeditWindow(), 0, FALSE);
 }
 
 // object の音声波形を取得する。
-void CShowWaveformApp::GetWaveform::get(auls::EXEDIT_OBJECT* object)
+void CShowWaveformApp::GetWaveform::get(ExEdit::Object* object)
 {
 	MY_TRACE_INT(object->frame_begin);
 	MY_TRACE_INT(object->frame_end);
@@ -409,18 +433,18 @@ void CShowWaveformApp::GetWaveform::get(auls::EXEDIT_OBJECT* object)
 	waveform->m_frameBegin = object->frame_begin;
 	waveform->m_frameEnd = object->frame_end;
 
-	std::vector<auls::EXEDIT_OBJECT*> soundObjects;
+	std::vector<ExEdit::Object*> soundObjects;
 	{
 		// 一時的にフラグを消去する。
 
-		int c = theApp.Exedit_GetCurrentSceneObjectCount();
+		int c = theApp.m_auin.GetCurrentSceneObjectCount();
 		for (int i = 0; i < c; i++)
 		{
-			auls::EXEDIT_OBJECT* soundObject = theApp.Exedit_GetSortedObject(i);
+			ExEdit::Object* soundObject = theApp.m_auin.GetSortedObject(i);
 			if (soundObject == object) continue;
-			if (!(soundObject->type & auls::EXEDIT_OBJECT::TYPE_SOUND)) continue;
+			if (!(soundObject->flag & ExEdit::Object::Flag::Sound)) continue;
 
-			soundObject->type &= ~auls::EXEDIT_OBJECT::TYPE_SOUND;
+			soundObject->flag &= ~ExEdit::Object::Flag::Sound;
 			soundObjects.push_back(soundObject);
 		}
 	}
@@ -447,11 +471,11 @@ void CShowWaveformApp::GetWaveform::get(auls::EXEDIT_OBJECT* object)
 		// フラグをリストアする。
 
 		for (auto soundObject : soundObjects)
-			soundObject->type |= auls::EXEDIT_OBJECT::TYPE_SOUND;
+			soundObject->flag |= ExEdit::Object::Flag::Sound;
 	}
 }
 
-void CShowWaveformApp::GetWaveform::getInternal(auls::EXEDIT_OBJECT* object, Waveform* waveform, int frame)
+void CShowWaveformApp::GetWaveform::getInternal(ExEdit::Object* object, Waveform* waveform, int frame)
 {
 	// 音声データを取得するフレームを設定する。
 	fpi.frame = frame;
@@ -469,8 +493,8 @@ void CShowWaveformApp::GetWaveform::getInternal(auls::EXEDIT_OBJECT* object, Wav
 	{
 		for (int j = 0; j < fi.audio_ch; j++)
 		{
-			min = std::min(min, buffer[i + j]);
-			max = std::max(max, buffer[i + j]);
+			min = min(min, buffer[i + j]);
+			max = max(max, buffer[i + j]);
 		}
 	}
 
@@ -487,7 +511,7 @@ void CShowWaveformApp::drawWaveform(HDC dc, LPCRECT rc)
 	WaveformPtr waveform = it->second;
 	if (!waveform) return;
 
-	int scaleDiv = std::max(1, m_fp->track[TRACK_SCALE_DIV]);
+	int scaleDiv = max(1, m_fp->track[TRACK_SCALE_DIV]);
 
 	int w = rc->right - rc->left;
 	int h = rc->bottom - rc->top;
@@ -509,7 +533,7 @@ void CShowWaveformApp::drawWaveform(HDC dc, LPCRECT rc)
 			for (int i = 0; i < c; i++)
 			{
 				const Sample& sample = waveform->m_sampleArray[i];
-				int x = (int)m_FrameToX(sample.m_frame + m_currentDrawObject->frame_begin);
+				int x = (int)m_auin.FrameToX(sample.m_frame + m_currentDrawObject->frame_begin);
 				points[i].x = x;
 				points[i].y = cy + sample.m_min / div;
 				points[c * 2 - i - 1].x = x;
@@ -534,7 +558,7 @@ void CShowWaveformApp::drawWaveform(HDC dc, LPCRECT rc)
 			for (int i = 0; i < c; i++)
 			{
 				const Sample& sample = waveform->m_sampleArray[i];
-				int x = (int)m_FrameToX(sample.m_frame + m_currentDrawObject->frame_begin);
+				int x = (int)m_auin.FrameToX(sample.m_frame + m_currentDrawObject->frame_begin);
 				points[i + 1].x = x;
 				points[i + 1].y = rc->bottom + sample.m_min / div;
 			}
@@ -557,7 +581,7 @@ void CShowWaveformApp::drawWaveform(HDC dc, LPCRECT rc)
 			for (int i = 0; i < c; i++)
 			{
 				const Sample& sample = waveform->m_sampleArray[i];
-				int x = (int)m_FrameToX(sample.m_frame + m_currentDrawObject->frame_begin);
+				int x = (int)m_auin.FrameToX(sample.m_frame + m_currentDrawObject->frame_begin);
 				points[i + 1].x = x;
 				points[i + 1].y = rc->top + sample.m_max / div;
 			}
@@ -586,7 +610,7 @@ IMPLEMENT_HOOK_PROC_NULL(void, CDECL, DrawObject, (HDC dc, int objectIndex))
 	MY_TRACE(_T("DrawObject(%d)\n"), objectIndex);
 
 	// 描画オブジェクトを保存しておく。
-	theApp.m_currentDrawObject = theApp.Exedit_GetObject(objectIndex);
+	theApp.m_currentDrawObject = theApp.m_auin.GetObject(objectIndex);
 	true_DrawObject(dc, objectIndex);
 	// 描画オブジェクトをクリアする。
 	theApp.m_currentDrawObject = 0;
@@ -595,10 +619,10 @@ IMPLEMENT_HOOK_PROC_NULL(void, CDECL, DrawObject, (HDC dc, int objectIndex))
 BOOL WINAPI drawObjectText(HDC dc, int x, int y, UINT options, LPCRECT rc, LPCSTR text, UINT c, CONST INT* dx)
 {
 	MY_TRACE(_T("drawObjectText(0x%08X, %d, %d, 0x%08X)\n"), dc, x, y, options);
-	MY_TRACE_RECT2(rc[0]);
-	MY_TRACE_RECT2(rc[1]);
+	MY_TRACE_RECT2(rc[0]); // クリッピング矩形
+	MY_TRACE_RECT2(rc[1]); // アイテム全体の矩形
 
-	if (!(theApp.m_currentDrawObject->type & auls::EXEDIT_OBJECT::TYPE_SOUND))
+	if (!(theApp.m_currentDrawObject->flag & ExEdit::Object::Flag::Sound))
 		return ::ExtTextOut(dc, x, y, options, rc, text, c, dx);
 
 	// フラグが立っている場合はテキストを描画する。

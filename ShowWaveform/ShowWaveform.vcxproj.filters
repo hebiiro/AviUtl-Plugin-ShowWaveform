@@ -4,35 +4,20 @@
     <Filter Include="Common">
       <UniqueIdentifier>{79bae488-39c4-4741-beda-1e2ee6428bed}</UniqueIdentifier>
     </Filter>
-    <Filter Include="AviUtl">
-      <UniqueIdentifier>{4d2e4585-d04a-4741-b8f7-db9c25dac0e5}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="AviUtl\aulslib">
-      <UniqueIdentifier>{c0a3bd81-3571-465f-9341-fcee23d62034}</UniqueIdentifier>
-    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pch.h" />
-    <ClInclude Include="..\Common\MyTracer.h">
+    <ClInclude Include="ShowWaveform.h" />
+    <ClInclude Include="..\..\Common\AviUtlInternal.h">
       <Filter>Common</Filter>
     </ClInclude>
-    <ClInclude Include="ShowWaveform.h" />
-    <ClInclude Include="..\AviUtl\aulslib\aviutl.h">
-      <Filter>AviUtl\aulslib</Filter>
+    <ClInclude Include="..\..\Common\Hook.h">
+      <Filter>Common</Filter>
     </ClInclude>
-    <ClInclude Include="..\AviUtl\aulslib\exedit.h">
-      <Filter>AviUtl\aulslib</Filter>
+    <ClInclude Include="..\..\Common\Profile.h">
+      <Filter>Common</Filter>
     </ClInclude>
-    <ClInclude Include="..\AviUtl\aulslib\lua.h">
-      <Filter>AviUtl\aulslib</Filter>
-    </ClInclude>
-    <ClInclude Include="..\AviUtl\aulslib\memref.h">
-      <Filter>AviUtl\aulslib</Filter>
-    </ClInclude>
-    <ClInclude Include="..\AviUtl\aulslib\memref2.h">
-      <Filter>AviUtl\aulslib</Filter>
-    </ClInclude>
-    <ClInclude Include="..\Common\Profile.h">
+    <ClInclude Include="..\..\Common\Tracer.h">
       <Filter>Common</Filter>
     </ClInclude>
   </ItemGroup>

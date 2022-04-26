@@ -21,9 +21,11 @@
 #include <vector>
 #include <map>
 
-typedef const BYTE* LPCBYTE;
-#include "../AviUtl/aulslib/exedit.h"
-#include "../Common/MyTracer.h"
-#include "../Common/Profile.h"
-#include "../Detours.4.0.1/detours.h"
-#pragma comment(lib, "../Detours.4.0.1/detours.lib")
+#include "AviUtl/aviutl_plugin_sdk/filter.h"
+#include "AviUtl/aviutl_exedit_sdk/exedit.hpp"
+#include "Common/Tracer.h"
+#include "Common/Profile.h"
+#include "Common/Hook.h"
+#include "Common/AviUtlInternal.h"
+#include "Detours.4.0.1/detours.h"
+#pragma comment(lib, "Detours.4.0.1/detours.lib")
