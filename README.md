@@ -2,11 +2,22 @@
 
 ![アイテム内音声波形 1 0 0](https://user-images.githubusercontent.com/96464759/164222503-7f0e446a-5a7e-42b1-b052-0a500594eee5.png)
 
-* 2.0.0 by 蛇色 - 2022/04/26 更新モードを変更
-* 1.0.1 by 蛇色 - 2022/04/21 保存中は何もしないように修正
-* 1.0.0 by 蛇色 - 2022/04/20 初版
+* 2.1.0 - 2022/05/22 縮小率の上限を 4000 に変更
+* 2.0.0 - 2022/04/26 更新モードを変更
+* 1.0.1 - 2022/04/21 保存中は何もしないように修正
+* 1.0.0 - 2022/04/20 初版
 
 拡張編集ウィンドウの音声アイテム内に音声波形を表示します。
+
+## 免責事項
+
+このプラグインおよび同梱物を使用したことによって生じたすべての障害・損害・不具合等に関しては、私と私の関係者および私の所属するいかなる団体・組織とも、一切の責任を負いません。各自の責任においてご使用ください。
+
+## ダウンロード
+
+1. ページ右側にある [Releases](/../../releases) をクリックして移動します。
+2. ダウンロードしたいバージョンをクリックして移動します。
+3. Assets の下に圧縮ファイルがあるのでクリックしてダウンロードします。
 
 ## 導入方法
 
@@ -84,9 +95,16 @@ updateMode=0
 ## 動作確認
 
 * (必須) AviUtl 1.10 & 拡張編集 0.92 http://spring-fragrance.mints.ne.jp/aviutl/
-* (共存確認) patch.aul r19 https://scrapbox.io/ePi5131/patch.aul
+* (必須) patch.aul r24 https://scrapbox.io/ePi5131/patch.aul
 
 ## クレジット
 
-* Auls https://auls.client.jp/
-	* yulib、aulslib を使用しています。
+* Microsoft Research Detours Package https://github.com/microsoft/Detours
+* aviutl_exedit_sdk https://github.com/ePi5131/aviutl_exedit_sdk
+* Common Library https://github.com/hebiiro/Common-Library
+
+# 作成者情報
+ 
+* 作成者 - 蛇色 (へびいろ)
+* GitHub - https://github.com/hebiiro
+* Twitter - https://twitter.com/io_hebiiro

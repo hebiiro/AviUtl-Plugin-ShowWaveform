@@ -17,9 +17,9 @@ LPCSTR track_name[] =
 	"表示タイプ",
 	"更新モード",
 };
-int track_def[] = {  10,  10,  80, 0, 0 };
-int track_min[] = {   1,   1,   1, 0, 0 };
-int track_max[] = { 600, 800, 400, 2, 2 };
+int track_def[] = {  10,  10,   80, 0, 0 };
+int track_min[] = {   1,   1,    1, 0, 0 };
+int track_max[] = { 600, 800, 4000, 2, 2 };
 
 int CHECK_UPDATE_SELECTED_ITEM = 0;
 int CHECK_UPDATE_ALL_ITEMS = 1;
@@ -47,7 +47,7 @@ EXTERN_C FILTER_DLL __declspec(dllexport) * __stdcall GetFilterTable(void)
 	theApp.load(track_def);
 
 	static TCHAR filterName[] = TEXT("アイテム内音声波形");
-	static TCHAR filterInformation[] = TEXT("アイテム内音声波形 version 2.0.0 by 蛇色");
+	static TCHAR filterInformation[] = TEXT("アイテム内音声波形 version 2.1.0 by 蛇色");
 
 	static FILTER_DLL filter =
 	{

@@ -411,7 +411,7 @@ CShowWaveformApp::GetWaveform::~GetWaveform()
 
 	// 経過時間を出力する。
 	TCHAR text[MAX_PATH] = {};
-	::StringCbPrintf(text, sizeof(text), _T("音声波形表示 - %dms"), endTime - startTime);
+	::StringCbPrintf(text, sizeof(text), _T("アイテム内音声波形 - %dms"), endTime - startTime);
 	::SetWindowText(theApp.m_fp->hwnd, text);
 
 	// 拡張編集ウィンドウを再描画する。
