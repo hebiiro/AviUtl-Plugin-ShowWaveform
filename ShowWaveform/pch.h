@@ -1,6 +1,7 @@
 ﻿#pragma once
 
 #define WIN32_LEAN_AND_MEAN
+#define NOMINMAX
 #include <windows.h>
 #include <windowsx.h>
 #pragma comment(lib, "msimg32.lib")
@@ -21,7 +22,7 @@
 #include <vector>
 #include <map>
 
-#include "AviUtl/aviutl_plugin_sdk/filter.h"
+#include "AviUtl/aviutl_exedit_sdk/aviutl.hpp"
 #include "AviUtl/aviutl_exedit_sdk/exedit.hpp"
 #include "Common/Tracer.h"
 #include "Common/Profile.h"

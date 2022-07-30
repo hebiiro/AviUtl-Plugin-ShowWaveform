@@ -60,15 +60,15 @@ public:
 		DWORD startTime = 0;
 		DWORD endTime = 0;
 
-		FILTER* filter = 0;
-		void* editp = 0;
-		FILE_INFO fi = {};
+		AviUtl::FilterPlugin* filter = 0;
+		AviUtl::EditHandle* editp = 0;
+		AviUtl::FileInfo fi = {};
 		std::vector<short> buffer;
-		FILTER_PROC_INFO fpi = {};
+		AviUtl::FilterProcInfo fpi = {};
 		int frameInc = 0;
 		int sampleInc = 0;
 
-		GetWaveform(FILTER *fp);
+		GetWaveform(AviUtl::FilterPlugin* fp);
 		~GetWaveform();
 		void get(ExEdit::Object* object);
 		void getInternal(ExEdit::Object* object, Waveform* waveform, int frame);
@@ -79,7 +79,7 @@ public:
 	AviUtlInternal m_auin;
 
 	HINSTANCE m_instance;
-	FILTER* m_fp;
+	AviUtl::FilterPlugin* m_fp;
 	ExEdit::Object* m_currentDrawObject;
 	WaveformMap m_waveformMap;
 
@@ -93,16 +93,16 @@ public:
 
 	BOOL DllMain(HINSTANCE instance, DWORD reason, LPVOID reserved);
 	void load(int* track_def);
-	BOOL func_init(FILTER *fp);
-	BOOL func_exit(FILTER *fp);
-	BOOL func_proc(FILTER *fp, FILTER_PROC_INFO *fpip);
-	BOOL func_update(FILTER *fp, int status);
-	BOOL func_WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam, void *editp, FILTER *fp);
+	BOOL func_init(AviUtl::FilterPlugin* fp);
+	BOOL func_exit(AviUtl::FilterPlugin* fp);
+	BOOL func_proc(AviUtl::FilterPlugin* fp, AviUtl::FilterProcInfo* fpip);
+	BOOL func_update(AviUtl::FilterPlugin* fp, AviUtl::FilterPlugin::UpdateStatus status);
+	BOOL func_WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam, AviUtl::EditHandle* editp, AviUtl::FilterPlugin* fp);
 
-	void getWaveform(FILTER *fp);
-	void getAllWaveform(FILTER *fp);
-	void deleteWaveform(FILTER *fp);
-	void deleteAllWaveform(FILTER *fp);
+	void getWaveform(AviUtl::FilterPlugin* fp);
+	void getAllWaveform(AviUtl::FilterPlugin* fp);
+	void deleteWaveform(AviUtl::FilterPlugin* fp);
+	void deleteAllWaveform(AviUtl::FilterPlugin* fp);
 	void drawWaveform(HDC dc, LPCRECT rc);
 };
 

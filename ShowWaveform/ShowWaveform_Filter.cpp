@@ -1,7 +1,7 @@
 ﻿#include "pch.h"
 #include "ShowWaveform.h"
 
-//---------------------------------------------------------------------
+//--------------------------------------------------------------------
 
 int TRACK_FRAME_INC = 0;
 int TRACK_SAMPLE_INC = 1;
@@ -39,94 +39,71 @@ LPCSTR check_name[] =
 };
 int check_def[] = { -1, -1, -1, -1, 1, 1 };
 
-//---------------------------------------------------------------------
-//		フィルタ構造体のポインタを渡す関数
-//---------------------------------------------------------------------
-EXTERN_C FILTER_DLL __declspec(dllexport) * __stdcall GetFilterTable(void)
-{
-	theApp.load(track_def);
+//--------------------------------------------------------------------
 
-	static TCHAR filterName[] = TEXT("アイテム内音声波形");
-	static TCHAR filterInformation[] = TEXT("アイテム内音声波形 version 2.1.0 by 蛇色");
-
-	static FILTER_DLL filter =
-	{
-//		FILTER_FLAG_NO_CONFIG | // このフラグを指定するとウィンドウが作成されなくなってしまう。
-		FILTER_FLAG_ALWAYS_ACTIVE | // このフラグがないと「フィルタ」に ON/OFF を切り替えるための項目が追加されてしまう。
-//		FILTER_FLAG_DISP_FILTER | // このフラグがないと「設定」の方にウィンドウを表示するための項目が追加されてしまう。
-		FILTER_FLAG_AUDIO_FILTER |
-//		FILTER_FLAG_WINDOW_THICKFRAME |
-//		FILTER_FLAG_WINDOW_SIZE |
-		FILTER_FLAG_EX_INFORMATION,
-		0, 0,
-		filterName,
-		sizeof(track_name) / sizeof(*track_name), (TCHAR**)track_name, track_def, track_min, track_max,
-		sizeof(check_name) / sizeof(*check_name), (TCHAR**)check_name, check_def,
-		func_proc,
-		func_init,
-		func_exit,
-		func_update,
-		func_WndProc,
-		NULL, NULL,
-		NULL,
-		NULL,
-		filterInformation,
-		NULL, NULL,
-		NULL, NULL, NULL, NULL,
-		NULL,
-	};
-
-	return &filter;
-}
-
-//---------------------------------------------------------------------
-//		初期化
-//---------------------------------------------------------------------
-
-BOOL func_init(FILTER *fp)
+BOOL func_init(AviUtl::FilterPlugin* fp)
 {
 	return theApp.func_init(fp);
 }
 
-//---------------------------------------------------------------------
-//		終了
-//---------------------------------------------------------------------
-BOOL func_exit(FILTER *fp)
+BOOL func_exit(AviUtl::FilterPlugin* fp)
 {
 	return theApp.func_exit(fp);
 }
 
-//---------------------------------------------------------------------
-//		フィルタ関数
-//---------------------------------------------------------------------
-BOOL func_proc(FILTER *fp, FILTER_PROC_INFO *fpip)
+BOOL func_proc(AviUtl::FilterPlugin* fp, AviUtl::FilterProcInfo* fpip)
 {
 	return theApp.func_proc(fp, fpip);
 }
 
-//---------------------------------------------------------------------
-//		更新
-//---------------------------------------------------------------------
-
-BOOL func_update(FILTER *fp, int status)
+BOOL func_update(AviUtl::FilterPlugin* fp, AviUtl::FilterPlugin::UpdateStatus status)
 {
 	return theApp.func_update(fp, status);
 }
 
-//---------------------------------------------------------------------
-//		WndProc
-//---------------------------------------------------------------------
-BOOL func_WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam, void *editp, FILTER *fp)
+BOOL func_WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam, AviUtl::EditHandle* editp, AviUtl::FilterPlugin* fp)
 {
 	return theApp.func_WndProc(hwnd, message, wParam, lParam, editp, fp);
 }
 
-//---------------------------------------------------------------------
-//		DllMain
-//---------------------------------------------------------------------
 BOOL APIENTRY DllMain(HINSTANCE instance, DWORD reason, LPVOID reserved)
 {
 	return theApp.DllMain(instance, reason, reserved);
 }
 
-//---------------------------------------------------------------------
+//--------------------------------------------------------------------
+
+EXTERN_C AviUtl::FilterPluginDLL* CALLBACK GetFilterTable()
+{
+	theApp.load(track_def);
+
+	LPCSTR name = "アイテム内音声波形";
+	LPCSTR information = "アイテム内音声波形 2.2.0 by 蛇色";
+
+	static AviUtl::FilterPluginDLL filter =
+	{
+		.flag =
+			AviUtl::detail::FilterPluginFlag::AlwaysActive |
+			AviUtl::detail::FilterPluginFlag::DispFilter |
+			AviUtl::detail::FilterPluginFlag::ExInformation,
+		.name = name,
+		.track_n = sizeof(track_name) / sizeof(*track_name),
+		.track_name = track_name,
+		.track_default = track_def,
+		.track_s = track_min,
+		.track_e = track_max,
+		.check_n = sizeof(check_name) / sizeof(*check_name),
+		.check_name = check_name,
+		.check_default = check_def,
+		.func_proc = func_proc,
+		.func_init = func_init,
+		.func_exit = func_exit,
+		.func_update = func_update,
+		.func_WndProc = func_WndProc,
+		.information = information,
+	};
+
+	return &filter;
+}
+
+//--------------------------------------------------------------------

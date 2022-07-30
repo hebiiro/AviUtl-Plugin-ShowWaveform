@@ -67,16 +67,16 @@ void CShowWaveformApp::load(int* track_def)
 	getPrivateProfileInt(fileName, L"Config", L"updateMode", track_def[4]);
 }
 
-BOOL CShowWaveformApp::func_init(FILTER *fp)
+BOOL CShowWaveformApp::func_init(AviUtl::FilterPlugin* fp)
 {
 	MY_TRACE(_T("CShowWaveformApp::func_init()\n"));
 
-	m_auin.init();
+	m_auin.initExEditAddress();
 
 	m_fp = fp;
 
 	true_DrawObject = m_auin.GetDrawObject();
-	hookAbsoluteCall(m_auin.GetExedit() + 0x0003794B, drawObjectText);
+	hookAbsoluteCall(m_auin.GetExEdit() + 0x0003794B, drawObjectText);
 
 	DetourTransactionBegin();
 	DetourUpdateThread(::GetCurrentThread());
@@ -92,24 +92,27 @@ BOOL CShowWaveformApp::func_init(FILTER *fp)
 		MY_TRACE(_T("API フックに失敗しました\n"));
 	}
 
-	fp->exfunc->add_menu_item(fp, (LPSTR)"選択アイテムを更新", fp->hwnd, CHECK_UPDATE_SELECTED_ITEM, 0, 0);
-	fp->exfunc->add_menu_item(fp, (LPSTR)"すべてのアイテムを更新", fp->hwnd, CHECK_UPDATE_ALL_ITEMS, 0, 0);
-	fp->exfunc->add_menu_item(fp, (LPSTR)"選択アイテムの波形を消去", fp->hwnd, CHECK_DELETE_SELECTED_ITEM, 0, 0);
-	fp->exfunc->add_menu_item(fp, (LPSTR)"すべてのアイテムの波形を消去", fp->hwnd, CHECK_DELETE_ALL_ITEMS, 0, 0);
+	fp->exfunc->add_menu_item(fp, "選択アイテムを更新", fp->hwnd, CHECK_UPDATE_SELECTED_ITEM, 0, AviUtl::ExFunc::AddMenuItemFlag::None);
+	fp->exfunc->add_menu_item(fp, "すべてのアイテムを更新", fp->hwnd, CHECK_UPDATE_ALL_ITEMS, 0, AviUtl::ExFunc::AddMenuItemFlag::None);
+	fp->exfunc->add_menu_item(fp, "選択アイテムの波形を消去", fp->hwnd, CHECK_DELETE_SELECTED_ITEM, 0, AviUtl::ExFunc::AddMenuItemFlag::None);
+	fp->exfunc->add_menu_item(fp, "すべてのアイテムの波形を消去", fp->hwnd, CHECK_DELETE_ALL_ITEMS, 0, AviUtl::ExFunc::AddMenuItemFlag::None);
 
 	return TRUE;
 }
 
-BOOL CShowWaveformApp::func_exit(FILTER *fp)
+BOOL CShowWaveformApp::func_exit(AviUtl::FilterPlugin* fp)
 {
 	MY_TRACE(_T("CShowWaveformApp::func_exit()\n"));
 
 	return TRUE;
 }
 
-BOOL CShowWaveformApp::func_proc(FILTER *fp, FILTER_PROC_INFO *fpip)
+BOOL CShowWaveformApp::func_proc(AviUtl::FilterPlugin* fp, AviUtl::FilterProcInfo* fpip)
 {
 	MY_TRACE(_T("CShowWaveformApp::func_proc()\n"));
+
+	if (!fp->exfunc->is_editing(fpip->editp))
+		return FALSE; // 編集中ではないときは何もしない。
 
 	if (fp->exfunc->is_saving(fpip->editp))
 		return FALSE; // 音声を保存するときは何もしない。
@@ -189,42 +192,40 @@ BOOL CShowWaveformApp::func_proc(FILTER *fp, FILTER_PROC_INFO *fpip)
 	return FALSE;
 }
 
-BOOL CShowWaveformApp::func_update(FILTER *fp, int status)
+BOOL CShowWaveformApp::func_update(AviUtl::FilterPlugin* fp, AviUtl::FilterPlugin::UpdateStatus status)
 {
-	if (status == FILTER_UPDATE_STATUS_TRACK + TRACK_SCALE_DIV ||
-		status == FILTER_UPDATE_STATUS_TRACK + TRACK_SHOW_TYPE ||
-		status == FILTER_UPDATE_STATUS_CHECK + CHECK_UPDATE_SELECTED_ITEM ||
-		status == FILTER_UPDATE_STATUS_CHECK + CHECK_UPDATE_ALL_ITEMS ||
-		status == FILTER_UPDATE_STATUS_CHECK + CHECK_DELETE_SELECTED_ITEM ||
-		status == FILTER_UPDATE_STATUS_CHECK + CHECK_DELETE_ALL_ITEMS ||
-		status == FILTER_UPDATE_STATUS_CHECK + CHECK_SHOW_WAVEFORM ||
-		status == FILTER_UPDATE_STATUS_CHECK + CHECK_SHOW_TEXT)
+	int index = fp->get_updated_idx(status);
+
+	if (index == TRACK_SCALE_DIV ||
+		index == TRACK_SHOW_TYPE ||
+		index == CHECK_UPDATE_SELECTED_ITEM ||
+		index == CHECK_UPDATE_ALL_ITEMS ||
+		index == CHECK_DELETE_SELECTED_ITEM ||
+		index == CHECK_DELETE_ALL_ITEMS ||
+		index == CHECK_SHOW_WAVEFORM ||
+		index == CHECK_SHOW_TEXT)
 	{
 		// 拡張編集ウィンドウを再描画する。
-		::InvalidateRect(m_auin.GetExeditWindow(), 0, FALSE);
+		::InvalidateRect(m_auin.GetExEditWindow(), 0, FALSE);
 	}
 
 	return TRUE;
 }
 
-BOOL CShowWaveformApp::func_WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam, void *editp, FILTER *fp)
+BOOL CShowWaveformApp::func_WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam, AviUtl::EditHandle* editp, AviUtl::FilterPlugin* fp)
 {
 	switch (message)
 	{
-	case WM_FILTER_CHANGE_WINDOW:
-		{
-			MY_TRACE(_T("CShowWaveformApp::func_WndProc(WM_FILTER_CHANGE_WINDOW)\n"));
-
-			break;
-		}
 	case WM_KEYDOWN:
 	case WM_SYSKEYDOWN:
 		{
 			::SendMessage(::GetWindow(hwnd, GW_OWNER), message, wParam, lParam);
 			break;
 		}
-	case WM_FILTER_COMMAND:
+	case AviUtl::FilterPlugin::WindowMessage::Command:
 		{
+			MY_TRACE(_T("CShowWaveformApp::func_WndProc(Command, 0x%08X, 0x%08X)\n"), wParam, lParam);
+
 			int index = LOWORD(wParam);
 			MY_TRACE_INT(index);
 
@@ -232,7 +233,7 @@ BOOL CShowWaveformApp::func_WndProc(HWND hwnd, UINT message, WPARAM wParam, LPAR
 		}
 	case WM_COMMAND:
 		{
-			int index = LOWORD(wParam) - MID_FILTER_BUTTON;
+			int index = LOWORD(wParam) - AviUtl::FilterPlugin::MidFilterButton;
 			MY_TRACE_INT(index);
 
 			if (index == CHECK_UPDATE_SELECTED_ITEM) getWaveform(fp);
@@ -248,7 +249,7 @@ BOOL CShowWaveformApp::func_WndProc(HWND hwnd, UINT message, WPARAM wParam, LPAR
 }
 
 // 選択アイテムの音声波形を取得する。
-void CShowWaveformApp::getWaveform(FILTER *fp)
+void CShowWaveformApp::getWaveform(AviUtl::FilterPlugin* fp)
 {
 	MY_TRACE(_T("CShowWaveformApp::getWaveform()\n"));
 
@@ -291,7 +292,7 @@ void CShowWaveformApp::getWaveform(FILTER *fp)
 }
 
 // すべてのアイテムの音声波形を取得する。
-void CShowWaveformApp::getAllWaveform(FILTER *fp)
+void CShowWaveformApp::getAllWaveform(AviUtl::FilterPlugin* fp)
 {
 	MY_TRACE(_T("CShowWaveformApp::getAllWaveform()\n"));
 
@@ -315,7 +316,7 @@ void CShowWaveformApp::getAllWaveform(FILTER *fp)
 }
 
 // 選択アイテムの音声波形を消去する。
-void CShowWaveformApp::deleteWaveform(FILTER *fp)
+void CShowWaveformApp::deleteWaveform(AviUtl::FilterPlugin* fp)
 {
 	MY_TRACE(_T("CShowWaveformApp::deleteWaveform()\n"));
 
@@ -354,11 +355,11 @@ void CShowWaveformApp::deleteWaveform(FILTER *fp)
 	}
 
 	// 拡張編集ウィンドウを再描画する。
-	::InvalidateRect(m_auin.GetExeditWindow(), 0, FALSE);
+	::InvalidateRect(m_auin.GetExEditWindow(), 0, FALSE);
 }
 
 // すべてのアイテムの音声波形を消去する。
-void CShowWaveformApp::deleteAllWaveform(FILTER *fp)
+void CShowWaveformApp::deleteAllWaveform(AviUtl::FilterPlugin* fp)
 {
 	MY_TRACE(_T("CShowWaveformApp::deleteAllWaveform()\n"));
 
@@ -366,11 +367,11 @@ void CShowWaveformApp::deleteAllWaveform(FILTER *fp)
 	m_waveformMap.clear();
 
 	// 拡張編集ウィンドウを再描画する。
-	::InvalidateRect(m_auin.GetExeditWindow(), 0, FALSE);
+	::InvalidateRect(m_auin.GetExEditWindow(), 0, FALSE);
 }
 
 // 音声波形の取得に必要なデータを取得する。
-CShowWaveformApp::GetWaveform::GetWaveform(FILTER *fp)
+CShowWaveformApp::GetWaveform::GetWaveform(AviUtl::FilterPlugin* fp)
 {
 	// 開始時間を取得する。
 	startTime = ::timeGetTime();
@@ -382,12 +383,12 @@ CShowWaveformApp::GetWaveform::GetWaveform(FILTER *fp)
 
 	// ファイル情報を取得する。
 	fp->exfunc->get_file_info(editp, &fi);
-	fi.audio_n = fi.audio_rate / fi.video_rate;
+	fi.audio_n = fi.audio_rate * fi.video_scale / fi.video_rate;
 
 	// 音声データを格納するバッファを確保する。
 	buffer.resize(fi.audio_n * fi.audio_ch, 0);
 
-	// FILTER_PROC_INFO を構築する。
+	// AviUtl::FilterProcInfo を構築する。
 	fpi.frame = 0;
 	fpi.frame_n = fi.frame_n;
 	fpi.audiop = buffer.data();
@@ -396,8 +397,8 @@ CShowWaveformApp::GetWaveform::GetWaveform(FILTER *fp)
 	fpi.editp = editp;
 
 	// フレーム増加数とサンプル増加数を取得する。
-	frameInc = max(1, fp->track[TRACK_FRAME_INC]);
-	sampleInc = max(1, fp->track[TRACK_SAMPLE_INC]);
+	frameInc = std::max(1, fp->track[TRACK_FRAME_INC]);
+	sampleInc = std::max(1, fp->track[TRACK_SAMPLE_INC]);
 	sampleInc *= fi.audio_ch;
 }
 
@@ -415,7 +416,7 @@ CShowWaveformApp::GetWaveform::~GetWaveform()
 	::SetWindowText(theApp.m_fp->hwnd, text);
 
 	// 拡張編集ウィンドウを再描画する。
-	::InvalidateRect(theApp.m_auin.GetExeditWindow(), 0, FALSE);
+	::InvalidateRect(theApp.m_auin.GetExEditWindow(), 0, FALSE);
 }
 
 // object の音声波形を取得する。
@@ -493,8 +494,8 @@ void CShowWaveformApp::GetWaveform::getInternal(ExEdit::Object* object, Waveform
 	{
 		for (int j = 0; j < fi.audio_ch; j++)
 		{
-			min = min(min, buffer[i + j]);
-			max = max(max, buffer[i + j]);
+			min = std::min(min, buffer[i + j]);
+			max = std::max(max, buffer[i + j]);
 		}
 	}
 
@@ -511,7 +512,7 @@ void CShowWaveformApp::drawWaveform(HDC dc, LPCRECT rc)
 	WaveformPtr waveform = it->second;
 	if (!waveform) return;
 
-	int scaleDiv = max(1, m_fp->track[TRACK_SCALE_DIV]);
+	int scaleDiv = std::max(1, m_fp->track[TRACK_SCALE_DIV]);
 
 	int w = rc->right - rc->left;
 	int h = rc->bottom - rc->top;
