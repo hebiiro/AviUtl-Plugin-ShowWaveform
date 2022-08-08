@@ -21,6 +21,7 @@ extern int CHECK_DELETE_SELECTED_ITEM;
 extern int CHECK_DELETE_ALL_ITEMS;
 extern int CHECK_SHOW_WAVEFORM;
 extern int CHECK_SHOW_TEXT;
+extern int CHECK_NO_SCROLL_TEXT;
 
 //---------------------------------------------------------------------
 
@@ -92,7 +93,7 @@ public:
 	~CShowWaveformApp();
 
 	BOOL DllMain(HINSTANCE instance, DWORD reason, LPVOID reserved);
-	void load(int* track_def);
+	void load(int* track_def, int* check_def);
 	BOOL func_init(AviUtl::FilterPlugin* fp);
 	BOOL func_exit(AviUtl::FilterPlugin* fp);
 	BOOL func_proc(AviUtl::FilterPlugin* fp, AviUtl::FilterProcInfo* fpip);

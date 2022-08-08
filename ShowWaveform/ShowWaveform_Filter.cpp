@@ -27,6 +27,7 @@ int CHECK_DELETE_SELECTED_ITEM = 2;
 int CHECK_DELETE_ALL_ITEMS = 3;
 int CHECK_SHOW_WAVEFORM = 4;
 int CHECK_SHOW_TEXT = 5;
+int CHECK_NO_SCROLL_TEXT = 6;
 
 LPCSTR check_name[] =
 {
@@ -36,8 +37,9 @@ LPCSTR check_name[] =
 	"すべてのアイテムの波形を消去",
 	"音声波形を表示",
 	"テキストを表示",
+	"テキストをスクロールしない",
 };
-int check_def[] = { -1, -1, -1, -1, 1, 1 };
+int check_def[] = { -1, -1, -1, -1, 1, 1, 1 };
 
 //--------------------------------------------------------------------
 
@@ -75,17 +77,17 @@ BOOL APIENTRY DllMain(HINSTANCE instance, DWORD reason, LPVOID reserved)
 
 EXTERN_C AviUtl::FilterPluginDLL* CALLBACK GetFilterTable()
 {
-	theApp.load(track_def);
+	theApp.load(track_def, check_def);
 
 	LPCSTR name = "アイテム内音声波形";
-	LPCSTR information = "アイテム内音声波形 2.2.0 by 蛇色";
+	LPCSTR information = "アイテム内音声波形 2.3.0 by 蛇色";
 
 	static AviUtl::FilterPluginDLL filter =
 	{
 		.flag =
-			AviUtl::detail::FilterPluginFlag::AlwaysActive |
-			AviUtl::detail::FilterPluginFlag::DispFilter |
-			AviUtl::detail::FilterPluginFlag::ExInformation,
+			AviUtl::FilterPluginDLL::Flag::AlwaysActive |
+			AviUtl::FilterPluginDLL::Flag::DispFilter |
+			AviUtl::FilterPluginDLL::Flag::ExInformation,
 		.name = name,
 		.track_n = sizeof(track_name) / sizeof(*track_name),
 		.track_name = track_name,

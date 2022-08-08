@@ -50,7 +50,7 @@ BOOL CShowWaveformApp::DllMain(HINSTANCE instance, DWORD reason, LPVOID reserved
 	return TRUE;
 }
 
-void CShowWaveformApp::load(int* track_def)
+void CShowWaveformApp::load(int* track_def, int* check_def)
 {
 	// ini ファイルから設定を読み込む。
 	WCHAR fileName[MAX_PATH] = {};
@@ -60,11 +60,14 @@ void CShowWaveformApp::load(int* track_def)
 
 	getPrivateProfileColor(fileName, L"Config", L"penColor", m_penColor);
 	getPrivateProfileColor(fileName, L"Config", L"brushColor", m_brushColor);
-	getPrivateProfileInt(fileName, L"Config", L"frameInc", track_def[0]);
-	getPrivateProfileInt(fileName, L"Config", L"sampleInc", track_def[1]);
-	getPrivateProfileInt(fileName, L"Config", L"scaleDiv", track_def[2]);
-	getPrivateProfileInt(fileName, L"Config", L"showType", track_def[3]);
-	getPrivateProfileInt(fileName, L"Config", L"updateMode", track_def[4]);
+	getPrivateProfileInt(fileName, L"Config", L"frameInc", track_def[TRACK_FRAME_INC]);
+	getPrivateProfileInt(fileName, L"Config", L"sampleInc", track_def[TRACK_SAMPLE_INC]);
+	getPrivateProfileInt(fileName, L"Config", L"scaleDiv", track_def[TRACK_SCALE_DIV]);
+	getPrivateProfileInt(fileName, L"Config", L"showType", track_def[TRACK_SHOW_TYPE]);
+	getPrivateProfileInt(fileName, L"Config", L"updateMode", track_def[TRACK_UPDATE_MODE]);
+	getPrivateProfileInt(fileName, L"Config", L"showWaveform", check_def[CHECK_SHOW_WAVEFORM]);
+	getPrivateProfileInt(fileName, L"Config", L"showText", check_def[CHECK_SHOW_TEXT]);
+	getPrivateProfileInt(fileName, L"Config", L"noScrollText", check_def[CHECK_NO_SCROLL_TEXT]);
 }
 
 BOOL CShowWaveformApp::func_init(AviUtl::FilterPlugin* fp)
@@ -203,7 +206,8 @@ BOOL CShowWaveformApp::func_update(AviUtl::FilterPlugin* fp, AviUtl::FilterPlugi
 		index == CHECK_DELETE_SELECTED_ITEM ||
 		index == CHECK_DELETE_ALL_ITEMS ||
 		index == CHECK_SHOW_WAVEFORM ||
-		index == CHECK_SHOW_TEXT)
+		index == CHECK_SHOW_TEXT ||
+		index == CHECK_NO_SCROLL_TEXT)
 	{
 		// 拡張編集ウィンドウを再描画する。
 		::InvalidateRect(m_auin.GetExEditWindow(), 0, FALSE);
@@ -622,6 +626,9 @@ BOOL WINAPI drawObjectText(HDC dc, int x, int y, UINT options, LPCRECT rc, LPCST
 	MY_TRACE(_T("drawObjectText(0x%08X, %d, %d, 0x%08X)\n"), dc, x, y, options);
 	MY_TRACE_RECT2(rc[0]); // クリッピング矩形
 	MY_TRACE_RECT2(rc[1]); // アイテム全体の矩形
+
+	if (theApp.m_fp->check[CHECK_NO_SCROLL_TEXT])
+		x = std::max(70, x);
 
 	if (!(theApp.m_currentDrawObject->flag & ExEdit::Object::Flag::Sound))
 		return ::ExtTextOut(dc, x, y, options, rc, text, c, dx);
