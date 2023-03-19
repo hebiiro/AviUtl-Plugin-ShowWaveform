@@ -4,9 +4,11 @@
     <Filter Include="Common">
       <UniqueIdentifier>{79bae488-39c4-4741-beda-1e2ee6428bed}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Framework">
+      <UniqueIdentifier>{d8bd7764-ca8e-4dc1-8b9e-3ae1918c9bb9}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="pch.h" />
     <ClInclude Include="ShowWaveform.h" />
     <ClInclude Include="..\..\Common\AviUtlInternal.h">
       <Filter>Common</Filter>
@@ -20,10 +22,32 @@
     <ClInclude Include="..\..\Common\Tracer.h">
       <Filter>Common</Filter>
     </ClInclude>
+    <ClInclude Include="FileCache.h" />
+    <ClInclude Include="App.h" />
+    <ClInclude Include="ItemCache.h" />
+    <ClInclude Include="pch.h">
+      <Filter>Framework</Filter>
+    </ClInclude>
+    <ClInclude Include="Share.h" />
+    <ClInclude Include="Sender.h" />
+    <ClInclude Include="SubProcess.h" />
+    <ClInclude Include="SubThread.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="pch.cpp" />
     <ClCompile Include="ShowWaveform.cpp" />
-    <ClCompile Include="ShowWaveform_Filter.cpp" />
+    <ClCompile Include="FileCache.cpp" />
+    <ClCompile Include="App.cpp" />
+    <ClCompile Include="ItemCache.cpp" />
+    <ClCompile Include="pch.cpp">
+      <Filter>Framework</Filter>
+    </ClCompile>
+    <ClCompile Include="Sender.cpp" />
+    <ClCompile Include="SubProcess.cpp" />
+    <ClCompile Include="SubThread.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="ShowWaveform.def">
+      <Filter>Framework</Filter>
+    </None>
   </ItemGroup>
 </Project>
