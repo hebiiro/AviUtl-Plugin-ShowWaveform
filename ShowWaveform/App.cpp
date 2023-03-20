@@ -50,12 +50,32 @@ void App::load(int* track_def, int* check_def)
 
 	getPrivateProfileColor(fileName, L"Config", L"penColor", m_penColor);
 	getPrivateProfileColor(fileName, L"Config", L"brushColor", m_brushColor);
-	getPrivateProfileInt(fileName, L"Config", L"scale", track_def[TRACK_SCALE]);
-	getPrivateProfileInt(fileName, L"Config", L"showType", track_def[TRACK_SHOW_TYPE]);
-	getPrivateProfileInt(fileName, L"Config", L"updateMode", track_def[TRACK_UPDATE_MODE]);
-	getPrivateProfileInt(fileName, L"Config", L"showWaveform", check_def[CHECK_SHOW_WAVEFORM]);
-	getPrivateProfileInt(fileName, L"Config", L"showText", check_def[CHECK_SHOW_TEXT]);
-	getPrivateProfileInt(fileName, L"Config", L"noScrollText", check_def[CHECK_NO_SCROLL_TEXT]);
+	getPrivateProfileInt(fileName, L"Config", L"scale", track_def[Track::Scale]);
+	getPrivateProfileInt(fileName, L"Config", L"showType", track_def[Track::ShowType]);
+	getPrivateProfileInt(fileName, L"Config", L"updateMode", track_def[Track::UpdateMode]);
+	getPrivateProfileInt(fileName, L"Config", L"xorMode", track_def[Track::XORMode]);
+	getPrivateProfileInt(fileName, L"Config", L"showWaveform", check_def[Check::ShowWaveform]);
+	getPrivateProfileInt(fileName, L"Config", L"showText", check_def[Check::ShowText]);
+	getPrivateProfileInt(fileName, L"Config", L"noScrollText", check_def[Check::NoScrollText]);
+}
+
+void App::save(int* track_def, int* check_def)
+{
+	// ini ファイルから設定を読み込む。
+	WCHAR fileName[MAX_PATH] = {};
+	::GetModuleFileNameW(m_instance, fileName, MAX_PATH);
+	::PathRenameExtensionW(fileName, L".ini");
+	MY_TRACE_WSTR(fileName);
+
+	setPrivateProfileColor(fileName, L"Config", L"penColor", m_penColor);
+	setPrivateProfileColor(fileName, L"Config", L"brushColor", m_brushColor);
+	setPrivateProfileInt(fileName, L"Config", L"scale", track_def[Track::Scale]);
+	setPrivateProfileInt(fileName, L"Config", L"showType", track_def[Track::ShowType]);
+	setPrivateProfileInt(fileName, L"Config", L"updateMode", track_def[Track::UpdateMode]);
+	setPrivateProfileInt(fileName, L"Config", L"xorMode", track_def[Track::XORMode]);
+	setPrivateProfileInt(fileName, L"Config", L"showWaveform", check_def[Check::ShowWaveform]);
+	setPrivateProfileInt(fileName, L"Config", L"showText", check_def[Check::ShowText]);
+	setPrivateProfileInt(fileName, L"Config", L"noScrollText", check_def[Check::NoScrollText]);
 }
 
 BOOL App::func_init(AviUtl::FilterPlugin* fp)
@@ -73,6 +93,8 @@ BOOL App::func_init(AviUtl::FilterPlugin* fp)
 
 	true_DrawObject = m_auin.GetDrawObject();
 	hookAbsoluteCall(m_auin.GetExEdit() + 0x0003794B, drawObjectText);
+
+	castAddress(CallShowColorDialog, m_auin.GetExEdit() + 0x0004D2A0);
 
 	DetourTransactionBegin();
 	DetourUpdateThread(::GetCurrentThread());
@@ -113,7 +135,7 @@ BOOL App::func_proc(AviUtl::FilterPlugin* fp, AviUtl::FilterProcInfo* fpip)
 
 	fp->exfunc->get_file_info(fpip->editp, &m_fi);
 
-	int updateMode = fp->track[TRACK_UPDATE_MODE];
+	int updateMode = fp->track[Track::UpdateMode];
 
 	if (updateMode == 0)
 		return FALSE; // 更新モードが 0 のときは何もしない。
@@ -127,11 +149,11 @@ BOOL App::func_update(AviUtl::FilterPlugin* fp, AviUtl::FilterPlugin::UpdateStat
 {
 	int index = fp->get_updated_idx(status);
 
-	if (index == TRACK_SCALE ||
-		index == TRACK_SHOW_TYPE ||
-		index == CHECK_SHOW_WAVEFORM ||
-		index == CHECK_SHOW_TEXT ||
-		index == CHECK_NO_SCROLL_TEXT)
+	if (index == Track::Scale ||
+		index == Track::ShowType ||
+		index == Check::ShowWaveform ||
+		index == Check::ShowText ||
+		index == Check::NoScrollText)
 	{
 		// 拡張編集ウィンドウを再描画する。
 		::InvalidateRect(m_auin.GetExEditWindow(), 0, FALSE);
@@ -166,15 +188,40 @@ BOOL App::func_WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam, Av
 			int index = LOWORD(wParam) - AviUtl::FilterPlugin::MidFilterButton;
 			MY_TRACE_INT(index);
 
-			if (index == CHECK_CLEAR)
+			switch (index)
 			{
-				::PostMessage(m_subProcess.m_mainWindow, WM_AVIUTL_FILTER_CLEAR, 0, 0);
+			case Check::Clear:
+				{
+					::PostMessage(m_subProcess.m_mainWindow, WM_AVIUTL_FILTER_CLEAR, 0, 0);
 
-				m_fileCacheManager.cacheMap.clear();
-				m_itemCacheManager.cacheMap.clear();
+					m_fileCacheManager.cacheMap.clear();
+					m_itemCacheManager.cacheMap.clear();
 
-				// AviUtl を再描画する。
-				::PostMessage(hwnd, AviUtl::FilterPlugin::WindowMessage::Command, 0, 0);
+					// AviUtl を再描画する。
+					::PostMessage(hwnd, AviUtl::FilterPlugin::WindowMessage::Command, 0, 0);
+
+					break;
+				}
+			case Check::PenColor:
+				{
+					if (IDOK == CallShowColorDialog(0, &m_penColor, 2))
+					{
+						// 拡張編集ウィンドウを再描画する。
+						::InvalidateRect(m_auin.GetExEditWindow(), 0, FALSE);
+					}
+
+					break;
+				}
+			case Check::BrushColor:
+				{
+					if (IDOK == CallShowColorDialog(0, &m_brushColor, 2))
+					{
+						// 拡張編集ウィンドウを再描画する。
+						::InvalidateRect(m_auin.GetExEditWindow(), 0, FALSE);
+					}
+
+					break;
+				}
 			}
 
 			break;
@@ -187,7 +234,7 @@ BOOL App::func_WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam, Av
 
 		m_subProcess.m_mainWindow = (HWND)wParam;
 
-		int updateMode = fp->track[TRACK_UPDATE_MODE];
+		int updateMode = fp->track[Track::UpdateMode];
 
 		if (updateMode == 0)
 			return FALSE; // 更新モードが 0 のときは何もしない。
@@ -240,7 +287,7 @@ void App::drawWaveform(HDC dc, LPCRECT rcClip, LPCRECT rcItem)
 	ItemCachePtr cache = m_itemCacheManager.getCache(m_currentDrawObject);
 	if (!cache) return;
 
-	int scale = std::max(1, m_fp->track[TRACK_SCALE]);
+	int scale = std::max(1, m_fp->track[Track::Scale]);
 
 	int w = rcItem->right - rcItem->left;
 	int h = rcItem->bottom - rcItem->top;
@@ -251,7 +298,7 @@ void App::drawWaveform(HDC dc, LPCRECT rcClip, LPCRECT rcItem)
 
 	std::vector<POINT> points;
 
-	switch (m_fp->track[TRACK_SHOW_TYPE])
+	switch (m_fp->track[Track::ShowType])
 	{
 	case 0:
 		{
@@ -385,7 +432,12 @@ void App::drawWaveform(HDC dc, LPCRECT rcClip, LPCRECT rcItem)
 	HPEN oldPen = (HPEN)::SelectObject(dc, pen);
 	HBRUSH brush = (m_brushColor != CLR_NONE) ? ::CreateSolidBrush(m_brushColor) : (HBRUSH)::GetStockObject(NULL_BRUSH);
 	HBRUSH oldBrush = (HBRUSH)::SelectObject(dc, brush);
-	int rop2 = ::SetROP2(dc, R2_XORPEN);
+	int rop2 = ::GetROP2(dc);
+	switch (m_fp->track[Track::XORMode]) {
+	case XORMode::XOR: ::SetROP2(dc, R2_XORPEN); break;
+	case XORMode::NotXOR: ::SetROP2(dc, R2_NOTXORPEN); break;
+	case XORMode::Not: ::SetROP2(dc, R2_NOT); break;
+	}
 	::Polygon(dc, points.data(), points.size());
 	::SetROP2(dc, rop2);
 	::SelectObject(dc, oldBrush);
@@ -413,18 +465,18 @@ BOOL WINAPI drawObjectText(HDC dc, int x, int y, UINT options, LPCRECT rc, LPCST
 	MY_TRACE_RECT2(rc[0]); // クリッピング矩形
 	MY_TRACE_RECT2(rc[1]); // アイテム全体の矩形
 
-	if (theApp.m_fp->check[CHECK_NO_SCROLL_TEXT])
+	if (theApp.m_fp->check[Check::NoScrollText])
 		x = std::max(70, x);
 
 	if (!(theApp.m_currentDrawObject->flag & ExEdit::Object::Flag::Sound))
 		return ::ExtTextOut(dc, x, y, options, rc, text, c, dx);
 
 	// フラグが立っている場合はテキストを描画する。
-	if (theApp.m_fp->check[CHECK_SHOW_TEXT])
+	if (theApp.m_fp->check[Check::ShowText])
 		::ExtTextOut(dc, x, y, options, rc, text, c, dx);
 
 	// フラグが立っている場合は音声波形を描画する。
-	if (theApp.m_fp->check[CHECK_SHOW_WAVEFORM])
+	if (theApp.m_fp->check[Check::ShowWaveform])
 	{
 		// 描画がはみ出てもいいようにクリッピング領域を設定しておく。
 		HRGN rgn = ::CreateRectRgnIndirect(rc);

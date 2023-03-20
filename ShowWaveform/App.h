@@ -30,11 +30,14 @@ struct App
 	COLORREF m_penColor = RGB(0x00, 0xff, 0xff);
 	COLORREF m_brushColor = RGB(0x00, 0xff, 0xff);
 
+	int (*CallShowColorDialog)(DWORD u1, COLORREF* color, DWORD u3) = 0;
+
 	App();
 	~App();
 
 	BOOL DllMain(HINSTANCE instance, DWORD reason, LPVOID reserved);
 	void load(int* track_def, int* check_def);
+	void save(int* track_def, int* check_def);
 	BOOL func_init(AviUtl::FilterPlugin* fp);
 	BOOL func_exit(AviUtl::FilterPlugin* fp);
 	BOOL func_proc(AviUtl::FilterPlugin* fp, AviUtl::FilterProcInfo* fpip);

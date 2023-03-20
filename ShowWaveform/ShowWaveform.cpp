@@ -12,33 +12,27 @@ void ___outputLog(LPCTSTR text, LPCTSTR output)
 
 //--------------------------------------------------------------------
 
-int TRACK_SCALE = 0;
-int TRACK_SHOW_TYPE = 1;
-int TRACK_UPDATE_MODE = 2;
-
 LPCSTR track_name[] =
 {
 	"描画サイズ",
 	"表示タイプ",
 	"更新モード",
+	"XORモード",
 };
-int track_def[] = {  200, 1, 1 };
-int track_min[] = {    1, 0, 0 };
-int track_max[] = { 2000, 2, 1 };
-
-int CHECK_CLEAR = 0;
-int CHECK_SHOW_WAVEFORM = 1;
-int CHECK_SHOW_TEXT = 2;
-int CHECK_NO_SCROLL_TEXT = 3;
+int track_def[] = {  200, 1, 1, 1 };
+int track_min[] = {    1, 0, 0, 0 };
+int track_max[] = { 2000, 2, 1, 3 };
 
 LPCSTR check_name[] =
 {
+	"ペンの色を選択",
+	"ブラシの色を選択",
 	"キャッシュをクリア",
 	"音声波形を表示",
 	"テキストを表示",
 	"テキストをスクロールしない",
 };
-int check_def[] = { -1, 1, 1, 1 };
+int check_def[] = { -1, -1, -1, 1, 1, 1 };
 
 //--------------------------------------------------------------------
 
@@ -49,6 +43,8 @@ BOOL func_init(AviUtl::FilterPlugin* fp)
 
 BOOL func_exit(AviUtl::FilterPlugin* fp)
 {
+	theApp.save(track_def, check_def);
+
 	return theApp.func_exit(fp);
 }
 
@@ -79,7 +75,7 @@ AviUtl::FilterPluginDLL* WINAPI GetFilterTable()
 	theApp.load(track_def, check_def);
 
 	LPCSTR name = "アイテム内音声波形";
-	LPCSTR information = "アイテム内音声波形 3.1.0 by 蛇色";
+	LPCSTR information = "アイテム内音声波形 3.2.0 by 蛇色";
 
 	static AviUtl::FilterPluginDLL filter =
 	{
