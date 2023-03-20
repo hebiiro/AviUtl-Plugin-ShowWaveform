@@ -215,6 +215,22 @@ BOOL App::func_WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam, Av
 	return FALSE;
 }
 
+inline BOOL checkMin(std::vector<POINT>& points, int x, int y)
+{
+	POINT& back = points.back();
+	if (back.x != x) return TRUE;
+	back.y = std::min<int>(back.y, y);
+	return FALSE;
+}
+
+inline BOOL checkMax(std::vector<POINT>& points, int x, int y)
+{
+	POINT& back = points.back();
+	if (back.x != x) return TRUE;
+	back.y = std::max<int>(back.y, y);
+	return FALSE;
+}
+
 void App::drawWaveform(HDC dc, LPCRECT rcClip, LPCRECT rcItem)
 {
 	if (!m_currentDrawObject) return;
@@ -252,15 +268,16 @@ void App::drawWaveform(HDC dc, LPCRECT rcClip, LPCRECT rcItem)
 				if (x > rcClip->left) break;
 			}
 
-			i = std::max<int>(0, i - 1);
+			int checkIndex = i = std::max<int>(0, i - 1);
 
 			for (; i < c; i++)
 			{
 				const Sample& sample = cache->samples[i];
 				int x = (int)m_auin.FrameToX(i + m_currentDrawObject->frame_begin);
-				int y = (int)(sample.level * scale);
+				int y = cy - (int)(sample.level * scale);
 
-				points.emplace_back(x, cy - y);
+				if (i != checkIndex && checkMin(points, x, y))
+					points.emplace_back(x, y);
 
 				if (x > rcClip->right) break;
 			}
@@ -272,15 +289,16 @@ void App::drawWaveform(HDC dc, LPCRECT rcClip, LPCRECT rcItem)
 			points.emplace_back(lx, cy);
 			points.emplace_back(lx, points.back().y);
 
-			i = std::min<int>(i, c - 1);
+			checkIndex = i = std::min<int>(i, c - 1);
 
 			for (; i >= 0; i--)
 			{
 				const Sample& sample = cache->samples[i];
 				int x = (int)m_auin.FrameToX(i + m_currentDrawObject->frame_begin);
-				int y = (int)(sample.level * scale);
+				int y = cy + (int)(sample.level * scale);
 
-				points.emplace_back(x, cy + y);
+				if (i != checkIndex && checkMax(points, x, y))
+					points.emplace_back(x, y);
 
 				if (x < rcClip->left) break;
 			}
@@ -302,15 +320,16 @@ void App::drawWaveform(HDC dc, LPCRECT rcClip, LPCRECT rcItem)
 				if (x > rcClip->left) break;
 			}
 
-			i = std::max<int>(0, i - 1);
+			int checkIndex = i = std::max<int>(0, i - 1);
 
 			for (; i < c; i++)
 			{
 				const Sample& sample = cache->samples[i];
 				int x = (int)m_auin.FrameToX(i + m_currentDrawObject->frame_begin);
-				int y = (int)(sample.level * scale);
+				int y = rcItem->bottom - (int)(sample.level * scale);
 
-				points.emplace_back(x, rcItem->bottom - y);
+				if (i != checkIndex && checkMin(points, x, y))
+					points.emplace_back(x, y);
 
 				if (x > rcClip->right) break;
 			}
@@ -338,15 +357,16 @@ void App::drawWaveform(HDC dc, LPCRECT rcClip, LPCRECT rcItem)
 				if (x > rcClip->left) break;
 			}
 
-			i = std::max<int>(0, i - 1);
+			int checkIndex = i = std::max<int>(0, i - 1);
 
 			for (; i < c; i++)
 			{
 				const Sample& sample = cache->samples[i];
 				int x = (int)m_auin.FrameToX(i + m_currentDrawObject->frame_begin);
-				int y = (int)(sample.level * scale);
+				int y = rcItem->top + (int)(sample.level * scale);
 
-				points.emplace_back(x, rcItem->top + y);
+				if (i != checkIndex && checkMax(points, x, y))
+					points.emplace_back(x, y);
 
 				if (x > rcClip->right) break;
 			}

@@ -79,7 +79,7 @@ AviUtl::FilterPluginDLL* WINAPI GetFilterTable()
 	theApp.load(track_def, check_def);
 
 	LPCSTR name = "アイテム内音声波形";
-	LPCSTR information = "アイテム内音声波形 3.0.0 by 蛇色";
+	LPCSTR information = "アイテム内音声波形 3.1.0 by 蛇色";
 
 	static AviUtl::FilterPluginDLL filter =
 	{
