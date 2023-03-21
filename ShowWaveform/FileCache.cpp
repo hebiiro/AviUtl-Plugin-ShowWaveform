@@ -45,7 +45,8 @@ void FileCacheManager::receiveCache()
 	MY_TRACE(_T("FileCacheManager::receiveCache()\n"));
 
 	// サブスレッドマネージャからボトルを受け取る。
-	Bottle* bottle = (Bottle*)theApp.m_subThreadManager.m_fileMapping->getBuffer();
+	Bottle* bottle = (Bottle*)theApp.m_subThreadManager.m_fileMapping.getBuffer();
+	if (!bottle) return;
 
 	// キャッシュを更新する。
 	FileCachePtr cache = std::make_shared<FileCache>();

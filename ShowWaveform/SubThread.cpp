@@ -4,43 +4,27 @@
 
 //--------------------------------------------------------------------
 
-BOOL SubThreadManager::init(AviUtl::FilterPlugin* fp)
+SubThread::SubThread(HWND hwnd)
 {
-	MY_TRACE(_T("SubThreadManager::init()\n"));
-
-	m_mutex.reset(new Mutex(0, FALSE, FormatText(_T("ShowWaveform.Mutex.%08X"), fp->hwnd)));
-	m_fileMapping.reset(new SimpleFileMapping(sizeof(Bottle), FormatText(_T("ShowWaveform.FileMapping.%08X"), fp->hwnd)));
-
-	m_hwnd = fp->hwnd;
-	m_handle = ::CreateThread(0, 0, threadProc, this, 0, &m_tid);
-	return !!m_handle;
+	MY_TRACE(_T("SubThread::SubThread(0x%08X)\n"), hwnd);
 }
 
-BOOL SubThreadManager::exit(AviUtl::FilterPlugin* fp)
+SubThread::~SubThread()
 {
-	MY_TRACE(_T("SubThreadManager::exit()\n"));
-
-	return ::PostThreadMessage(m_tid, WM_QUIT, 0, 0);
+	MY_TRACE(_T("SubThread::~SubThread()\n"));
 }
 
-BOOL SubThreadManager::send(LPCSTR fileName)
+void SubThread::onSend(Sender* sender)
 {
-	MY_TRACE(_T("SubThreadManager::send()\n"));
-
-	return ::PostThreadMessage(m_tid, WM_SEND, (WPARAM)new Sender(fileName), 0);
-}
-
-//--------------------------------------------------------------------
-
-void SubThreadManager::onSend(Sender* sender)
-{
-	if (m_mutex && m_fileMapping)
 	{
-//		Synchronizer sync(*m_mutex);
-		Bottle* bottle = (Bottle*)m_fileMapping->getBuffer();
+//		Synchronizer sync(theApp.m_subThreadManager.m_mutex);
+		Bottle* bottle = (Bottle*)theApp.m_subThreadManager.m_fileMapping.getBuffer();
 
-		memcpy(&bottle->fileName, &sender->fileName, sizeof(bottle->fileName));
-		bottle->sampleCount = 0;
+		if (bottle)
+		{
+			memcpy(&bottle->fileName, &sender->fileName, sizeof(bottle->fileName));
+			bottle->sampleCount = 0;
+		}
 	}
 
 	::SendMessage(theApp.m_subProcess.m_mainWindow, WM_AVIUTL_FILTER_SEND, 0, 0);
@@ -48,7 +32,7 @@ void SubThreadManager::onSend(Sender* sender)
 	delete sender;
 }
 
-DWORD SubThreadManager::threadProc()
+DWORD SubThread::proc()
 {
 	MSG msg = {};
 	while (::GetMessage(&msg, 0, 0, 0))
@@ -76,10 +60,41 @@ DWORD SubThreadManager::threadProc()
 	return 0;
 }
 
+//--------------------------------------------------------------------
+
+BOOL SubThreadManager::init(AviUtl::FilterPlugin* fp)
+{
+	MY_TRACE(_T("SubThreadManager::init()\n"));
+
+	m_mutex.init(0, FALSE, FormatText(_T("ShowWaveform.Mutex.%08X"), fp->hwnd));
+	m_fileMapping.init(sizeof(Bottle), FormatText(_T("ShowWaveform.FileMapping.%08X"), fp->hwnd));
+
+	m_handle = ::CreateThread(0, 0, threadProc, fp->hwnd, 0, &m_tid);
+	return !!m_handle;
+}
+
+BOOL SubThreadManager::exit(AviUtl::FilterPlugin* fp)
+{
+	MY_TRACE(_T("SubThreadManager::exit()\n"));
+
+//	return ::PostThreadMessage(m_tid, WM_QUIT, 0, 0);
+	return ::TerminateThread(m_handle, -1);
+}
+
+BOOL SubThreadManager::send(LPCSTR fileName)
+{
+	MY_TRACE(_T("SubThreadManager::send()\n"));
+
+	return ::PostThreadMessage(m_tid, SubThread::WM_SEND, (WPARAM)new Sender(fileName), 0);
+}
+
+//--------------------------------------------------------------------
+
 DWORD CALLBACK SubThreadManager::threadProc(LPVOID param)
 {
-	SubThreadManager* senderThread = (SubThreadManager*)param;
-	return senderThread->threadProc();
+	SubThread subThread((HWND)param);
+
+	return subThread.proc();
 }
 
 //--------------------------------------------------------------------
