@@ -21,8 +21,8 @@ typedef std::map<std::string, CachePtr> CacheMap;
 struct MainWindow
 {
 	HWND m_hwnd = 0;
-	std::unique_ptr<Mutex> m_mutex;
-	std::unique_ptr<SimpleFileMapping> m_fileMapping;
+	Mutex m_mutex;
+	SimpleFileMapping m_fileMapping;
 	CacheMap cacheMap;
 	Input::PluginPtr plugin;
 
@@ -32,8 +32,12 @@ struct MainWindow
 	void getSample(const CachePtr& cache);
 	void fireReceive(const CachePtr& cache);
 
+	static float normalize(char pcm);
 	static float normalize(short pcm);
-	static float calc(const std::vector<short>& samples);
+	static float normalize(long pcm);
+	static float normalize(float pcm);
+	template<typename T>
+	static float calc(const T* samples, int count);
 
 	LRESULT onCreate(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam);
 	LRESULT onDestroy(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam);

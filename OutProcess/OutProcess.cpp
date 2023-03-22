@@ -58,13 +58,13 @@ int APIENTRY wWinMain(HINSTANCE instance, HINSTANCE prevInstance, LPWSTR cmdLine
 		{
 			_tsetlocale(LC_ALL, _T(""));
 			trace_init(0, 0, TRUE);
-			::CoInitialize(0);
+			::OleInitialize(0);
 		}
 
 		~Initializer()
 		{
 			trace_term();
-			::CoUninitialize();
+			::OleUninitialize();
 		}
 
 	} initializer;

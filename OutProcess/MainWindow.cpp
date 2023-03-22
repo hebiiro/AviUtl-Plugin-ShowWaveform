@@ -11,16 +11,14 @@ BottlePtr MainWindow::getBottle()
 {
 	BottlePtr bottle = std::make_shared<Bottle>();
 
-	if (m_mutex && m_fileMapping)
 	{
-//		Synchronizer sync(*m_mutex);
-		Bottle* shared = (Bottle*)m_fileMapping->getBuffer();
+//		Synchronizer sync(m_mutex);
+		Bottle* shared = (Bottle*)m_fileMapping.getBuffer();
+
+		if (!shared)
+			return 0;
 
 		memcpy(bottle.get(), shared, sizeof(*shared));
-	}
-	else
-	{
-		return 0;
 	}
 
 	return bottle;
@@ -63,23 +61,35 @@ void MainWindow::getSample(const CachePtr& cache)
 	AviUtl::InputHandle handle = media->getInputHandle();
 	MediaInfo* mi = media->getMediaInfo();
 
+	MY_TRACE_HEX(ip);
+	MY_TRACE_HEX(handle);
+
 	int32_t start = 0;
 	int32_t length = mi->audio_format.nSamplesPerSec / SAMPLE_FPS;
-	int32_t bufferSize = mi->audio_format.nChannels * length;
-	std::vector<short> buffer(bufferSize);
+	int32_t bufferSize = mi->audio_format.nBlockAlign * length;
+	std::vector<BYTE> buffer(bufferSize);
 
+	MY_TRACE_INT(mi->audio_format.wFormatTag);
+	MY_TRACE_INT(mi->audio_format.nChannels);
 	MY_TRACE_INT(mi->audio_format.nSamplesPerSec);
+	MY_TRACE_INT(mi->audio_format.nAvgBytesPerSec);
+	MY_TRACE_INT(mi->audio_format.nBlockAlign);
+	MY_TRACE_INT(mi->audio_format.wBitsPerSample);
 	MY_TRACE_INT(length);
 	MY_TRACE_INT(bufferSize);
 
 	for (int i = 0; ; i++)
 	{
 		int32_t read = ip->func_read_audio(handle, start, length, buffer.data());
-
 		start += read;
 
 		Sample sample;
-		sample.level = calc(buffer);
+		switch (mi->audio_format.wBitsPerSample)
+		{
+		case 8: sample.level = calc((const char*)buffer.data(), buffer.size() / sizeof(char)); break;
+		case 16: sample.level = calc((const short*)buffer.data(), buffer.size() / sizeof(short)); break;
+		case 32: sample.level = calc((const long*)buffer.data(), buffer.size() / sizeof(long)); break;
+		}
 		cache->samples.emplace_back(sample);
 
 		MY_TRACE(_T("i = %d, read = %d, level = %f\n"), i, read, sample.level);
@@ -95,17 +105,15 @@ void MainWindow::fireReceive(const CachePtr& cache)
 {
 	MY_TRACE(_T("MainWindow::fireReceive()\n"));
 
-	if (m_mutex && m_fileMapping)
 	{
-//		Synchronizer sync(*m_mutex);
-		Bottle* shared = (Bottle*)m_fileMapping->getBuffer();
+//		Synchronizer sync(m_mutex);
+		Bottle* shared = (Bottle*)m_fileMapping.getBuffer();
+
+		if (!shared)
+			return;
 
 		shared->sampleCount = (int32_t)cache->samples.size();
 		memcpy(shared->samples, cache->samples.data(), sizeof(Sample) * cache->samples.size());
-	}
-	else
-	{
-		return;
 	}
 
 	::SendMessage(g_parent, WM_AVIUTL_FILTER_RECEIVE, 0, 0);
@@ -113,42 +121,53 @@ void MainWindow::fireReceive(const CachePtr& cache)
 
 //--------------------------------------------------------------------
 
+inline float MainWindow::normalize(char pcm)
+{
+	return pcm / 128.0f; // 8bit を -1.0 ～ 1.0 に正規化
+}
+
 inline float MainWindow::normalize(short pcm)
 {
-	return pcm / 32768.0f; // -1.0 ～ 1.0に正規化
+	return pcm / 32768.0f; // 16bit を -1.0 ～ 1.0 に正規化
+}
+
+inline float MainWindow::normalize(long pcm)
+{
+//	return pcm / 8388608.0f; // 24bit を -1.0 ～ 1.0 に正規化
+	return pcm / 2147483648.0f; // 32bit を -1.0 ～ 1.0 に正規化
+}
+
+inline float MainWindow::normalize(float pcm)
+{
+	return pcm;
 }
 #if 0
-float MainWindow::calc(const std::vector<short>& samples)
+template<typename T>
+float MainWindow::calc(const T* samples, int count)
 {
 	float level = 0.0f;
-
-	for (short sample : samples)
+	for (int i = 0; i < count; i++)
 	{
+		T sample = samples[i];
 		float n = normalize(sample);
-
 		level = std::max(level, fabsf(n));
 	}
-
 	return level;
 }
 #else
-float MainWindow::calc(const std::vector<short>& samples)
+template<typename T>
+float MainWindow::calc(const T* samples, int count)
 {
-	int c = (int)samples.size();
-
-	if (!c)
-		return 0.0f;
+	if (!count) return 0.0f;
 
 	float level = 0.0f;
-
-	for (short sample : samples)
+	for (int i = 0; i < count; i++)
 	{
+		T sample = samples[i];
 		float n = normalize(sample);
-
 		level += n * n;
 	}
-
-	return sqrtf(level / (float)c);
+	return sqrtf(level / (float)count);
 }
 #endif
 //--------------------------------------------------------------------
@@ -158,18 +177,13 @@ LRESULT MainWindow::onCreate(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPar
 	MY_TRACE(_T("MainWindow::onCreate()\n"));
 
 	m_hwnd = hwnd;
-
-	{
-		HWND hwnd = g_parent;
-
-		m_mutex.reset(new Mutex(0, FALSE, FormatText(_T("ShowWaveform.Mutex.%08X"), hwnd)));
-		m_fileMapping.reset(new SimpleFileMapping(sizeof(Bottle), FormatText(_T("ShowWaveform.FileMapping.%08X"), hwnd)));
-	}
+	m_mutex.init(0, FALSE, FormatText(_T("ShowWaveform.Mutex.%08X"), g_parent));
+	m_fileMapping.init(sizeof(Bottle), FormatText(_T("ShowWaveform.FileMapping.%08X"), g_parent));
 
 	TCHAR fileName[MAX_PATH] = {};
 	::GetModuleFileName(0, fileName, MAX_PATH);
 	::PathRemoveFileSpec(fileName);
-	::PathAppend(fileName, _T("../lwinput.aui"));
+	::PathAppend(fileName, _T("..\\lwinput.aui"));
 	MY_TRACE_TSTR(fileName);
 	
 	plugin = std::make_shared<Input::Plugin>();
@@ -184,9 +198,6 @@ LRESULT MainWindow::onDestroy(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPa
 
 	plugin->unload();
 	plugin = 0;
-
-	m_mutex.reset();
-	m_fileMapping.reset();
 
 	::PostQuitMessage(0);
 

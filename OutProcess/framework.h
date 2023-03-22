@@ -7,6 +7,8 @@
 #include <shlwapi.h>
 #pragma comment(lib, "shlwapi.lib")
 #include <mmsystem.h>
+#include <ks.h>
+#include <ksmedia.h>
 #pragma comment(lib, "winmm.lib")
 #include <strsafe.h>
 #include <comdef.h>
