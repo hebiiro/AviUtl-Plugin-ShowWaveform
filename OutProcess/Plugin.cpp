@@ -185,7 +185,7 @@ void* Media::readVideo(int32_t frame, int32_t* bufferSize)
 	int result = ip->func_read_video(m_inputHandle, frame, m_videoBuffer.data());
 	MY_TRACE_INT(result);
 
-	*bufferSize = m_videoBuffer.size();
+	*bufferSize = (int32_t)m_videoBuffer.size();
 
 	return m_videoBuffer.data();
 }

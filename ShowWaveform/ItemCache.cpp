@@ -15,6 +15,8 @@ BOOL ItemCacheManager::update(BOOL send)
 {
 	MY_TRACE(_T("ItemCacheManager::update(%d)\n"), send);
 
+	std::vector<AudioParamsPtr> updateItems;
+
 	// 無効なキャッシュを削除する。
 	for (auto it = cacheMap.begin(); it != cacheMap.end();)
 	{
@@ -23,6 +25,8 @@ BOOL ItemCacheManager::update(BOOL send)
 		if (!(object->flag & ExEdit::Object::Flag::Exist) ||
 			!(object->flag & ExEdit::Object::Flag::Sound))
 		{
+			it->second->params->flag = (uint32_t)object->flag;
+			updateItems.emplace_back(it->second->params);
 			cacheMap.erase(it++);
 		}
 		else
@@ -31,7 +35,7 @@ BOOL ItemCacheManager::update(BOOL send)
 		}
 	}
 
-	BOOL retValue = FALSE;
+	BOOL isCacheCompleted = TRUE;
 
 	// 現在のシーン内のアイテムを列挙する。
 	int c = theApp.m_auin.GetCurrentSceneObjectCount();
@@ -56,17 +60,34 @@ BOOL ItemCacheManager::update(BOOL send)
 		}
 
 		// キャッシュを更新する。
-		if (update(send, object))
+		ItemCachePtr cache = update(send, object);
+		if (cache)
 		{
+			updateItems.emplace_back(cache->params);
 			theApp.m_auin.RedrawLayer(object->layer_set);
-			retValue = TRUE;
+		}
+		else
+		{
+			// キャッシュをコンプリートできなかった。
+			isCacheCompleted = FALSE;
 		}
 	}
 
-	return retValue;
+	if (updateItems.empty())
+		return FALSE;
+
+	// 更新が必要なアイテムを通知する。
+	for (auto& item : updateItems)
+		theApp.m_subThreadManager.notifyItemChanged(item);
+
+	// キャッシュをコンプリートできている場合のみ再描画をリクエストする。
+	if (isCacheCompleted)
+		theApp.m_subThreadManager.requestRedraw();
+
+	return TRUE;
 }
 
-BOOL ItemCacheManager::update(BOOL send, ExEdit::Object* object)
+ItemCachePtr ItemCacheManager::update(BOOL send, ExEdit::Object* object)
 {
 	MY_TRACE(_T("ItemCacheManager::update(%d, 0x%08X)\n"), send, object);
 
@@ -74,8 +95,8 @@ BOOL ItemCacheManager::update(BOOL send, ExEdit::Object* object)
 	AudioParamsPtr params = getAudioParams(object);
 
 	// ファイルキャシュを取得する。
-	FileCachePtr fileCache = theApp.m_fileCacheManager.getCache(params->fileName.c_str(), send);
-	if (!fileCache) return FALSE; // ファイルキャッシュが作成されるまでは何もできない。
+	FileCachePtr fileCache = theApp.m_fileCacheManager.getCache(params->fileName, send);
+	if (!fileCache) return 0; // ファイルキャッシュが作成されるまでは何もできない。
 
 	// アイテムキャッシュを作成する。
 	ItemCachePtr itemCache = std::make_shared<ItemCache>();
@@ -100,14 +121,18 @@ BOOL ItemCacheManager::update(BOOL send, ExEdit::Object* object)
 		itemCache->samples.emplace_back(fileCache->samples[src]);
 	}
 
-	return TRUE;
+	return itemCache;
 }
 
 AudioParamsPtr ItemCacheManager::getAudioParams(ExEdit::Object* object)
 {
 	AudioParamsPtr params = std::make_shared<AudioParams>();
+	params->id = (uint32_t)object;
+	params->flag = (uint32_t)object->flag;
 	params->frameBegin = object->frame_begin;
 	params->frameEnd = object->frame_end;
+	params->sceneSet = object->scene_set;
+	params->volume = object->track_value_left[2] / 1000.0f;
 
 	if (object->check_value[1])
 	{
@@ -124,9 +149,9 @@ AudioParamsPtr ItemCacheManager::getAudioParams(ExEdit::Object* object)
 			// 拡張データを取得する。
 			BYTE* exdata = theApp.m_auin.GetExdata(object2, 0);
 
-			params->fileName = (LPCSTR)exdata;
+			::StringCbCopyA(params->fileName, sizeof(params->fileName), (LPCSTR)exdata);
 			params->playBegin = object2->track_value_left[0];
-			params->playSpeed = object2->track_value_left[1] / 1000.0;
+			params->playSpeed = object2->track_value_left[1] / 1000.0f;
 
 			break;
 		}
@@ -136,9 +161,9 @@ AudioParamsPtr ItemCacheManager::getAudioParams(ExEdit::Object* object)
 		// 拡張データを取得する。
 		BYTE* exdata = theApp.m_auin.GetExdata(object, 0);
 
-		params->fileName = (LPCSTR)exdata;
+		::StringCbCopyA(params->fileName, sizeof(params->fileName), (LPCSTR)exdata);
 		params->playBegin = object->track_value_left[0] * theApp.m_fi.video_rate / theApp.m_fi.video_scale / 100;
-		params->playSpeed = object->track_value_left[1] / 1000.0;
+		params->playSpeed = object->track_value_left[1] / 1000.0f;
 	}
 
 	return params;
@@ -148,7 +173,8 @@ BOOL ItemCacheManager::isChanged(const ItemCachePtr& cache, ExEdit::Object* obje
 {
 	AudioParamsPtr params = getAudioParams(object);
 
-	if (cache->params->fileName != params->fileName) return TRUE;
+	if (strcmp(cache->params->fileName, params->fileName) != 0) return TRUE;
+	if (cache->params->volume != params->volume) return TRUE;
 	if (cache->params->playBegin != params->playBegin) return TRUE;
 	if (cache->params->playSpeed != params->playSpeed) return TRUE;
 	if (cache->params->frameEnd != params->frameEnd) return TRUE;

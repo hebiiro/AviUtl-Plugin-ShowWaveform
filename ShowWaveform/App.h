@@ -64,19 +64,20 @@ struct App
 			static const UINT scale			= 2000;
 		};
 		struct ComboBox {
-			static const UINT showType		= 1001;
-			static const UINT updateMode	= 1002;
-			static const UINT xorMode		= 1003;
+			static const UINT showType		= 1100;
+			static const UINT updateMode	= 1101;
+			static const UINT xorMode		= 1102;
 		};
 		struct Button {
-			static const UINT penColor		= 1004;
-			static const UINT brushColor	= 1005;
-			static const UINT clear			= 1006;
+			static const UINT penColor		= 1200;
+			static const UINT brushColor	= 1201;
+			static const UINT clear			= 1202;
+			static const UINT showFull		= 1203;
 		};
 		struct CheckBox {
-			static const UINT showWaveform	= 1007;
-			static const UINT showText		= 1008;
-			static const UINT noScrollText	= 1009;
+			static const UINT showWaveform	= 1300;
+			static const UINT showText		= 1301;
+			static const UINT noScrollText	= 1302;
 		};
 	};
 
@@ -102,6 +103,7 @@ struct App
 			HWND penColor = 0;
 			HWND brushColor = 0;
 			HWND clear = 0;
+			HWND showFull = 0;
 		} button;
 		struct {
 			HWND showWaveform = 0;
@@ -124,6 +126,7 @@ struct App
 	BOOL func_update(AviUtl::FilterPlugin* fp, AviUtl::FilterPlugin::UpdateStatus status);
 	BOOL func_WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam, AviUtl::EditHandle* editp, AviUtl::FilterPlugin* fp);
 
+	BOOL updateItemCache(BOOL send);
 	void drawWaveform(HDC dc, LPCRECT rcClip, LPCRECT rcItem);
 };
 

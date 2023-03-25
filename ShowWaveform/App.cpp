@@ -162,6 +162,14 @@ void App::createControls()
 		m_fp->hwnd, (HMENU)ControlID::Button::clear, m_instance, 0);
 	::SendMessage(controls.button.clear, WM_SETFONT, (WPARAM)si.hfont, FALSE);
 
+	controls.button.showFull = ::CreateWindowEx(
+		0,
+		WC_BUTTON, _T("全体の音声波形を表示"),
+		WS_CHILD | WS_VISIBLE | WS_TABSTOP,
+		0, 0, 0, 0,
+		m_fp->hwnd, (HMENU)ControlID::Button::showFull, m_instance, 0);
+	::SendMessage(controls.button.showFull, WM_SETFONT, (WPARAM)si.hfont, FALSE);
+
 	controls.checkBox.showWaveform = ::CreateWindowEx(
 		0,
 		WC_BUTTON, _T("音声波形を表示"),
@@ -227,6 +235,7 @@ void App::recalcLayout()
 	::SetWindowPos(controls.button.brushColor, 0, x2, y, controlWidth, controlHeight, SWP_NOZORDER);
 	y += controlHeight + margin;
 	::SetWindowPos(controls.button.clear, 0, x1, y, controlWidth, controlHeight, SWP_NOZORDER);
+	::SetWindowPos(controls.button.showFull, 0, x2, y, controlWidth, controlHeight, SWP_NOZORDER);
 	y += controlHeight + margin;
 	::SetWindowPos(controls.checkBox.showWaveform, 0, x1, y, controlWidth, controlHeight, SWP_NOZORDER);
 	::SetWindowPos(controls.checkBox.showText, 0, x2, y, controlWidth, controlHeight, SWP_NOZORDER);
@@ -336,7 +345,10 @@ BOOL App::func_proc(AviUtl::FilterPlugin* fp, AviUtl::FilterProcInfo* fpip)
 	if (m_updateMode == 0)
 		return FALSE; // 更新モードが 0 のときは何もしない。
 
-	m_itemCacheManager.update(TRUE);
+	if (!m_subProcess.m_mainWindow)
+		m_subProcess.m_window.delayedUpdate();
+	else
+		updateItemCache(TRUE);
 
 	return FALSE;
 }
@@ -465,13 +477,26 @@ BOOL App::func_WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam, Av
 				}
 			case ControlID::Button::clear:
 				{
-					::PostMessage(m_subProcess.m_mainWindow, WM_AVIUTL_FILTER_CLEAR, 0, 0);
-
+					// 全てのキャッシュをクリアする。
+					m_subThreadManager.requestClear();
 					m_fileCacheManager.cacheMap.clear();
 					m_itemCacheManager.cacheMap.clear();
 
 					// AviUtl を再描画する。
 					::PostMessage(hwnd, AviUtl::FilterPlugin::WindowMessage::Command, 0, 0);
+
+					break;
+				}
+			case ControlID::Button::showFull:
+				{
+					// 全体の音声波形ウィンドウを表示する。
+					::ShowWindow(m_subProcess.m_window.m_hwnd, SW_SHOW);
+
+					// WM_SHOWWINDOW が自動的には送られないので手動で送る。
+					::PostMessage(m_subProcess.m_window.m_hwnd, WM_SHOWWINDOW, TRUE, 0);
+
+					// 全体の音声波形を更新する。
+					m_subThreadManager.requestRedraw();
 
 					break;
 				}
@@ -543,38 +568,6 @@ BOOL App::func_WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam, Av
 		}
 	}
 
-	if (message == WM_AVIUTL_FILTER_INIT)
-	{
-		MY_TRACE(_T("func_WndProc(WM_AVIUTL_FILTER_INIT, 0x%08X, 0x%08X)\n"), wParam, lParam);
-
-		m_subProcess.m_mainWindow = (HWND)wParam;
-
-		if (m_updateMode == 0)
-			return FALSE; // 更新モードが 0 のときは何もしない。
-
-		// AviUtl を再描画したときに func_proc() で呼ばれるので必要ない。
-//		if (m_itemCacheManager.update(TRUE))
-		{
-			// AviUtl を再描画する。
-			::PostMessage(hwnd, AviUtl::FilterPlugin::WindowMessage::Command, 0, 0);
-		}
-	}
-	else if (message == WM_AVIUTL_FILTER_RECEIVE)
-	{
-		MY_TRACE(_T("func_WndProc(WM_AVIUTL_FILTER_RECEIVE, 0x%08X, 0x%08X)\n"), wParam, lParam);
-
-		if (!m_exists)
-			return FALSE;
-
-		m_fileCacheManager.receiveCache();
-
-		if (m_itemCacheManager.update(FALSE))
-		{
-			// ↑で拡張編集ウィンドウの再描画が行われるので必要ない。
-//			::PostMessage(hwnd, AviUtl::FilterPlugin::WindowMessage::Command, 0, 0);
-		}
-	}
-
 	return FALSE;
 }
 
@@ -592,6 +585,19 @@ inline BOOL checkMax(std::vector<POINT>& points, int x, int y)
 	if (back.x != x) return TRUE;
 	back.y = std::max<int>(back.y, y);
 	return FALSE;
+}
+
+BOOL App::updateItemCache(BOOL send)
+{
+	ProjectParamsPtr params = std::make_shared<ProjectParams>();
+	params->video_scale = m_fi.video_scale;
+	params->video_rate = m_fi.video_rate;
+	params->frameNumber = m_fi.frame_n;
+	params->sceneIndex = m_auin.GetCurrentSceneIndex();
+	params->currentFrame = m_fp->exfunc->get_frame(m_auin.GetEditp());
+	m_subThreadManager.notifyProjectChanged(params);
+
+	return m_itemCacheManager.update(TRUE);
 }
 
 void App::drawWaveform(HDC dc, LPCRECT rcClip, LPCRECT rcItem)
@@ -766,7 +772,7 @@ void App::drawWaveform(HDC dc, LPCRECT rcClip, LPCRECT rcItem)
 
 IMPLEMENT_HOOK_PROC_NULL(void, CDECL, DrawObject, (HDC dc, int objectIndex))
 {
-	MY_TRACE(_T("DrawObject(%d)\n"), objectIndex);
+//	MY_TRACE(_T("DrawObject(%d)\n"), objectIndex);
 
 	// 描画オブジェクトを保存しておく。
 	theApp.m_currentDrawObject = theApp.m_auin.GetObject(objectIndex);
@@ -777,9 +783,9 @@ IMPLEMENT_HOOK_PROC_NULL(void, CDECL, DrawObject, (HDC dc, int objectIndex))
 
 BOOL WINAPI drawObjectText(HDC dc, int x, int y, UINT options, LPCRECT rc, LPCSTR text, UINT c, CONST INT* dx)
 {
-	MY_TRACE(_T("drawObjectText(0x%08X, %d, %d, 0x%08X)\n"), dc, x, y, options);
-	MY_TRACE_RECT2(rc[0]); // クリッピング矩形
-	MY_TRACE_RECT2(rc[1]); // アイテム全体の矩形
+//	MY_TRACE(_T("drawObjectText(0x%08X, %d, %d, 0x%08X)\n"), dc, x, y, options);
+//	MY_TRACE_RECT2(rc[0]); // クリッピング矩形
+//	MY_TRACE_RECT2(rc[1]); // アイテム全体の矩形
 
 	if (theApp.m_noScrollText)
 		x = std::max(70, x);

@@ -18,6 +18,7 @@
     <ClInclude Include="OutProcess.h" />
     <ClInclude Include="MainWindow.h" />
     <ClInclude Include="Plugin.h" />
+    <ClInclude Include="Design.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="pch.cpp">
@@ -26,5 +27,11 @@
     <ClCompile Include="OutProcess.cpp" />
     <ClCompile Include="MainWindow.cpp" />
     <ClCompile Include="Plugin.cpp" />
+    <ClCompile Include="MainWindow_Config.cpp" />
+    <ClCompile Include="MainWindow_Paint.cpp" />
+    <ClCompile Include="Design.cpp" />
+    <ClCompile Include="MainWindow_OpenGL.cpp" />
+    <ClCompile Include="MainWindow_Waveform.cpp" />
+    <ClCompile Include="MainWindow_Mouse.cpp" />
   </ItemGroup>
 </Project>

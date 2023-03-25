@@ -22,6 +22,7 @@
 #include <string>
 #include <vector>
 #include <map>
+#include <set>
 
 #include "AviUtl/aviutl_exedit_sdk/aviutl.hpp"
 #include "AviUtl/aviutl_exedit_sdk/exedit.hpp"

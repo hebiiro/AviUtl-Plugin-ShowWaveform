@@ -23,6 +23,11 @@
 
 * 更新モードを「更新しない」に設定してからキャッシュをクリアすると音声波形がない状態と同じになります。
 
+### 全体の音声波形を表示
+
+1. 「全体の音声波形を表示」ボタンを押します。
+2. 全体の音声波形ウィンドウが表示されます。同時に全体の音声波形が再計算されます。
+
 ## 設定方法
 
 ShowWaveform.ini をテキストエディタで編集してから AviUtl を起動します。
@@ -76,8 +81,68 @@ noScrollText=1
 ; 1 を指定するとテキストをスクロールしません。
 ```
 
+## 全体の音声波形の設定方法
+
+Config.ini をテキストエディタで編集します。AviUtl が起動中の場合は変更が自動的に反映されます。
+```ini
+[Config]
+minRange=-33
+maxRange=14
+baseLevel=0
+
+[Design]
+fontDefault=C:\Windows\Fonts\segoeui.ttf
+fontDefault2=C:\Windows\Fonts\meiryo.ttc
+image.fileName= ; 背景に使用する画像ファイルのパス。
+image.offset.x=0
+image.offset.y=0
+image.align.x=center ; left, right, center のいずれか。
+image.align.y=center ; top, bottom, center のいずれか。
+image.scaleMode=normal ; normal, fit, crop のいずれか。
+image.scale=1.000000
+image.angle=0.000000
+image.alpha=1.000000
+background.fill.color1=51, 51, 51, 255 ; 縦方向のグラデーションの上側。
+background.fill.color2=26, 26, 26, 255 ; 縦方向のグラデーションの下側。
+body.margin=40 ; 左右のマージン。目盛りが描画される範囲。
+body.stroke.width=1
+body.stroke.color=255, 255, 255, 128
+scale.width=10 ; 目盛り線の長さ。
+scale.text.height=16
+scale.text.color=255, 255, 255, 204
+scale.text.shadow.blur=2.000000
+scale.text.shadow.offset.x=0
+scale.text.shadow.offset.y=1
+scale.text.shadow.color=0, 0, 0, 255
+scale.stroke.width=1
+scale.stroke.color=255, 255, 255, 128
+scale.base.stroke.width=1
+scale.base.stroke.color=255, 0, 0, 128
+graph.fill.color1=255, 255, 0, 102 ; 縦方向のグラデーションの上側。
+graph.fill.color2=255, 255, 0, 102 ; 縦方向のグラデーションの下側。
+graph.stroke.width=1
+graph.stroke.color=255, 255, 0, 51
+graph.current.stroke.width=1
+graph.current.stroke.color=0, 255, 0, 102
+graph.current.text.height=32
+graph.current.text.color=255, 255, 255, 204
+graph.current.text.shadow.blur=4.000000
+graph.current.text.shadow.offset.x=0
+graph.current.text.shadow.offset.y=1
+graph.current.text.shadow.color=0, 255, 0, 128
+graph.hot.stroke.width=1
+graph.hot.stroke.color=255, 0, 255, 102
+graph.hot.text.height=32
+graph.hot.text.color=255, 255, 255, 204
+graph.hot.text.shadow.blur=4.000000
+graph.hot.text.shadow.offset.x=0
+graph.hot.text.shadow.offset.y=1
+graph.hot.text.shadow.color=255, 0, 255, 128
+```
+
 ## 更新履歴
 
+* 5.0.0 - 2023/03/25 全体の音声波形を表示する機能を追加、24bit PCM データに対応
 * 4.0.1 - 2023/03/22 32bit PCM データに対応
 * 4.0.0 - 2023/03/21 UI を変更
 * 3.2.0 - 2023/03/21 XOR モードを追加

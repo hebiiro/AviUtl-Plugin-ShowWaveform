@@ -37,7 +37,7 @@ void FileCacheManager::createCache(LPCSTR fileName)
 	MY_TRACE(_T("FileCacheManager::createCache(%hs)\n"), fileName);
 
 	// サブスレッドマネージャにキャッシュの作成を要請する。
-	theApp.m_subThreadManager.send(fileName);
+	theApp.m_subThreadManager.requestCache(fileName);
 }
 
 void FileCacheManager::receiveCache()

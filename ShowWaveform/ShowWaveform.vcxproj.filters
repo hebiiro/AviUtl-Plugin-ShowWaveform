@@ -29,7 +29,6 @@
       <Filter>Framework</Filter>
     </ClInclude>
     <ClInclude Include="Share.h" />
-    <ClInclude Include="Sender.h" />
     <ClInclude Include="SubProcess.h" />
     <ClInclude Include="SubThread.h" />
   </ItemGroup>
@@ -41,7 +40,6 @@
     <ClCompile Include="pch.cpp">
       <Filter>Framework</Filter>
     </ClCompile>
-    <ClCompile Include="Sender.cpp" />
     <ClCompile Include="SubProcess.cpp" />
     <ClCompile Include="SubThread.cpp" />
   </ItemGroup>

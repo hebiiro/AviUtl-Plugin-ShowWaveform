@@ -30,7 +30,7 @@ BOOL initInstance()
 		WS_EX_NOPARENTNOTIFY,
 		L"ShowWaveform.OutProcess",
 		L"ShowWaveform.OutProcess",
-		WS_CHILD | WS_CLIPSIBLINGS | WS_CLIPCHILDREN,
+		WS_VISIBLE | WS_CHILD | WS_CLIPSIBLINGS | WS_CLIPCHILDREN,
 		0, 0, 0, 0,
 		g_parent, 0, g_instance, 0);
 
@@ -71,7 +71,7 @@ int APIENTRY wWinMain(HINSTANCE instance, HINSTANCE prevInstance, LPWSTR cmdLine
 
 	MY_TRACE(_T("WinMain()\n"));
 
-	g_parent = (HWND)_tcstoul(::GetCommandLine(), 0, 0);
+	g_parent = (HWND)_tcstoull(::GetCommandLine(), 0, 0);
 	MY_TRACE_HEX(g_parent);
 
 	if (!initInstance())
