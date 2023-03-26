@@ -1,7 +1,6 @@
 #pragma once
 
 #include "OutProcess.h"
-#include "Plugin.h"
 #include "Design.h"
 
 //--------------------------------------------------------------------
@@ -27,7 +26,8 @@ struct MakeCurrent
 
 //--------------------------------------------------------------------
 
-typedef std::shared_ptr<Bottle> BottlePtr;
+typedef std::shared_ptr<SenderBottle> SenderBottlePtr;
+typedef std::shared_ptr<ReceiverBottle> ReceiverBottlePtr;
 typedef std::shared_ptr<ProjectParams> ProjectParamsPtr;
 typedef std::shared_ptr<AudioParams> AudioParamsPtr;
 typedef std::map<uint32_t, AudioParamsPtr> AudioParamsMap;
@@ -39,6 +39,26 @@ struct Cache {
 
 typedef std::shared_ptr<Cache> CachePtr;
 typedef std::map<std::string, CachePtr> CacheMap;
+
+struct Waiter {
+	std::string fileName;
+	Waiter(LPCSTR fileName);
+};
+
+typedef std::shared_ptr<Waiter> WaiterPtr;
+typedef std::deque<WaiterPtr> WaiterQueue;
+
+struct Reader {
+	PROCESS_INFORMATION pi = {};
+	SimpleFileMappingT<ReaderBottle> shared;
+	Reader(HWND hwnd);
+	~Reader();
+	DWORD getId();
+	ReaderBottle* getBottle();
+};
+
+typedef std::shared_ptr<Reader> ReaderPtr;
+typedef std::map<DWORD, ReaderPtr> ReaderMap;
 
 //--------------------------------------------------------------------
 
@@ -96,31 +116,17 @@ struct MainWindow
 	void drawText(float x, float y, LPCSTR text, const Design::Text& design);
 
 	HWND m_hwnd = 0;
-	Mutex m_mutex;
-	SimpleFileMapping m_fileMapping;
-	SimpleFileMapping m_fileMappingProjectParams;
-	SimpleFileMapping m_fileMappingAudioParams;
+	SimpleFileMappingT<SenderBottle> m_sharedSenderBottle;
+	SimpleFileMappingT<ReceiverBottle> m_sharedReceiverBottle;
+	SimpleFileMappingT<ProjectParams> m_sharedProjectParams;
+	SimpleFileMappingT<AudioParams> m_sharedAudioParams;
 	CacheMap cacheMap;
-	Input::PluginPtr plugin;
 
 	BOOL initWaveform();
 	BOOL termWaveform();
 
-	BottlePtr getBottle();
-	CachePtr getCache(const BottlePtr& bottle);
-	CachePtr createCache(const BottlePtr& bottle);
-	void getSample(const CachePtr& cache);
-	void fireReceive(const CachePtr& cache);
-
-	static float normalize(char pcm);
-	static float normalize(short pcm);
-	static float normalize(long pcm);
-	static float normalize(float pcm);
-	template<typename T>
-	static float calc(const T* samples, int count);
-	static float normalize24(long pcm);
-	static long convert24(const BYTE* sample);
-	static float calc24(const BYTE* samples, int count);
+	SenderBottlePtr getSenderBottle();
+	CachePtr getCache(LPCSTR fileName);
 
 	std::vector<float> fullSamples;
 	void recalcWaveform();
@@ -133,6 +139,20 @@ struct MainWindow
 	AudioParamsPtr getAudioParams();
 	void setAudioParams(const AudioParamsPtr& projectParams);
 
+	WaiterQueue waiterQueue;
+
+	WaiterPtr createWaiter(LPCSTR fileName);
+	void digestWaiterQueue();
+
+	ReaderMap readerMap;
+	int maxReaderCount = 1;
+
+	ReaderPtr getReader(DWORD id);
+	ReaderPtr createReader(LPCSTR fileName);
+	void eraseReader(DWORD id);
+	CachePtr createCache(const ReaderPtr& reader);
+	void sendCache(const CachePtr& cache);
+
 	LRESULT onCreate(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam);
 	LRESULT onDestroy(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam);
 	LRESULT onTimer(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam);
@@ -144,6 +164,7 @@ struct MainWindow
 	LRESULT onAviUtlFilterExit(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam);
 	LRESULT onAviUtlFilterResize(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam);
 	LRESULT onAviUtlFilterSend(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam);
+	LRESULT onAviUtlFilterReceive(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam);
 	LRESULT onAviUtlFilterClear(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam);
 	LRESULT onAviUtlFilterRedraw(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam);
 	static LRESULT CALLBACK wndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam);

@@ -81,6 +81,7 @@ void MainWindow::load(LPCWSTR fileName)
 	getPrivateProfileInt(fileName, L"Config", L"minRange", m_minRange);
 	getPrivateProfileInt(fileName, L"Config", L"maxRange", m_maxRange);
 	getPrivateProfileInt(fileName, L"Config", L"baseLevel", m_baseLevel);
+	getPrivateProfileInt(fileName, L"Config", L"maxReaderCount", maxReaderCount);
 
 	g_design.load(fileName);
 }
@@ -92,6 +93,7 @@ void MainWindow::save(LPCWSTR fileName)
 	setPrivateProfileInt(fileName, L"Config", L"minRange", m_minRange);
 	setPrivateProfileInt(fileName, L"Config", L"maxRange", m_maxRange);
 	setPrivateProfileInt(fileName, L"Config", L"baseLevel", m_baseLevel);
+	setPrivateProfileInt(fileName, L"Config", L"maxReaderCount", maxReaderCount);
 
 	g_design.save(fileName);
 }

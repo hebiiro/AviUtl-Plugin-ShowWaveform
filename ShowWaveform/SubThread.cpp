@@ -11,9 +11,9 @@ CacheRequest::CacheRequest(LPCSTR fileName)
 
 //--------------------------------------------------------------------
 
-SubThread::SubThread(HWND hwnd)
+SubThread::SubThread()
 {
-	MY_TRACE(_T("SubThread::SubThread(0x%08X)\n"), hwnd);
+	MY_TRACE(_T("SubThread::SubThread()\n"));
 }
 
 SubThread::~SubThread()
@@ -44,25 +44,11 @@ void SubThread::onSendCacheRequest(const CacheRequest* cacheRequest)
 {
 	MY_TRACE(_T("SubThreadManager::onSendCacheRequest()\n"));
 
-	BOOL succeeded = FALSE;
-
+	SenderBottle* shared = theApp.m_subThreadManager.m_sharedSenderBottle.getBuffer();
+	if (shared)
 	{
-//		Synchronizer sync(theApp.m_subThreadManager.m_mutex);
-		Bottle* bottle = (Bottle*)theApp.m_subThreadManager.m_fileMapping.getBuffer();
+		::StringCbCopyA(shared->fileName, sizeof(shared->fileName), cacheRequest->fileName.c_str());
 
-		if (bottle)
-		{
-			::StringCbCopyA(bottle->fileName, sizeof(bottle->fileName), cacheRequest->fileName.c_str());
-			bottle->sampleCount = 0;
-			succeeded = TRUE;
-		}
-	}
-
-	MY_TRACE_INT(succeeded);
-	MY_TRACE_HEX(theApp.m_subProcess.m_mainWindow);
-
-	if (succeeded)
-	{
 		// サブプロセスにキャッシュの作成をリクエストする。
 		::SendMessage(theApp.m_subProcess.m_mainWindow, WM_AVIUTL_FILTER_SEND, SendID::requestCache, 0);
 	}
@@ -80,21 +66,11 @@ void SubThread::onSendProjectChanged(const ProjectParams* params)
 {
 	MY_TRACE(_T("SubThreadManager::onSendProjectChanged()\n"));
 
-	BOOL succeeded = FALSE;
-
+	ProjectParams* shared = theApp.m_subThreadManager.m_sharedProjectParams.getBuffer();
+	if (shared)
 	{
-//		Synchronizer sync(theApp.m_subThreadManager.m_mutex);
-		ProjectParams* shared = (ProjectParams*)theApp.m_subThreadManager.m_fileMappingProjectParams.getBuffer();
+		*shared = *params;
 
-		if (shared)
-			*shared = *params, succeeded = TRUE;
-	}
-
-	MY_TRACE_INT(succeeded);
-	MY_TRACE_HEX(theApp.m_subProcess.m_mainWindow);
-
-	if (succeeded)
-	{
 		// サブプロセスにアイテムの変更を通知する。
 		::SendMessage(theApp.m_subProcess.m_mainWindow, WM_AVIUTL_FILTER_SEND, SendID::notifyProjectChanged, 0);
 	}
@@ -106,21 +82,11 @@ void SubThread::onSendItemChanged(const AudioParams* params)
 {
 	MY_TRACE(_T("SubThreadManager::onSendItemChanged()\n"));
 
-	BOOL succeeded = FALSE;
-
+	AudioParams* shared = theApp.m_subThreadManager.m_sharedAudioParams.getBuffer();
+	if (shared)
 	{
-//		Synchronizer sync(theApp.m_subThreadManager.m_mutex);
-		AudioParams* shared = (AudioParams*)theApp.m_subThreadManager.m_fileMappingAudioParams.getBuffer();
+		*shared = *params;
 
-		if (shared)
-			*shared = *params, succeeded = TRUE;
-	}
-
-	MY_TRACE_INT(succeeded);
-	MY_TRACE_HEX(theApp.m_subProcess.m_mainWindow);
-
-	if (succeeded)
-	{
 		// サブプロセスにアイテムの変更を通知する。
 		::SendMessage(theApp.m_subProcess.m_mainWindow, WM_AVIUTL_FILTER_SEND, SendID::notifyItemChanged, 0);
 	}
@@ -203,12 +169,12 @@ BOOL SubThreadManager::init(AviUtl::FilterPlugin* fp)
 
 	HWND hwnd = theApp.m_subProcess.m_window.m_hwnd;
 
-	m_mutex.init(0, FALSE, FormatText(_T("ShowWaveform.Mutex.%08X"), hwnd));
-	m_fileMapping.init(sizeof(Bottle), FormatText(_T("ShowWaveform.FileMapping.%08X"), hwnd));
-	m_fileMappingProjectParams.init(sizeof(ProjectParams), FormatText(_T("ShowWaveform.FileMapping.ProjectParams.%08X"), hwnd));
-	m_fileMappingAudioParams.init(sizeof(AudioParams), FormatText(_T("ShowWaveform.FileMapping.AudioParams.%08X"), hwnd));
+	m_sharedSenderBottle.init(getSharedSenderBottleName(hwnd));
+	m_sharedReceiverBottle.init(getSharedReceiverBottleName(hwnd));
+	m_sharedProjectParams.init(getSharedProjectParamsName(hwnd));
+	m_sharedAudioParams.init(getSharedAudioParamsName(hwnd));
 
-	m_handle = ::CreateThread(0, 0, threadProc, hwnd, 0, &m_tid);
+	m_handle = ::CreateThread(0, 0, threadProc, 0, 0, &m_tid);
 	return !!m_handle;
 }
 
@@ -259,7 +225,7 @@ BOOL SubThreadManager::requestRedraw()
 
 DWORD CALLBACK SubThreadManager::threadProc(LPVOID param)
 {
-	SubThread subThread((HWND)param);
+	SubThread subThread;
 
 	return subThread.proc();
 }

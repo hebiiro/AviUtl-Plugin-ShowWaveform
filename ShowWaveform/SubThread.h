@@ -24,7 +24,7 @@ struct SubThread
 	std::map<std::string, const CacheRequest*> cacheRequestMap;
 
 	// サブスレッド側の処理。
-	SubThread(HWND hwnd);
+	SubThread();
 	~SubThread();
 	void onPostCacheRequest(const CacheRequest* cacheRequest);
 	void onSendCacheRequest(const CacheRequest* cacheRequest);
@@ -37,10 +37,10 @@ struct SubThread
 
 struct SubThreadManager
 {
-	Mutex m_mutex;
-	SimpleFileMapping m_fileMapping;
-	SimpleFileMapping m_fileMappingProjectParams;
-	SimpleFileMapping m_fileMappingAudioParams;
+	SimpleFileMappingT<SenderBottle> m_sharedSenderBottle;
+	SimpleFileMappingT<ReceiverBottle> m_sharedReceiverBottle;
+	SimpleFileMappingT<ProjectParams> m_sharedProjectParams;
+	SimpleFileMappingT<AudioParams> m_sharedAudioParams;
 
 	DWORD m_tid = 0;
 	Handle m_handle;

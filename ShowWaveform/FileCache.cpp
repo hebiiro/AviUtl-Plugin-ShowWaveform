@@ -9,11 +9,7 @@ FileCachePtr FileCacheManager::getCache(LPCSTR fileName, BOOL create)
 	if (strlen(fileName) == 0)
 		return 0;
 
-	// フルパスを取得する。
-	char fullPath[MAX_PATH] = {};
-	::GetFullPathNameA(fileName, MAX_PATH, fullPath, 0);
-
-	auto it = cacheMap.find(fullPath);
+	auto it = cacheMap.find(fileName);
 	if (it != cacheMap.end())
 	{
 		if (it->second->video_scale == theApp.m_fi.video_scale &&
@@ -26,7 +22,7 @@ FileCachePtr FileCacheManager::getCache(LPCSTR fileName, BOOL create)
 	if (create)
 	{
 		// キャッシュが存在しないので作成する。
-		createCache(fullPath);
+		createCache(fileName);
 	}
 
 	return 0;
@@ -45,16 +41,19 @@ void FileCacheManager::receiveCache()
 	MY_TRACE(_T("FileCacheManager::receiveCache()\n"));
 
 	// サブスレッドマネージャからボトルを受け取る。
-	Bottle* bottle = (Bottle*)theApp.m_subThreadManager.m_fileMapping.getBuffer();
-	if (!bottle) return;
+	ReceiverBottle* shared = theApp.m_subThreadManager.m_sharedReceiverBottle.getBuffer();
+	if (!shared) return;
+
+	MY_TRACE_STR(shared->fileName);
+	MY_TRACE_INT(shared->sampleCount);
 
 	// キャッシュを更新する。
 	FileCachePtr cache = std::make_shared<FileCache>();
 	cache->video_scale = theApp.m_fi.video_scale;
 	cache->video_rate = theApp.m_fi.video_rate;
 	cache->samples.insert(cache->samples.end(),
-		bottle->samples, bottle->samples + bottle->sampleCount);
-	cacheMap[bottle->fileName] = cache;
+		shared->samples, shared->samples + shared->sampleCount);
+	cacheMap[shared->fileName] = cache;
 }
 
 //---------------------------------------------------------------------

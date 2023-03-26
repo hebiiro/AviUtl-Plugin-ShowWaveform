@@ -29,7 +29,17 @@ struct Sample {
 	float level;
 };
 
-struct Bottle {
+struct SenderBottle {
+	char fileName[MAX_PATH];
+};
+
+struct ReceiverBottle {
+	char fileName[MAX_PATH];
+	int32_t sampleCount;
+	Sample samples[MAX_SAMPLE_COUNT];
+};
+
+struct ReaderBottle {
 	char fileName[MAX_PATH];
 	int32_t sampleCount;
 	Sample samples[MAX_SAMPLE_COUNT];
@@ -54,5 +64,37 @@ struct AudioParams {
 	int32_t playBegin = 0;
 	float playSpeed = 1.0;
 };
+
+//---------------------------------------------------------------------
+
+inline FormatText getSharedSenderBottleName(HWND hwnd)
+{
+	return FormatText(_T("ShowWaveform.Shared.SenderBottle.%08X"), hwnd);
+}
+
+inline FormatText getSharedReceiverBottleName(HWND hwnd)
+{
+	return FormatText(_T("ShowWaveform.Shared.ReceiverBottle.%08X"), hwnd);
+}
+
+inline FormatText getReaderEventName(DWORD id)
+{
+	return FormatText(_T("ShowWaveform.Event.Reader.%d"), id);
+}
+
+inline FormatText getSharedReaderBottleName(DWORD id)
+{
+	return FormatText(_T("ShowWaveform.Shared.ReaderBottle.%d"), id);
+}
+
+inline FormatText getSharedProjectParamsName(HWND hwnd)
+{
+	return FormatText(_T("ShowWaveform.Shared.ProjectParams.%08X"), hwnd);
+}
+
+inline FormatText getSharedAudioParamsName(HWND hwnd)
+{
+	return FormatText(_T("ShowWaveform.Shared.AudioParams.%08X"), hwnd);
+}
 
 //---------------------------------------------------------------------

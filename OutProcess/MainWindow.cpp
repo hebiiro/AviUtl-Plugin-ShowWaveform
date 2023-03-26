@@ -74,12 +74,28 @@ LRESULT MainWindow::onAviUtlFilterSend(HWND hwnd, UINT message, WPARAM wParam, L
 	{
 	case SendID::requestCache:
 		{
-			BottlePtr bottle = getBottle();
+			SenderBottlePtr bottle = getSenderBottle();
 			if (bottle)
 			{
-				CachePtr cache = createCache(bottle);
+				CachePtr cache = getCache(bottle->fileName);
 				if (cache)
-					fireReceive(cache);
+				{
+					// キャッシュが作成済みならメインプロセスに通知する。
+					sendCache(cache);
+				}
+				else
+				{
+					// キャッシュが存在しないので新規作成する。
+					// (1) ファイル名からウェイターを作成する。
+					// (2) ウェイターからリーダーを作成する。
+					// (3) リーダーからキャッシュを作成する。
+
+					// ウェイターを作成する。
+					WaiterPtr waiter = createWaiter(bottle->fileName);
+
+					// 可能であれば、ウェイターを消化する。
+					digestWaiterQueue();
+				}
 			}
 
 			break;
@@ -99,6 +115,35 @@ LRESULT MainWindow::onAviUtlFilterSend(HWND hwnd, UINT message, WPARAM wParam, L
 				setAudioParams(params);
 
 			break;
+		}
+	}
+
+	return 0;
+}
+
+LRESULT MainWindow::onAviUtlFilterReceive(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
+{
+	MY_TRACE(_T("onAviUtlFilterReceive(0x%08X, 0x%08X)\n"), wParam, lParam);
+
+	DWORD id = (DWORD)wParam;
+	MY_TRACE_INT(id);
+
+	// リーダーを取得する。
+	ReaderPtr reader = getReader(id);
+	if (reader)
+	{
+		// キャッシュを作成する。
+		CachePtr cache = createCache(reader);
+		if (cache)
+		{
+			// キャッシュを作成できた場合はメインプロセスに通知する。
+			sendCache(cache);
+
+			// このリーダーは不要になったので削除する。
+			eraseReader(id);
+
+			// リーダーの空きができたので次の読み込みを開始する。
+			digestWaiterQueue();
 		}
 	}
 
@@ -144,6 +189,7 @@ LRESULT CALLBACK MainWindow::wndProc(HWND hwnd, UINT message, WPARAM wParam, LPA
 	if (message == WM_AVIUTL_FILTER_EXIT) return g_mainWindow.onAviUtlFilterExit(hwnd, message, wParam, lParam);
 	else if (message == WM_AVIUTL_FILTER_RESIZE) return g_mainWindow.onAviUtlFilterResize(hwnd, message, wParam, lParam);
 	else if (message == WM_AVIUTL_FILTER_SEND) return g_mainWindow.onAviUtlFilterSend(hwnd, message, wParam, lParam);
+	else if (message == WM_AVIUTL_FILTER_RECEIVE) return g_mainWindow.onAviUtlFilterReceive(hwnd, message, wParam, lParam);
 	else if (message == WM_AVIUTL_FILTER_CLEAR) return g_mainWindow.onAviUtlFilterClear(hwnd, message, wParam, lParam);
 	else if (message == WM_AVIUTL_FILTER_REDRAW) return g_mainWindow.onAviUtlFilterRedraw(hwnd, message, wParam, lParam);
 

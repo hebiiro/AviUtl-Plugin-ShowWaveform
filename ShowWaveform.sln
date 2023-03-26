@@ -14,6 +14,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "OutProcess", "OutProcess\OutProcess.vcxproj", "{3E78D513-8512-4A92-8896-6C1E074647EA}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ReaderProcess", "ReaderProcess\ReaderProcess.vcxproj", "{DB2053E8-60D4-4BD5-845A-11CA24E2C599}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -38,6 +40,14 @@ Global
 		{3E78D513-8512-4A92-8896-6C1E074647EA}.Release|x64.Build.0 = Release|x64
 		{3E78D513-8512-4A92-8896-6C1E074647EA}.Release|x86.ActiveCfg = Release|Win32
 		{3E78D513-8512-4A92-8896-6C1E074647EA}.Release|x86.Build.0 = Release|Win32
+		{DB2053E8-60D4-4BD5-845A-11CA24E2C599}.Debug|x64.ActiveCfg = Debug|x64
+		{DB2053E8-60D4-4BD5-845A-11CA24E2C599}.Debug|x64.Build.0 = Debug|x64
+		{DB2053E8-60D4-4BD5-845A-11CA24E2C599}.Debug|x86.ActiveCfg = Debug|Win32
+		{DB2053E8-60D4-4BD5-845A-11CA24E2C599}.Debug|x86.Build.0 = Debug|Win32
+		{DB2053E8-60D4-4BD5-845A-11CA24E2C599}.Release|x64.ActiveCfg = Release|x64
+		{DB2053E8-60D4-4BD5-845A-11CA24E2C599}.Release|x64.Build.0 = Release|x64
+		{DB2053E8-60D4-4BD5-845A-11CA24E2C599}.Release|x86.ActiveCfg = Release|Win32
+		{DB2053E8-60D4-4BD5-845A-11CA24E2C599}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

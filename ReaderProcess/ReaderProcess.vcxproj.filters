@@ -15,23 +15,14 @@
     <ClInclude Include="targetver.h">
       <Filter>Framework</Filter>
     </ClInclude>
-    <ClInclude Include="OutProcess.h" />
-    <ClInclude Include="MainWindow.h" />
-    <ClInclude Include="Design.h" />
+    <ClInclude Include="ReaderProcess.h" />
+    <ClInclude Include="Plugin.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="pch.cpp">
       <Filter>Framework</Filter>
     </ClCompile>
-    <ClCompile Include="OutProcess.cpp" />
-    <ClCompile Include="MainWindow.cpp" />
-    <ClCompile Include="MainWindow_Config.cpp" />
-    <ClCompile Include="MainWindow_Paint.cpp" />
-    <ClCompile Include="Design.cpp" />
-    <ClCompile Include="MainWindow_OpenGL.cpp" />
-    <ClCompile Include="MainWindow_Waveform.cpp" />
-    <ClCompile Include="MainWindow_Mouse.cpp" />
-    <ClCompile Include="MainWindow_Reader.cpp" />
-    <ClCompile Include="MainWindow_Waiter.cpp" />
+    <ClCompile Include="ReaderProcess.cpp" />
+    <ClCompile Include="Plugin.cpp" />
   </ItemGroup>
 </Project>

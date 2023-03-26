@@ -21,8 +21,8 @@
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>
     <Keyword>Win32Proj</Keyword>
-    <ProjectGuid>{3e78d513-8512-4a92-8896-6c1e074647ea}</ProjectGuid>
-    <RootNamespace>OutProcess</RootNamespace>
+    <ProjectGuid>{DB2053E8-60D4-4BD5-845A-11CA24E2C599}</ProjectGuid>
+    <RootNamespace>ReaderProcess</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -103,7 +103,7 @@
       <AdditionalLibraryDirectories>../../</AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent>
-      <Command>copy /B /Y "$(TargetDir)$(TargetFileName)" "C:\AviUtl110_test\Plugins\$(SolutionName)\$(SolutionName).exe"</Command>
+      <Command>copy /B /Y "$(TargetDir)$(TargetFileName)" "C:\AviUtl110_test\Plugins\$(SolutionName)\$(TargetFileName)"</Command>
     </PostBuildEvent>
     <Manifest />
   </ItemDefinitionGroup>
@@ -128,7 +128,7 @@
       <AdditionalLibraryDirectories>../../</AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent>
-      <Command>copy /B /Y "$(TargetDir)$(TargetFileName)" "C:\AviUtl110_test\Plugins\$(SolutionName)\$(SolutionName).exe"</Command>
+      <Command>copy /B /Y "$(TargetDir)$(TargetFileName)" "C:\AviUtl110_test\Plugins\$(SolutionName)\$(TargetFileName)"</Command>
     </PostBuildEvent>
     <Manifest />
   </ItemDefinitionGroup>
@@ -149,7 +149,7 @@
       <AdditionalLibraryDirectories>../../</AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent>
-      <Command>copy /B /Y "$(TargetDir)$(TargetFileName)" "C:\AviUtl110_test\Plugins\$(SolutionName)\$(SolutionName).exe"</Command>
+      <Command>copy /B /Y "$(TargetDir)$(TargetFileName)" "C:\AviUtl110_test\Plugins\$(SolutionName)\$(TargetFileName)"</Command>
     </PostBuildEvent>
     <Manifest />
   </ItemDefinitionGroup>
@@ -174,40 +174,26 @@
       <AdditionalLibraryDirectories>../../</AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent>
-      <Command>copy /B /Y "$(TargetDir)$(TargetFileName)" "C:\AviUtl110_test\Plugins\$(SolutionName)\$(SolutionName).exe"</Command>
+      <Command>copy /B /Y "$(TargetDir)$(TargetFileName)" "C:\AviUtl110_test\Plugins\$(SolutionName)\$(TargetFileName)"</Command>
     </PostBuildEvent>
     <Manifest />
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="Design.h" />
     <ClInclude Include="framework.h" />
-    <ClInclude Include="MainWindow.h" />
-    <ClInclude Include="OutProcess.h" />
+    <ClInclude Include="ReaderProcess.h" />
     <ClInclude Include="pch.h" />
+    <ClInclude Include="Plugin.h" />
     <ClInclude Include="targetver.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Design.cpp" />
-    <ClCompile Include="MainWindow.cpp" />
-    <ClCompile Include="MainWindow_Config.cpp" />
-    <ClCompile Include="MainWindow_Mouse.cpp" />
-    <ClCompile Include="MainWindow_OpenGL.cpp" />
-    <ClCompile Include="MainWindow_Paint.cpp" />
-    <ClCompile Include="MainWindow_Reader.cpp" />
-    <ClCompile Include="MainWindow_Waiter.cpp" />
-    <ClCompile Include="MainWindow_Waveform.cpp" />
-    <ClCompile Include="OutProcess.cpp" />
+    <ClCompile Include="ReaderProcess.cpp" />
     <ClCompile Include="pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\ReaderProcess\ReaderProcess.vcxproj">
-      <Project>{db2053e8-60d4-4bd5-845a-11ca24e2c599}</Project>
-    </ProjectReference>
+    <ClCompile Include="Plugin.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

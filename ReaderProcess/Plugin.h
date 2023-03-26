@@ -39,11 +39,8 @@ public:
 
 public:
 
-	Plugin();
+	Plugin(LPCTSTR fileName);
 	~Plugin();
-
-	BOOL load(LPCTSTR fileName);
-	BOOL unload();
 
 	AviUtl::InputPluginDLL* getInputPlugin() const;
 };
@@ -59,25 +56,17 @@ private:
 	AviUtl::InputHandle m_inputHandle = 0;
 	AviUtl::InputInfo m_inputInfo = {};
 	MediaInfo m_mediaInfo = {};
-	std::vector<BYTE> m_videoBuffer;
-	std::vector<BYTE> m_audioBuffer;
 
 public:
 
-	Media();
+	Media(PluginPtr plugin, LPCSTR fileName);
 	~Media();
-
-	BOOL open(PluginPtr plugin, LPCSTR fileName);
-	BOOL close();
 
 	PluginPtr getPlugin();
 	LPCSTR getFileName();
 	AviUtl::InputHandle getInputHandle();
 	AviUtl::InputInfo* getInputInfo();
 	MediaInfo* getMediaInfo();
-	int32_t calcAudioBufferSize(int32_t length);
-	void* readVideo(int32_t frame, int32_t* bufferSize);
-	void* readAudio(int32_t start, int32_t length, int32_t* bufferLength);
 };
 
 //--------------------------------------------------------------------

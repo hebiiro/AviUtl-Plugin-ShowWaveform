@@ -16,6 +16,7 @@ struct ItemCacheManager {
 	ItemCachePtr update(BOOL send, ExEdit::Object* object);
 	AudioParamsPtr getAudioParams(ExEdit::Object* object);
 	BOOL isChanged(const ItemCachePtr& cache, ExEdit::Object* object);
+	static void copyFileName(LPSTR dst, size_t size, LPCSTR src);
 };
 
 //---------------------------------------------------------------------

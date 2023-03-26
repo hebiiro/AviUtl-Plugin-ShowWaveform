@@ -149,7 +149,7 @@ AudioParamsPtr ItemCacheManager::getAudioParams(ExEdit::Object* object)
 			// 拡張データを取得する。
 			BYTE* exdata = theApp.m_auin.GetExdata(object2, 0);
 
-			::StringCbCopyA(params->fileName, sizeof(params->fileName), (LPCSTR)exdata);
+			copyFileName(params->fileName, sizeof(params->fileName), (LPCSTR)exdata);
 			params->playBegin = object2->track_value_left[0];
 			params->playSpeed = object2->track_value_left[1] / 1000.0f;
 
@@ -161,7 +161,7 @@ AudioParamsPtr ItemCacheManager::getAudioParams(ExEdit::Object* object)
 		// 拡張データを取得する。
 		BYTE* exdata = theApp.m_auin.GetExdata(object, 0);
 
-		::StringCbCopyA(params->fileName, sizeof(params->fileName), (LPCSTR)exdata);
+		copyFileName(params->fileName, sizeof(params->fileName), (LPCSTR)exdata);
 		params->playBegin = object->track_value_left[0] * theApp.m_fi.video_rate / theApp.m_fi.video_scale / 100;
 		params->playSpeed = object->track_value_left[1] / 1000.0f;
 	}
@@ -180,6 +180,22 @@ BOOL ItemCacheManager::isChanged(const ItemCachePtr& cache, ExEdit::Object* obje
 	if (cache->params->frameEnd != params->frameEnd) return TRUE;
 
 	return FALSE;
+}
+
+void ItemCacheManager::copyFileName(LPSTR dst, size_t size, LPCSTR src)
+{
+	// フルパスを取得する。
+	::GetFullPathNameA(src, size / sizeof(*dst), dst, 0);
+
+	// 小文字に変換する。
+	size_t length = strlen(dst);
+	for (size_t i = 0; i < length; i++)
+	{
+		if (::IsDBCSLeadByte(dst[i]))
+			i++;
+		else
+			dst[i] = tolower(dst[i]);
+	}
 }
 
 //---------------------------------------------------------------------
