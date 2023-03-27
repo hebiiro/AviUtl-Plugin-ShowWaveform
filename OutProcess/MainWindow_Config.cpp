@@ -3,6 +3,15 @@
 
 //--------------------------------------------------------------------
 
+const Label MainWindow::Mode::labels[] = {
+	{ rms, L"rms" },
+	{ both, L"both" },
+	{ min, L"min" },
+	{ max, L"max" },
+};
+
+//--------------------------------------------------------------------
+
 BOOL MainWindow::initConfig()
 {
 	MY_TRACE(_T("MainWindow::initConfig()\n"));
@@ -78,11 +87,23 @@ void MainWindow::load(LPCWSTR fileName)
 {
 	MY_TRACE(_T("MainWindow::load(%ws)\n"), fileName);
 
+	int mode = m_mode->getID();
+
 	getPrivateProfileInt(fileName, L"Config", L"minRange", m_minRange);
 	getPrivateProfileInt(fileName, L"Config", L"maxRange", m_maxRange);
 	getPrivateProfileInt(fileName, L"Config", L"baseLevel", m_baseLevel);
 	getPrivateProfileInt(fileName, L"Config", L"maxReaderCount", maxReaderCount);
 	getPrivateProfileInt(fileName, L"Config", L"zoom", m_zoom);
+	getPrivateProfileInt(fileName, L"Config", L"scale", m_scale);
+	getPrivateProfileLabel(fileName, L"Config", L"mode", mode, Mode::labels);
+
+	switch (mode)
+	{
+	case Mode::rms: m_mode = std::make_shared<RMSMode>(); break;
+	case Mode::both: m_mode = std::make_shared<BothMode>(); break;
+	case Mode::min: m_mode = std::make_shared<MinMode>(); break;
+	case Mode::max: m_mode = std::make_shared<MaxMode>(); break;
+	}
 
 	g_design.load(fileName);
 }
@@ -91,11 +112,15 @@ void MainWindow::save(LPCWSTR fileName)
 {
 	MY_TRACE(_T("MainWindow::save(%ws)\n"), fileName);
 
+	int mode = m_mode->getID();
+
 	setPrivateProfileInt(fileName, L"Config", L"minRange", m_minRange);
 	setPrivateProfileInt(fileName, L"Config", L"maxRange", m_maxRange);
 	setPrivateProfileInt(fileName, L"Config", L"baseLevel", m_baseLevel);
 	setPrivateProfileInt(fileName, L"Config", L"maxReaderCount", maxReaderCount);
 	setPrivateProfileInt(fileName, L"Config", L"zoom", m_zoom);
+	setPrivateProfileInt(fileName, L"Config", L"scale", m_scale);
+	setPrivateProfileLabel(fileName, L"Config", L"mode", mode, Mode::labels);
 
 	g_design.save(fileName);
 }

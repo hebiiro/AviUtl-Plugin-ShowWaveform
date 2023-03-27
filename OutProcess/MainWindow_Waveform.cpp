@@ -44,16 +44,13 @@ CachePtr MainWindow::getCache(LPCSTR fileName)
 
 //--------------------------------------------------------------------
 
-void MainWindow::recalcWaveform()
+void MainWindow::recalcFullSamples()
 {
-	MY_TRACE(_T("MainWindow::recalcWaveform()\n"));
+	MY_TRACE(_T("MainWindow::recalcFullSamples()\n"));
 
 	// プロジェクトパラメータが有効かどうかチェックする。
 	if (!projectParams) return;
 	if (projectParams->frameNumber <= 0) return;
-
-	// アイテムパラメータが有効かどうかチェックする。
-	if (audioParamsMap.empty()) return;
 
 	// 全てのアイテムのキャッシュが作成済みかチェックする。
 	for (auto pair : audioParamsMap)
@@ -75,6 +72,7 @@ void MainWindow::recalcWaveform()
 	{
 		const AudioParamsPtr& params = pair.second;
 		if (params->sceneSet != projectParams->sceneIndex) continue;
+		if (params->layerFlag & (uint32_t)ExEdit::LayerSetting::Flag::UnDisp) continue;
 		auto it = cacheMap.find(params->fileName);
 		if (it == cacheMap.end()) continue;
 		const CachePtr& cache = it->second;
@@ -89,11 +87,15 @@ void MainWindow::recalcWaveform()
 			float temp1 = scale * params->playSpeed * i;
 			float temp2 = scale * params->playBegin;
 			int32_t src = (int32_t)(temp1 + temp2);
+			int32_t dst = i + frameBegin;
 
-			if (src >= (int32_t)cache->samples.size())
+			if (src < 0 || src >= (int32_t)cache->samples.size())
 				break;
 
-			fullSamples[i + frameBegin] += cache->samples[src].level * params->volume;
+			if (dst < 0 || dst >= (int32_t)fullSamples.size())
+				break;
+
+			fullSamples[dst].level += cache->samples[src].level * params->volume;
 		}
 	}
 
@@ -101,9 +103,9 @@ void MainWindow::recalcWaveform()
 	MY_TRACE_INT(c);
 	for (int i = 0; i < c; i++)
 	{
-		fullSamples[i] = 20 * log10f(fullSamples[i]);
+		fullSamples[i].rms = 20 * log10f(fullSamples[i].level);
 
-		MY_TRACE(_T("%d : %f\n"), i, fullSamples[i]);
+		MY_TRACE(_T("%d : %f, %f\n"), i, fullSamples[i].level, fullSamples[i].rms);
 	}
 
 	::InvalidateRect(m_hwnd, 0, FALSE);
@@ -166,8 +168,8 @@ void MainWindow::setProjectParams(const ProjectParamsPtr& params)
 
 	if (::IsWindowVisible(m_hwnd))
 	{
-		// 音声波形を再計算する。
-		recalcWaveform();
+		// 全体の音声波形を再計算する。
+		recalcFullSamples();
 	}
 }
 

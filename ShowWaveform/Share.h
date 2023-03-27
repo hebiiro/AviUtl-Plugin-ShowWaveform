@@ -63,6 +63,7 @@ struct AudioParams {
 	float volume = 1.0;
 	int32_t playBegin = 0;
 	float playSpeed = 1.0;
+	uint32_t layerFlag = 0;
 };
 
 //---------------------------------------------------------------------

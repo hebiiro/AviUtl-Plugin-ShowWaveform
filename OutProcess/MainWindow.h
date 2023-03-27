@@ -2,6 +2,7 @@
 
 #include "OutProcess.h"
 #include "Design.h"
+#include "Mode.h"
 
 //--------------------------------------------------------------------
 
@@ -60,17 +61,26 @@ struct Reader {
 typedef std::shared_ptr<Reader> ReaderPtr;
 typedef std::map<DWORD, ReaderPtr> ReaderMap;
 
+struct FullSample {
+	float level;
+	float rms;
+};
+
+typedef std::vector<FullSample> FullSamples;
+
 //--------------------------------------------------------------------
 
 struct MainWindow
 {
-	struct TimerID {
-		static const UINT checkConfig = 1000;
+	struct CommandID {
+		static const UINT rmsMode = 1000;
+		static const UINT bothMode = 1001;
+		static const UINT minMode = 1002;
+		static const UINT maxMode = 1003;
 	};
 
-	struct DragMode {
-		static const int minRange = 0;
-		static const int maxRange = 1;
+	struct TimerID {
+		static const UINT checkConfig = 1000;
 	};
 
 	HGLRC m_rc = 0;
@@ -83,11 +93,18 @@ struct MainWindow
 	int m_maxRange = 14;
 	int m_baseLevel = 0;
 	int m_zoom = 0;
+	int m_scale = 0;
 
-	int m_dragMode = DragMode::minRange;
-	POINT m_dragOriginPoint = {};
-	int m_dragOriginRange = 0;
 	int m_hotFrame = 0;
+
+	struct Mode {
+		static const int rms = 0;
+		static const int both = 1;
+		static const int min = 2;
+		static const int max = 3;
+		static const Label labels[];
+	};
+	ModePtr m_mode = std::make_shared<RMSMode>();
 
 	void recalcLayout();
 	int px2Frame(int x);
@@ -108,16 +125,6 @@ struct MainWindow
 	BOOL termOpenGL();
 	void doPaint(HDC dc, const RECT& rc);
 	void doPaint(const RECT& rc);
-	struct PaintContext {
-		RECT rc;
-		int width, height;
-		float x, y, w, h;
-	};
-	void drawBackground(const PaintContext& context);
-	void drawScale(const PaintContext& context);
-	void drawBody(const PaintContext& context);
-	void drawGraph(const PaintContext& context);
-	void drawText(float x, float y, LPCSTR text, const Design::Text& design);
 
 	HWND m_hwnd = 0;
 	SimpleFileMappingT<SenderBottle> m_sharedSenderBottle;
@@ -132,8 +139,9 @@ struct MainWindow
 	SenderBottlePtr getSenderBottle();
 	CachePtr getCache(LPCSTR fileName);
 
-	std::vector<float> fullSamples;
-	void recalcWaveform();
+	FullSamples fullSamples;
+
+	void recalcFullSamples();
 
 	ProjectParamsPtr projectParams;
 	ProjectParamsPtr getProjectParams();
@@ -163,6 +171,7 @@ struct MainWindow
 	LRESULT onHScroll(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam);
 	LRESULT onTimer(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam);
 	LRESULT onPaint(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam);
+	LRESULT onContextMenu(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam);
 	LRESULT onSetCursor(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam);
 	LRESULT onMouseMove(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam);
 	LRESULT onMouseWheel(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam);

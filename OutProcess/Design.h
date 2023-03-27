@@ -1,5 +1,7 @@
 #pragma once
 
+#include "OutProcess.h"
+
 //--------------------------------------------------------------------
 
 struct XYWHRect
@@ -116,11 +118,6 @@ struct StringU8
 
 struct Design
 {
-	struct Label {
-		int value;
-		LPCWSTR label;
-	};
-
 	struct AlignX {
 		static const int left = 0;
 		static const int right = 1;
@@ -166,6 +163,11 @@ struct Design
 		} shadow;
 	};
 
+	struct Marker {
+		Stroke stroke;
+		Text text;
+	};
+
 	_bstr_t fontDefault;
 	_bstr_t fontDefault2;
 	struct Image {
@@ -195,14 +197,8 @@ struct Design
 	struct Graph {
 		GradientFill fill;
 		Stroke stroke;
-		struct Current {
-			Stroke stroke;
-			Text text;
-		} current;
-		struct Hot {
-			Stroke stroke;
-			Text text;
-		} hot;
+		Marker current;
+		Marker hot;
 	} graph;
 
 	Design();

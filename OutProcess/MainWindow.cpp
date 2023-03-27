@@ -69,6 +69,44 @@ LRESULT MainWindow::onTimer(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPara
 	return ::DefWindowProc(hwnd, message, wParam, lParam);
 }
 
+LRESULT MainWindow::onContextMenu(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
+{
+//	MY_TRACE(_T("MainWindow::onContextMenu(0x%08X, 0x%08X)\n"), wParam, lParam);
+
+	POINT cursorPos; ::GetCursorPos(&cursorPos);
+
+	HMENU menu = ::CreatePopupMenu();
+
+	::AppendMenu(menu, MF_STRING, CommandID::rmsMode, _T("RMS"));
+	::AppendMenu(menu, MF_STRING, CommandID::bothMode, _T("中央"));
+	::AppendMenu(menu, MF_STRING, CommandID::minMode, _T("下側"));
+	::AppendMenu(menu, MF_STRING, CommandID::maxMode, _T("上側"));
+
+	switch (m_mode->getID())
+	{
+	case Mode::rms: ::CheckMenuItem(menu, CommandID::rmsMode, MF_CHECKED); break;
+	case Mode::both: ::CheckMenuItem(menu, CommandID::bothMode, MF_CHECKED); break;
+	case Mode::min: ::CheckMenuItem(menu, CommandID::minMode, MF_CHECKED); break;
+	case Mode::max: ::CheckMenuItem(menu, CommandID::maxMode, MF_CHECKED); break;
+	}
+
+	int id = ::TrackPopupMenu(menu, TPM_NONOTIFY | TPM_RETURNCMD, cursorPos.x, cursorPos.y, 0, hwnd, 0);
+
+	switch (id)
+	{
+	case CommandID::rmsMode: m_mode = std::make_shared<RMSMode>(); break;
+	case CommandID::bothMode: m_mode = std::make_shared<BothMode>(); break;
+	case CommandID::minMode: m_mode = std::make_shared<MinMode>(); break;
+	case CommandID::maxMode: m_mode = std::make_shared<MaxMode>(); break;
+	}
+
+	::DestroyMenu(menu);
+
+	::InvalidateRect(hwnd, 0, FALSE);
+
+	return ::DefWindowProc(hwnd, message, wParam, lParam);
+}
+
 LRESULT MainWindow::onAviUtlFilterExit(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
 	MY_TRACE(_T("onAviUtlFilterExit(0x%08X, 0x%08X)\n"), wParam, lParam);
@@ -189,8 +227,8 @@ LRESULT MainWindow::onAviUtlFilterRedraw(HWND hwnd, UINT message, WPARAM wParam,
 
 	if (::IsWindowVisible(m_hwnd))
 	{
-		// 音声波形を再計算する。
-		recalcWaveform();
+		// 全体の音声波形を再計算する。
+		recalcFullSamples();
 	}
 
 	return 0;
@@ -206,6 +244,7 @@ LRESULT CALLBACK MainWindow::wndProc(HWND hwnd, UINT message, WPARAM wParam, LPA
 	case WM_HSCROLL: return g_mainWindow.onHScroll(hwnd, message, wParam, lParam);
 	case WM_TIMER: return g_mainWindow.onTimer(hwnd, message, wParam, lParam);
 	case WM_PAINT: return g_mainWindow.onPaint(hwnd, message, wParam, lParam);
+	case WM_CONTEXTMENU: return g_mainWindow.onContextMenu(hwnd, message, wParam, lParam);
 	case WM_SETCURSOR: return g_mainWindow.onSetCursor(hwnd, message, wParam, lParam);
 	case WM_MOUSEMOVE: return g_mainWindow.onMouseMove(hwnd, message, wParam, lParam);
 	case WM_MOUSEWHEEL: return g_mainWindow.onMouseWheel(hwnd, message, wParam, lParam);

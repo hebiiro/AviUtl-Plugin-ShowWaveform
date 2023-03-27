@@ -18,6 +18,7 @@
     <ClInclude Include="OutProcess.h" />
     <ClInclude Include="MainWindow.h" />
     <ClInclude Include="Design.h" />
+    <ClInclude Include="Mode.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="pch.cpp">
@@ -34,5 +35,10 @@
     <ClCompile Include="MainWindow_Reader.cpp" />
     <ClCompile Include="MainWindow_Waiter.cpp" />
     <ClCompile Include="MainWindow_Layout.cpp" />
+    <ClCompile Include="Mode_RMS.cpp" />
+    <ClCompile Include="Mode.cpp" />
+    <ClCompile Include="Mode_Min.cpp" />
+    <ClCompile Include="Mode_Both.cpp" />
+    <ClCompile Include="Mode_Max.cpp" />
   </ItemGroup>
 </Project>

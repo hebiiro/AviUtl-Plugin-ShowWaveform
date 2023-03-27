@@ -137,6 +137,9 @@ AudioParamsPtr ItemCacheManager::getAudioParams(ExEdit::Object* object)
 	params->sceneSet = object->scene_set;
 	params->volume = object->track_value_left[2] / 1000.0f;
 
+	ExEdit::LayerSetting* layer = theApp.m_auin.GetLayerSetting(object->layer_set);
+	params->layerFlag = (uint32_t)layer->flag;
+
 	if (object->check_value[1])
 	{
 		// 同じグループの動画アイテムを探す。
@@ -181,6 +184,7 @@ BOOL ItemCacheManager::isChanged(const ItemCachePtr& cache, ExEdit::Object* obje
 	if (cache->params->playBegin != params->playBegin) return TRUE;
 	if (cache->params->playSpeed != params->playSpeed) return TRUE;
 	if (cache->params->frameEnd != params->frameEnd) return TRUE;
+	if (cache->params->layerFlag != params->layerFlag) return TRUE;
 
 	return FALSE;
 }

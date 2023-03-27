@@ -7,19 +7,19 @@ Design g_design;
 
 //--------------------------------------------------------------------
 
-const Design::Label Design::AlignX::labels[] = {
+const Label Design::AlignX::labels[] = {
 	{ left, L"left" },
 	{ right, L"right" },
 	{ center, L"center" },
 };
 
-const Design::Label Design::AlignY::labels[] = {
+const Label Design::AlignY::labels[] = {
 	{ top, L"top" },
 	{ bottom, L"bottom" },
 	{ center, L"center" },
 };
 
-const Design::Label Design::ScaleMode::labels[] = {
+const Label Design::ScaleMode::labels[] = {
 	{ normal, L"normal" },
 	{ fit, L"fit" },
 	{ crop, L"crop" },
