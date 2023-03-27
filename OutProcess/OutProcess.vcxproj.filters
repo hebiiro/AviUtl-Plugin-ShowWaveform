@@ -33,5 +33,6 @@
     <ClCompile Include="MainWindow_Mouse.cpp" />
     <ClCompile Include="MainWindow_Reader.cpp" />
     <ClCompile Include="MainWindow_Waiter.cpp" />
+    <ClCompile Include="MainWindow_Layout.cpp" />
   </ItemGroup>
 </Project>

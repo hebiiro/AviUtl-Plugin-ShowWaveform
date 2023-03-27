@@ -9,9 +9,33 @@ MainWindow g_mainWindow;
 
 LRESULT MainWindow::onCreate(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
-	MY_TRACE(_T("MainWindow::onCreate()\n"));
+	MY_TRACE(_T("MainWindow::onCreate(0x%08X, 0x%08X)\n"), wParam, lParam);
 
 	m_hwnd = hwnd;
+
+	{
+		// DarkenWindow が存在する場合は読み込む。
+
+		TCHAR fileName[MAX_PATH] = {};
+		::GetModuleFileName(g_instance, fileName, MAX_PATH);
+		::PathRemoveFileSpec(fileName);
+		::PathAppend(fileName, _T("..\\DarkenWindow.aul"));
+		MY_TRACE_TSTR(fileName);
+
+		HMODULE DarkenWindow = ::LoadLibrary(fileName);
+		MY_TRACE_HEX(DarkenWindow);
+
+		if (DarkenWindow)
+		{
+			typedef void (WINAPI* Type_DarkenWindow_init)(HWND hwnd);
+			Type_DarkenWindow_init DarkenWindow_init =
+				(Type_DarkenWindow_init)::GetProcAddress(DarkenWindow, "DarkenWindow_init");
+			MY_TRACE_HEX(DarkenWindow_init);
+
+			if (DarkenWindow_init)
+				DarkenWindow_init(hwnd);
+		}
+	}
 
 	if (!initOpenGL()) return -1;
 	if (!initWaveform()) return -1;
@@ -22,7 +46,7 @@ LRESULT MainWindow::onCreate(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPar
 
 LRESULT MainWindow::onDestroy(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
-	MY_TRACE(_T("MainWindow::onDestroy()\n"));
+	MY_TRACE(_T("MainWindow::onDestroy(0x%08X, 0x%08X)\n"), wParam, lParam);
 
 	termConfig();
 	termWaveform();
@@ -35,7 +59,7 @@ LRESULT MainWindow::onDestroy(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPa
 
 LRESULT MainWindow::onTimer(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
-//	MY_TRACE(_T("MainWindow::onTimer()\n"));
+//	MY_TRACE(_T("MainWindow::onTimer(0x%08X, 0x%08X)\n"), wParam, lParam);
 
 	switch (wParam)
 	{
@@ -178,10 +202,13 @@ LRESULT CALLBACK MainWindow::wndProc(HWND hwnd, UINT message, WPARAM wParam, LPA
 	{
 	case WM_CREATE: return g_mainWindow.onCreate(hwnd, message, wParam, lParam);
 	case WM_DESTROY: return g_mainWindow.onDestroy(hwnd, message, wParam, lParam);
+	case WM_SIZE: return g_mainWindow.onSize(hwnd, message, wParam, lParam);
+	case WM_HSCROLL: return g_mainWindow.onHScroll(hwnd, message, wParam, lParam);
 	case WM_TIMER: return g_mainWindow.onTimer(hwnd, message, wParam, lParam);
 	case WM_PAINT: return g_mainWindow.onPaint(hwnd, message, wParam, lParam);
 	case WM_SETCURSOR: return g_mainWindow.onSetCursor(hwnd, message, wParam, lParam);
 	case WM_MOUSEMOVE: return g_mainWindow.onMouseMove(hwnd, message, wParam, lParam);
+	case WM_MOUSEWHEEL: return g_mainWindow.onMouseWheel(hwnd, message, wParam, lParam);
 	case WM_LBUTTONDOWN: return g_mainWindow.onLButtonDown(hwnd, message, wParam, lParam);
 	case WM_LBUTTONUP: return g_mainWindow.onLButtonUp(hwnd, message, wParam, lParam);
 	}

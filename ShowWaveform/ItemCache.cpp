@@ -73,6 +73,7 @@ BOOL ItemCacheManager::update(BOOL send)
 		}
 	}
 
+	// 更新が必要なアイテムが存在しない場合はここで処理終了。
 	if (updateItems.empty())
 		return FALSE;
 
@@ -118,7 +119,9 @@ ItemCachePtr ItemCacheManager::update(BOOL send, ExEdit::Object* object)
 		if (src >= (int32_t)fileCache->samples.size())
 			break;
 
-		itemCache->samples.emplace_back(fileCache->samples[src]);
+		Sample sample = fileCache->samples[src];
+		sample.level *= params->volume;
+		itemCache->samples.emplace_back(sample);
 	}
 
 	return itemCache;

@@ -190,6 +190,7 @@
     <ClCompile Include="Design.cpp" />
     <ClCompile Include="MainWindow.cpp" />
     <ClCompile Include="MainWindow_Config.cpp" />
+    <ClCompile Include="MainWindow_Layout.cpp" />
     <ClCompile Include="MainWindow_Mouse.cpp" />
     <ClCompile Include="MainWindow_OpenGL.cpp" />
     <ClCompile Include="MainWindow_Paint.cpp" />

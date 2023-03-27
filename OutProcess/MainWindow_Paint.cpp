@@ -288,24 +288,31 @@ void MainWindow::drawGraph(const PaintContext& context)
 
 	if (c <= 0) return;
 
+	int hScroll = ::GetScrollPos(m_hwnd, SB_HORZ);
+
 	// グラフを描画する。
 
 	float gx = (float)(context.rc.left + g_design.body.margin);
 	float gy = (float)(context.rc.top);
 	float gw = (float)(context.width - g_design.body.margin * 2);
 	float gh = (float)(context.height);
-
+	float lgw = gw * (100 + m_zoom) / 100;
+	float left = gx;
+	float right = gx + gw;
+	float top = gy;
 	float bottom = gy + gh;
 	float padding = 10.0f;
 
 	struct PointF { float x, y; };
-	std::vector<PointF> points(c);
+	std::vector<PointF> points;
 	for (int i = 0; i < c; i++)
 	{
 		float level = (fullSamples[i] - m_minRange) / (m_maxRange - m_minRange);
+		float x = left + lgw * i / (c - 1) - hScroll;
+		float y = std::min(bottom, bottom - gh * level);
 
-		points[i].x = gx + gw * i / (c - 1);
-		points[i].y = std::min(bottom, bottom - gh * level);
+		if (x >= left && x <= right)
+			points.emplace_back(x, y);
 	}
 
 	{
@@ -348,24 +355,31 @@ void MainWindow::drawGraph(const PaintContext& context)
 	{
 		// カレントフレームを描画する。
 
-		float mx = gx + gw * frame / (c - 1);
-		float my = gy;
+		// 垂直線を描画する。
+
+		float mx = left + lgw * frame / (c - 1) - hScroll;
+		float my = top;
 		float lx = mx;
 		float ly = bottom;
 
-		nvgBeginPath(m_vg);
-		nvgMoveTo(m_vg, mx, my);
-		nvgLineTo(m_vg, lx, ly);
-		nvgStrokeWidth(m_vg, (float)g_design.graph.current.stroke.width);
-		nvgStrokeColor(m_vg, g_design.graph.current.stroke.color);
-		nvgStroke(m_vg);
+		if (mx >= left && mx <= right)
+		{
+			nvgBeginPath(m_vg);
+			nvgMoveTo(m_vg, mx, my);
+			nvgLineTo(m_vg, lx, ly);
+			nvgStrokeWidth(m_vg, (float)g_design.graph.current.stroke.width);
+			nvgStrokeColor(m_vg, g_design.graph.current.stroke.color);
+			nvgStroke(m_vg);
+		}
+
+		// テキストを描画する。
 
 		char text[MAX_PATH] = {};
 		::StringCbPrintfA(text, sizeof(text), "%.2fdB @%d", fullSamples[frame], frame);
 
 		float padding = 4.0f;
-		float tx = gx + padding;
-		float ty = gy + padding;
+		float tx = left + padding;
+		float ty = top + padding;
 
 		nvgFontSize(m_vg, (float)g_design.graph.current.text.height);
 		nvgFontFaceId(m_vg, m_fontDefault);
@@ -380,8 +394,10 @@ void MainWindow::drawGraph(const PaintContext& context)
 	{
 		// ホットフレームを描画する。
 
-		float mx = gx + gw * frame / (c - 1);
-		float my = gy;
+		// 垂直線を描画する。
+
+		float mx = left + lgw * frame / (c - 1) - hScroll;
+		float my = top;
 		float lx = mx;
 		float ly = bottom;
 
@@ -392,12 +408,14 @@ void MainWindow::drawGraph(const PaintContext& context)
 		nvgStrokeColor(m_vg, g_design.graph.hot.stroke.color);
 		nvgStroke(m_vg);
 
+		// テキストを描画する。
+
 		char text[MAX_PATH] = {};
 		::StringCbPrintfA(text, sizeof(text), "%.2fdB @%d", fullSamples[frame], frame);
 
 		float padding = 4.0f;
-		float tx = gx + gw - padding;
-		float ty = gy + padding;
+		float tx = right - padding;
+		float ty = top + padding;
 
 		nvgFontSize(m_vg, (float)g_design.graph.hot.text.height);
 		nvgFontFaceId(m_vg, m_fontDefault);

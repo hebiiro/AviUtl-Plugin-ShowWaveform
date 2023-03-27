@@ -82,11 +82,15 @@ struct MainWindow
 	int m_minRange = -33;
 	int m_maxRange = 14;
 	int m_baseLevel = 0;
+	int m_zoom = 0;
 
 	int m_dragMode = DragMode::minRange;
 	POINT m_dragOriginPoint = {};
 	int m_dragOriginRange = 0;
 	int m_hotFrame = 0;
+
+	void recalcLayout();
+	int px2Frame(int x);
 
 	FileUpdateCheckerPtr m_configFileChecker;
 
@@ -155,10 +159,13 @@ struct MainWindow
 
 	LRESULT onCreate(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam);
 	LRESULT onDestroy(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam);
+	LRESULT onSize(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam);
+	LRESULT onHScroll(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam);
 	LRESULT onTimer(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam);
 	LRESULT onPaint(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam);
 	LRESULT onSetCursor(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam);
 	LRESULT onMouseMove(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam);
+	LRESULT onMouseWheel(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam);
 	LRESULT onLButtonDown(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam);
 	LRESULT onLButtonUp(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam);
 	LRESULT onAviUtlFilterExit(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam);

@@ -32,6 +32,8 @@ LRESULT MainWindow::onMouseMove(HWND hwnd, UINT message, WPARAM wParam, LPARAM l
 
 	if (::GetCapture() == hwnd)
 	{
+		// minRange または maxRange をドラッグして変更する。
+
 		POINT point = LP2PT(lParam);
 		int offset = point.y - m_dragOriginPoint.y;
 
@@ -45,23 +47,15 @@ LRESULT MainWindow::onMouseMove(HWND hwnd, UINT message, WPARAM wParam, LPARAM l
 	}
 
 	{
-		int c = (int)fullSamples.size();
-		if (c > 0)
+		// ホットフレームを更新する。
+
+		POINT point = LP2PT(lParam);
+		int hotFrame = px2Frame(point.x);
+		if (m_hotFrame != hotFrame)
 		{
-			POINT point = LP2PT(lParam);
-			RECT rc; ::GetClientRect(hwnd, &rc);
-			int range = getWidth(rc) - g_design.body.margin * 2;
-			int x = point.x - rc.left - g_design.body.margin;
-			x = std::min<int>(x, range);
-			x = std::max<int>(x, 0);
+			m_hotFrame = hotFrame;
 
-			int hotFrame = (c - 1) * x / range;
-			if (m_hotFrame != hotFrame)
-			{
-				m_hotFrame = hotFrame;
-
-				::InvalidateRect(hwnd, 0, FALSE);
-			}
+			::InvalidateRect(hwnd, 0, FALSE);
 		}
 	}
 
@@ -78,6 +72,8 @@ LRESULT MainWindow::onLButtonDown(HWND hwnd, UINT message, WPARAM wParam, LPARAM
 	if (point.y < rc.top + g_design.body.margin ||
 		point.y > rc.bottom - g_design.body.margin)
 	{
+		// minRange または maxRange のドラッグを開始する。
+
 		::SetCapture(hwnd);
 		m_dragOriginPoint = point;
 
@@ -97,18 +93,11 @@ LRESULT MainWindow::onLButtonDown(HWND hwnd, UINT message, WPARAM wParam, LPARAM
 	}
 	else
 	{
-		int c = (int)fullSamples.size();
-		if (c > 0)
-		{
-			int range = getWidth(rc) - g_design.body.margin * 2;
-			int x = point.x - rc.left - g_design.body.margin;
-			x = std::min<int>(x, range);
-			x = std::max<int>(x, 0);
+		// カレントフレームを変更する。
 
-			int32_t frame = (c - 1) * x / range;
+		int32_t frame = px2Frame(point.x);
 
-			::PostMessage(g_parent, WM_AVIUTL_FILTER_CHANGE_FRAME, (WPARAM)frame, 0);
-		}
+		::PostMessage(g_parent, WM_AVIUTL_FILTER_CHANGE_FRAME, (WPARAM)frame, 0);
 	}
 
 	return ::DefWindowProc(hwnd, message, wParam, lParam);
