@@ -114,6 +114,7 @@ void App::createControls()
 	::SendMessage(controls.comboBox.updateMode, WM_SETFONT, (WPARAM)si.hfont, FALSE);
 	ComboBox_AddString(controls.comboBox.updateMode, _T("更新しない"));
 	ComboBox_AddString(controls.comboBox.updateMode, _T("更新する"));
+	ComboBox_AddString(controls.comboBox.updateMode, _T("再生中は更新しない"));
 	ComboBox_SetCurSel(controls.comboBox.updateMode, m_updateMode);
 
 	controls.label.xorMode = ::CreateWindowEx(
@@ -177,7 +178,7 @@ void App::createControls()
 		0, 0, 0, 0,
 		m_fp->hwnd, (HMENU)ControlID::CheckBox::showWaveform, m_instance, 0);
 	::SendMessage(controls.checkBox.showWaveform, WM_SETFONT, (WPARAM)si.hfont, FALSE);
-	Button_SetCheck(controls.checkBox.showWaveform, BST_CHECKED);
+	if (m_showWaveform) Button_SetCheck(controls.checkBox.showWaveform, BST_CHECKED);
 
 	controls.checkBox.showText = ::CreateWindowEx(
 		0,
@@ -186,7 +187,7 @@ void App::createControls()
 		0, 0, 0, 0,
 		m_fp->hwnd, (HMENU)ControlID::CheckBox::showText, m_instance, 0);
 	::SendMessage(controls.checkBox.showText, WM_SETFONT, (WPARAM)si.hfont, FALSE);
-	Button_SetCheck(controls.checkBox.showText, BST_CHECKED);
+	if (m_showText) Button_SetCheck(controls.checkBox.showText, BST_CHECKED);
 
 	controls.checkBox.noScrollText = ::CreateWindowEx(
 		0,
@@ -195,7 +196,16 @@ void App::createControls()
 		0, 0, 0, 0,
 		m_fp->hwnd, (HMENU)ControlID::CheckBox::noScrollText, m_instance, 0);
 	::SendMessage(controls.checkBox.noScrollText, WM_SETFONT, (WPARAM)si.hfont, FALSE);
-	Button_SetCheck(controls.checkBox.noScrollText, BST_CHECKED);
+	if (m_noScrollText) Button_SetCheck(controls.checkBox.noScrollText, BST_CHECKED);
+
+	controls.checkBox.behind = ::CreateWindowEx(
+		0,
+		WC_BUTTON, _T("テキストより後ろに描画"),
+		WS_CHILD | WS_VISIBLE | WS_TABSTOP | BS_AUTOCHECKBOX,
+		0, 0, 0, 0,
+		m_fp->hwnd, (HMENU)ControlID::CheckBox::behind, m_instance, 0);
+	::SendMessage(controls.checkBox.behind, WM_SETFONT, (WPARAM)si.hfont, FALSE);
+	if (m_behind) Button_SetCheck(controls.checkBox.behind, BST_CHECKED);
 }
 
 void App::recalcLayout()
@@ -241,6 +251,7 @@ void App::recalcLayout()
 	::SetWindowPos(controls.checkBox.showText, 0, x2, y, controlWidth, controlHeight, SWP_NOZORDER);
 	y += controlHeight + margin;
 	::SetWindowPos(controls.checkBox.noScrollText, 0, x1, y, controlWidth, controlHeight, SWP_NOZORDER);
+	::SetWindowPos(controls.checkBox.behind, 0, x2, y, controlWidth, controlHeight, SWP_NOZORDER);
 	y += controlHeight + margin;
 }
 
@@ -264,6 +275,7 @@ void App::load()
 	getPrivateProfileInt(fileName, L"Config", L"showWaveform", m_showWaveform);
 	getPrivateProfileInt(fileName, L"Config", L"showText", m_showText);
 	getPrivateProfileInt(fileName, L"Config", L"noScrollText", m_noScrollText);
+	getPrivateProfileInt(fileName, L"Config", L"behind", m_behind);
 	getPrivateProfileWindow(fileName, L"FullSamples", m_subProcess.m_fullSamplesContainer.m_hwnd);
 }
 
@@ -287,6 +299,7 @@ void App::save()
 	setPrivateProfileInt(fileName, L"Config", L"showWaveform", m_showWaveform);
 	setPrivateProfileInt(fileName, L"Config", L"showText", m_showText);
 	setPrivateProfileInt(fileName, L"Config", L"noScrollText", m_noScrollText);
+	setPrivateProfileInt(fileName, L"Config", L"behind", m_behind);
 	setPrivateProfileWindow(fileName, L"FullSamples", m_subProcess.m_fullSamplesContainer.m_hwnd);
 }
 
@@ -343,15 +356,37 @@ BOOL App::func_proc(AviUtl::FilterPlugin* fp, AviUtl::FilterProcInfo* fpip)
 		return FALSE; // 音声を保存するときは何もしない。
 
 	fp->exfunc->get_file_info(fpip->editp, &m_fi);
+	m_currentFrame = fpip->frame;
 
-	if (m_updateMode == 0)
-		return FALSE; // 更新モードが 0 のときは何もしない。
+	BOOL isPlaying = !!((DWORD)fpip->editp->aviutl_window_info.flag & 0x00040000);
 
-	// サブプロセスのウィンドウがまだ作成されていない場合は更新を遅らせる。
-	if (!m_subProcess.m_fullSamplesWindow)
-		m_subProcess.m_fullSamplesContainer.delayedUpdate();
-	else
-		updateItemCache(TRUE);
+	switch (m_updateMode)
+	{
+	case UpdateMode::Off:
+		{
+			return FALSE; // 無効化されているときは何もしない。
+		}
+	case UpdateMode::OnWithoutPlaying:
+		{
+			if (isPlaying)
+				return FALSE; // 再生中のときは何もしない。
+
+			break;
+		}
+	}
+
+	// サブプロセスのプロジェクトパラメータを更新する。
+	updateProjectParams();
+
+	// 再生中以外の場合は
+	if (!isPlaying)
+	{
+		// サブプロセスのウィンドウがまだ作成されていない場合は更新を遅らせる。
+		if (!m_subProcess.m_fullSamplesWindow)
+			m_subProcess.m_fullSamplesContainer.delayedUpdate();
+		else
+			updateItemCache(TRUE);
+	}
 
 	return FALSE;
 }
@@ -530,6 +565,15 @@ BOOL App::func_WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam, Av
 
 					break;
 				}
+			case ControlID::CheckBox::behind:
+				{
+					m_behind = BST_CHECKED == Button_GetCheck(controls.checkBox.behind);
+
+					// 拡張編集ウィンドウを再描画する。
+					::InvalidateRect(m_auin.GetExEditWindow(), 0, FALSE);
+
+					break;
+				}
 			}
 
 			break;
@@ -590,21 +634,30 @@ inline BOOL checkMax(std::vector<POINT>& points, int x, int y)
 	return FALSE;
 }
 
-BOOL App::updateItemCache(BOOL send)
+BOOL App::updateProjectParams()
 {
+	MY_TRACE(_T("App::updateProjectParams()\n"));
+
 	ProjectParamsPtr params = std::make_shared<ProjectParams>();
 	params->video_scale = m_fi.video_scale;
 	params->video_rate = m_fi.video_rate;
 	params->frameNumber = m_fi.frame_n;
 	params->sceneIndex = m_auin.GetCurrentSceneIndex();
-	params->currentFrame = m_fp->exfunc->get_frame(m_auin.GetEditp());
-	m_subThreadManager.notifyProjectChanged(params);
+	params->currentFrame = m_currentFrame;
+	return m_subThreadManager.notifyProjectChanged(params);
+}
 
-	return m_itemCacheManager.update(TRUE);
+BOOL App::updateItemCache(BOOL send)
+{
+	MY_TRACE(_T("App::updateItemCache(%d)\n"), send);
+
+	return m_itemCacheManager.update(send);
 }
 
 void App::drawWaveform(HDC dc, LPCRECT rcClip, LPCRECT rcItem)
 {
+	MY_TRACE(_T("App::drawWaveform()\n"));
+
 	if (!m_currentDrawObject) return;
 	if (!m_fi.video_scale) return;
 	if (!m_fi.video_rate) return;
@@ -796,9 +849,12 @@ BOOL WINAPI drawObjectText(HDC dc, int x, int y, UINT options, LPCRECT rc, LPCST
 	if (!(theApp.m_currentDrawObject->flag & ExEdit::Object::Flag::Sound))
 		return ::ExtTextOut(dc, x, y, options, rc, text, c, dx);
 
-	// フラグが立っている場合はテキストを描画する。
-	if (theApp.m_showText)
-		::ExtTextOut(dc, x, y, options, rc, text, c, dx);
+	if (!theApp.m_behind)
+	{
+		// フラグが立っている場合はテキストを描画する。
+		if (theApp.m_showText)
+			::ExtTextOut(dc, x, y, options, rc, text, c, dx);
+	}
 
 	// フラグが立っている場合は音声波形を描画する。
 	if (theApp.m_showWaveform)
@@ -813,6 +869,13 @@ BOOL WINAPI drawObjectText(HDC dc, int x, int y, UINT options, LPCRECT rc, LPCST
 
 		// クリッピングを解除する。
 		::SelectClipRgn(dc, 0);
+	}
+
+	if (theApp.m_behind)
+	{
+		// フラグが立っている場合はテキストを描画する。
+		if (theApp.m_showText)
+			::ExtTextOut(dc, x, y, options, rc, text, c, dx);
 	}
 
 	return TRUE;

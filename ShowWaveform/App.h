@@ -23,6 +23,7 @@ struct App
 	HINSTANCE m_instance = 0;
 	AviUtl::FilterPlugin* m_fp = 0;
 	AviUtl::FileInfo m_fi = {};
+	int32_t m_currentFrame = 0;
 	ExEdit::Object* m_currentDrawObject = 0;
 	FileCacheManager m_fileCacheManager;
 	ItemCacheManager m_itemCacheManager;
@@ -41,7 +42,9 @@ struct App
 	struct UpdateMode {
 		static const int Off = 0;
 		static const int On = 1;
+		static const int OnWithoutPlaying = 2;
 	};
+
 	int m_updateMode = UpdateMode::On;
 	struct XORMode {
 		static const int None = 0;
@@ -55,6 +58,7 @@ struct App
 	BOOL m_showWaveform = TRUE;
 	BOOL m_showText = TRUE;
 	BOOL m_noScrollText = TRUE;
+	BOOL m_behind = FALSE;
 
 	struct ControlID {
 		struct Edit {
@@ -78,6 +82,7 @@ struct App
 			static const UINT showWaveform	= 1300;
 			static const UINT showText		= 1301;
 			static const UINT noScrollText	= 1302;
+			static const UINT behind		= 1303;
 		};
 	};
 
@@ -109,6 +114,7 @@ struct App
 			HWND showWaveform = 0;
 			HWND showText = 0;
 			HWND noScrollText = 0;
+			HWND behind = 0;
 		} checkBox;
 	} controls;
 
@@ -126,6 +132,7 @@ struct App
 	BOOL func_update(AviUtl::FilterPlugin* fp, AviUtl::FilterPlugin::UpdateStatus status);
 	BOOL func_WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam, AviUtl::EditHandle* editp, AviUtl::FilterPlugin* fp);
 
+	BOOL updateProjectParams();
 	BOOL updateItemCache(BOOL send);
 	void drawWaveform(HDC dc, LPCRECT rcClip, LPCRECT rcItem);
 };

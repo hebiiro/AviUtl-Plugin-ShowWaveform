@@ -103,6 +103,10 @@ BOOL ReaderProcess::receive()
 
 	// 入力プラグインを使用して音声サンプルを読み込む。
 
+	MY_TRACE_INT(sizeof(int24_t));
+
+	DWORD startTime = ::timeGetTime();
+
 	shared->sampleCount = 0;
 
 	for (int i = 0; i < MAX_SAMPLE_COUNT; i++)
@@ -113,10 +117,10 @@ BOOL ReaderProcess::receive()
 		Sample sample;
 		switch (mi->audio_format.wBitsPerSample)
 		{
-		case 8: sample.level = calc((const char*)buffer.data(), (int)(buffer.size() / sizeof(char))); break;
-		case 16: sample.level = calc((const short*)buffer.data(), (int)(buffer.size() / sizeof(short))); break;
-		case 24: sample.level = calc24((const BYTE*)buffer.data(), (int)(buffer.size() / 3)); break;
-		case 32: sample.level = calc((const long*)buffer.data(), (int)(buffer.size() / sizeof(long))); break;
+		case 8: sample.level = calc((const int8_t*)buffer.data(), (int)(buffer.size() / sizeof(int8_t))); break;
+		case 16: sample.level = calc((const int16_t*)buffer.data(), (int)(buffer.size() / sizeof(int16_t))); break;
+		case 24: sample.level = calc((const int24_t*)buffer.data(), (int)(buffer.size() / sizeof(int24_t))); break;
+		case 32: sample.level = calc((const int32_t*)buffer.data(), (int)(buffer.size() / sizeof(int32_t))); break;
 		default: sample.level = 0.0f; break;
 		}
 		shared->samples[i] = sample;
@@ -127,6 +131,10 @@ BOOL ReaderProcess::receive()
 		if (read < length)
 			break;
 	}
+
+	DWORD endTime = ::timeGetTime();
+
+	MY_TRACE(_T("所要時間 = %f秒\n"), (endTime - startTime) / 1000.0);
 
 	return TRUE;
 }
@@ -142,17 +150,22 @@ BOOL ReaderProcess::send()
 
 //--------------------------------------------------------------------
 
-inline float ReaderProcess::normalize(char pcm)
+inline float ReaderProcess::normalize(int8_t pcm)
 {
 	return pcm / 128.0f; // 8bit を -1.0 ～ 1.0 に正規化
 }
 
-inline float ReaderProcess::normalize(short pcm)
+inline float ReaderProcess::normalize(int16_t pcm)
 {
 	return pcm / 32768.0f; // 16bit を -1.0 ～ 1.0 に正規化
 }
 
-inline float ReaderProcess::normalize(long pcm)
+inline float ReaderProcess::normalize(int24_t pcm)
+{
+	return pcm / 8388608.0f; // 24bit を -1.0 ～ 1.0 に正規化
+}
+
+inline float ReaderProcess::normalize(int32_t pcm)
 {
 	return pcm / 2147483648.0f; // 32bit を -1.0 ～ 1.0 に正規化
 }
@@ -172,34 +185,6 @@ float ReaderProcess::calc(const T* samples, int count)
 	{
 		T sample = samples[i];
 		float n = normalize(sample);
-		level += n * n;
-	}
-	return sqrtf(level / (float)count);
-}
-
-inline float ReaderProcess::normalize24(long pcm)
-{
-	return pcm / 8388608.0f; // 24bit を -1.0 ～ 1.0 に正規化
-}
-
-inline long ReaderProcess::convert24(const BYTE* sample24)
-{
-	long sample32 = 0;
-	sample32 |= sample24[0] << 8;
-	sample32 |= sample24[1] << 16;
-	sample32 |= sample24[2] << 24;
-	return sample32 >> 8;
-}
-
-float ReaderProcess::calc24(const BYTE* samples, int count)
-{
-	if (!count) return 0.0f;
-
-	float level = 0.0f;
-	for (int i = 0; i < count; i++)
-	{
-		long sample = convert24(samples + i * 3);
-		float n = normalize24(sample);
 		level += n * n;
 	}
 	return sqrtf(level / (float)count);

@@ -136,6 +136,7 @@ LRESULT SubProcess::Window::onWndProc(HWND hwnd, UINT message, WPARAM wParam, LP
 
 					::KillTimer(hwnd, wParam);
 
+					theApp.updateProjectParams();
 					theApp.updateItemCache(TRUE);
 				}
 			}
