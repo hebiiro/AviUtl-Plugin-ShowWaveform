@@ -50,7 +50,7 @@ void SubThread::onSendCacheRequest(const CacheRequest* cacheRequest)
 		::StringCbCopyA(shared->fileName, sizeof(shared->fileName), cacheRequest->fileName.c_str());
 
 		// サブプロセスにキャッシュの作成をリクエストする。
-		::SendMessage(theApp.m_subProcess.m_mainWindow, WM_AVIUTL_FILTER_SEND, SendID::requestCache, 0);
+		::SendMessage(theApp.m_subProcess.m_fullSamplesWindow, WM_AVIUTL_FILTER_SEND, SendID::requestCache, 0);
 	}
 
 	// このリクエストをマップから削除する。
@@ -72,7 +72,7 @@ void SubThread::onSendProjectChanged(const ProjectParams* params)
 		*shared = *params;
 
 		// サブプロセスにアイテムの変更を通知する。
-		::SendMessage(theApp.m_subProcess.m_mainWindow, WM_AVIUTL_FILTER_SEND, SendID::notifyProjectChanged, 0);
+		::SendMessage(theApp.m_subProcess.m_fullSamplesWindow, WM_AVIUTL_FILTER_SEND, SendID::notifyProjectChanged, 0);
 	}
 
 	delete params;
@@ -88,7 +88,7 @@ void SubThread::onSendItemChanged(const AudioParams* params)
 		*shared = *params;
 
 		// サブプロセスにアイテムの変更を通知する。
-		::SendMessage(theApp.m_subProcess.m_mainWindow, WM_AVIUTL_FILTER_SEND, SendID::notifyItemChanged, 0);
+		::SendMessage(theApp.m_subProcess.m_fullSamplesWindow, WM_AVIUTL_FILTER_SEND, SendID::notifyItemChanged, 0);
 	}
 
 	delete params;
@@ -98,14 +98,14 @@ void SubThread::onPostClearRequest()
 {
 	MY_TRACE(_T("SubThreadManager::onPostClearRequest()\n"));
 
-	::SendMessage(theApp.m_subProcess.m_mainWindow, WM_AVIUTL_FILTER_CLEAR, 0, 0);
+	::SendMessage(theApp.m_subProcess.m_fullSamplesWindow, WM_AVIUTL_FILTER_CLEAR, 0, 0);
 }
 
 void SubThread::onPostRedrawRequest()
 {
 	MY_TRACE(_T("SubThreadManager::onPostRedrawRequest()\n"));
 
-	::SendMessage(theApp.m_subProcess.m_mainWindow, WM_AVIUTL_FILTER_REDRAW, 0, 0);
+	::SendMessage(theApp.m_subProcess.m_fullSamplesWindow, WM_AVIUTL_FILTER_REDRAW, 0, 0);
 }
 
 DWORD SubThread::proc()
@@ -167,7 +167,7 @@ BOOL SubThreadManager::init(AviUtl::FilterPlugin* fp)
 {
 	MY_TRACE(_T("SubThreadManager::init()\n"));
 
-	HWND hwnd = theApp.m_subProcess.m_window.m_hwnd;
+	HWND hwnd = theApp.m_subProcess.m_fullSamplesContainer.m_hwnd;
 
 	m_sharedSenderBottle.init(getSharedSenderBottleName(hwnd));
 	m_sharedReceiverBottle.init(getSharedReceiverBottleName(hwnd));

@@ -264,6 +264,7 @@ void App::load()
 	getPrivateProfileInt(fileName, L"Config", L"showWaveform", m_showWaveform);
 	getPrivateProfileInt(fileName, L"Config", L"showText", m_showText);
 	getPrivateProfileInt(fileName, L"Config", L"noScrollText", m_noScrollText);
+	getPrivateProfileWindow(fileName, L"FullSamples", m_subProcess.m_fullSamplesContainer.m_hwnd);
 }
 
 void App::save()
@@ -286,6 +287,7 @@ void App::save()
 	setPrivateProfileInt(fileName, L"Config", L"showWaveform", m_showWaveform);
 	setPrivateProfileInt(fileName, L"Config", L"showText", m_showText);
 	setPrivateProfileInt(fileName, L"Config", L"noScrollText", m_noScrollText);
+	setPrivateProfileWindow(fileName, L"FullSamples", m_subProcess.m_fullSamplesContainer.m_hwnd);
 }
 
 BOOL App::func_init(AviUtl::FilterPlugin* fp)
@@ -345,8 +347,9 @@ BOOL App::func_proc(AviUtl::FilterPlugin* fp, AviUtl::FilterProcInfo* fpip)
 	if (m_updateMode == 0)
 		return FALSE; // 更新モードが 0 のときは何もしない。
 
-	if (!m_subProcess.m_mainWindow)
-		m_subProcess.m_window.delayedUpdate();
+	// サブプロセスのウィンドウがまだ作成されていない場合は更新を遅らせる。
+	if (!m_subProcess.m_fullSamplesWindow)
+		m_subProcess.m_fullSamplesContainer.delayedUpdate();
 	else
 		updateItemCache(TRUE);
 
@@ -490,10 +493,10 @@ BOOL App::func_WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam, Av
 			case ControlID::Button::showFull:
 				{
 					// 全体の音声波形ウィンドウを表示する。
-					::ShowWindow(m_subProcess.m_window.m_hwnd, SW_SHOW);
+					::ShowWindow(m_subProcess.m_fullSamplesContainer.m_hwnd, SW_SHOW);
 
 					// WM_SHOWWINDOW が自動的には送られないので手動で送る。
-					::PostMessage(m_subProcess.m_window.m_hwnd, WM_SHOWWINDOW, TRUE, 0);
+					::PostMessage(m_subProcess.m_fullSamplesContainer.m_hwnd, WM_SHOWWINDOW, TRUE, 0);
 
 					// 全体の音声波形を更新する。
 					m_subThreadManager.requestRedraw();

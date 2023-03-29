@@ -5,7 +5,7 @@
 struct SubProcess
 {
 	PROCESS_INFORMATION m_pi = {};
-	HWND m_mainWindow = 0;
+	HWND m_fullSamplesWindow = 0;
 
 	BOOL init(AviUtl::FilterPlugin* fp);
 	BOOL exit(AviUtl::FilterPlugin* fp);
@@ -18,7 +18,7 @@ struct SubProcess
 		void delayedUpdate();
 		LRESULT onWndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam);
 		static LRESULT CALLBACK wndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam);
-	} m_window;
+	} m_fullSamplesContainer;
 };
 
 //--------------------------------------------------------------------

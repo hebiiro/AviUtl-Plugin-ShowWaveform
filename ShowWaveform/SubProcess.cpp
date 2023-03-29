@@ -8,9 +8,9 @@ BOOL SubProcess::init(AviUtl::FilterPlugin* fp)
 {
 	MY_TRACE(_T("SubProcess::init()\n"));
 
-	if (!m_window.init(fp))
+	if (!m_fullSamplesContainer.init(fp))
 	{
-		MY_TRACE(_T("SubProcess window creation failed.\n"));
+		MY_TRACE(_T("全体の音声波形ウィンドウの作成に失敗しました\n"));
 
 		return FALSE;
 	}
@@ -22,7 +22,7 @@ BOOL SubProcess::init(AviUtl::FilterPlugin* fp)
 	MY_TRACE_TSTR(path);
 
 	TCHAR args[MAX_PATH] = {};
-	::StringCbPrintf(args, sizeof(args), _T("0x%08p"), m_window.m_hwnd);
+	::StringCbPrintf(args, sizeof(args), _T("0x%08p"), m_fullSamplesContainer.m_hwnd);
 	MY_TRACE_TSTR(args);
 
 	STARTUPINFO si = { sizeof(si) };
@@ -50,9 +50,9 @@ BOOL SubProcess::exit(AviUtl::FilterPlugin* fp)
 {
 	MY_TRACE(_T("SubProcess::exit()\n"));
 
-	m_window.exit(fp);
+	m_fullSamplesContainer.exit(fp);
 
-	return ::PostMessage(m_mainWindow, WM_AVIUTL_FILTER_EXIT, 0, 0);
+	return ::PostMessage(m_fullSamplesWindow, WM_AVIUTL_FILTER_EXIT, 0, 0);
 }
 
 //--------------------------------------------------------------------
@@ -120,7 +120,7 @@ LRESULT SubProcess::Window::onWndProc(HWND hwnd, UINT message, WPARAM wParam, LP
 		{
 			MY_TRACE(_T("SubProcess::Window::onWndProc(WM_SIZE, 0x%08X, 0x%08X)\n"), wParam, lParam);
 
-			::PostMessage(theApp.m_subProcess.m_mainWindow, WM_AVIUTL_FILTER_RESIZE, 0, 0);
+			::PostMessage(theApp.m_subProcess.m_fullSamplesWindow, WM_AVIUTL_FILTER_RESIZE, 0, 0);
 
 			break;
 		}
@@ -130,7 +130,7 @@ LRESULT SubProcess::Window::onWndProc(HWND hwnd, UINT message, WPARAM wParam, LP
 
 			if (wParam == TimerID)
 			{
-				if (theApp.m_subProcess.m_mainWindow)
+				if (theApp.m_subProcess.m_fullSamplesWindow)
 				{
 					MY_TRACE(_T("delayed update\n"));
 
@@ -148,9 +148,9 @@ LRESULT SubProcess::Window::onWndProc(HWND hwnd, UINT message, WPARAM wParam, LP
 	{
 		MY_TRACE(_T("SubProcess::Window::onWndProc(WM_AVIUTL_FILTER_INIT, 0x%08X, 0x%08X)\n"), wParam, lParam);
 
-		theApp.m_subProcess.m_mainWindow = (HWND)wParam;
+		theApp.m_subProcess.m_fullSamplesWindow = (HWND)wParam;
 
-		::PostMessage(theApp.m_subProcess.m_mainWindow, WM_AVIUTL_FILTER_RESIZE, 0, 0);
+		::PostMessage(theApp.m_subProcess.m_fullSamplesWindow, WM_AVIUTL_FILTER_RESIZE, 0, 0);
 	}
 	else if (message == WM_AVIUTL_FILTER_RECEIVE)
 	{
