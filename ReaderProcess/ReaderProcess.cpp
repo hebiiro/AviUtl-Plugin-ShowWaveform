@@ -103,8 +103,6 @@ BOOL ReaderProcess::receive()
 
 	// 入力プラグインを使用して音声サンプルを読み込む。
 
-	MY_TRACE_INT(sizeof(int24_t));
-
 	DWORD startTime = ::timeGetTime();
 
 	shared->sampleCount = 0;
@@ -117,7 +115,7 @@ BOOL ReaderProcess::receive()
 		Sample sample;
 		switch (mi->audio_format.wBitsPerSample)
 		{
-		case 8: sample.level = calc((const int8_t*)buffer.data(), (int)(buffer.size() / sizeof(int8_t))); break;
+		case  8: sample.level = calc((const  int8_t*)buffer.data(), (int)(buffer.size() / sizeof( int8_t))); break;
 		case 16: sample.level = calc((const int16_t*)buffer.data(), (int)(buffer.size() / sizeof(int16_t))); break;
 		case 24: sample.level = calc((const int24_t*)buffer.data(), (int)(buffer.size() / sizeof(int24_t))); break;
 		case 32: sample.level = calc((const int32_t*)buffer.data(), (int)(buffer.size() / sizeof(int32_t))); break;

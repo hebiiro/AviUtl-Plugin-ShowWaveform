@@ -94,6 +94,7 @@ ItemCachePtr ItemCacheManager::update(BOOL send, ExEdit::Object* object)
 
 	// 音声アイテムのパラメータを取得する。
 	AudioParamsPtr params = getAudioParams(object);
+	if (!params) return 0;
 
 	// ファイルキャシュを取得する。
 	FileCachePtr fileCache = theApp.m_fileCacheManager.getCache(params->fileName, send);
@@ -129,13 +130,24 @@ ItemCachePtr ItemCacheManager::update(BOOL send, ExEdit::Object* object)
 
 AudioParamsPtr ItemCacheManager::getAudioParams(ExEdit::Object* object)
 {
+	int audioFileIndex = theApp.m_auin.GetFilterIndex(object, 2); // 音声ファイル
+	if (audioFileIndex == -1) return 0;
+
+	int standardPlayIndex = theApp.m_auin.GetFilterIndex(object, 12); // 標準再生
+	if (standardPlayIndex == -1) return 0;
+
+	int volumeIndex = object->filter_param[standardPlayIndex].track_begin + 0;
+	int panIndex = object->filter_param[standardPlayIndex].track_begin + 1;
+	int playBeginIndex = object->filter_param[audioFileIndex].track_begin + 0;
+	int playSpeedIndex = object->filter_param[audioFileIndex].track_begin + 1;
+
 	AudioParamsPtr params = std::make_shared<AudioParams>();
 	params->id = (uint32_t)object;
 	params->flag = (uint32_t)object->flag;
 	params->frameBegin = object->frame_begin;
 	params->frameEnd = object->frame_end;
 	params->sceneSet = object->scene_set;
-	params->volume = object->track_value_left[2] / 1000.0f;
+	params->volume = object->track_value_left[volumeIndex] / 1000.0f;
 
 	ExEdit::LayerSetting* layer = theApp.m_auin.GetLayerSetting(object->layer_set);
 	params->layerFlag = (uint32_t)layer->flag;
@@ -152,12 +164,18 @@ AudioParamsPtr ItemCacheManager::getAudioParams(ExEdit::Object* object)
 			if (object2->scene_set != object->scene_set) continue;
 			if (object2->exdata_size != 288) continue;
 
-			// 拡張データを取得する。
-			BYTE* exdata = theApp.m_auin.GetExdata(object2, 0);
+			int movieFileIndex = theApp.m_auin.GetFilterIndex(object2, 0); // 動画ファイル
+			if (movieFileIndex == -1) continue;
 
-			copyFileName(params->fileName, sizeof(params->fileName), (LPCSTR)exdata);
-			params->playBegin = object2->track_value_left[0];
-			params->playSpeed = object2->track_value_left[1] / 1000.0f;
+			int playBeginIndex = object2->filter_param[movieFileIndex].track_begin + 0;
+			int playSpeedIndex = object2->filter_param[movieFileIndex].track_begin + 1;
+
+			// 拡張データを取得する。
+			auto exdata = (ExEdit::Exdata::efMovieFile*)theApp.m_auin.GetExdata(object2, 0);
+
+			copyFileName(params->fileName, sizeof(params->fileName), exdata->file);
+			params->playBegin = object2->track_value_left[playBeginIndex];
+			params->playSpeed = object2->track_value_left[playSpeedIndex] / 1000.0f;
 
 			break;
 		}
@@ -165,11 +183,11 @@ AudioParamsPtr ItemCacheManager::getAudioParams(ExEdit::Object* object)
 	else
 	{
 		// 拡張データを取得する。
-		BYTE* exdata = theApp.m_auin.GetExdata(object, 0);
+		auto exdata = (ExEdit::Exdata::efAudioFile*)theApp.m_auin.GetExdata(object, 0);
 
-		copyFileName(params->fileName, sizeof(params->fileName), (LPCSTR)exdata);
-		params->playBegin = object->track_value_left[0] * theApp.m_fi.video_rate / theApp.m_fi.video_scale / 100;
-		params->playSpeed = object->track_value_left[1] / 1000.0f;
+		copyFileName(params->fileName, sizeof(params->fileName), exdata->file);
+		params->playBegin = object->track_value_left[playBeginIndex] * theApp.m_fi.video_rate / theApp.m_fi.video_scale / 100;
+		params->playSpeed = object->track_value_left[playSpeedIndex] / 1000.0f;
 	}
 
 	return params;
@@ -178,6 +196,7 @@ AudioParamsPtr ItemCacheManager::getAudioParams(ExEdit::Object* object)
 BOOL ItemCacheManager::isChanged(const ItemCachePtr& cache, ExEdit::Object* object)
 {
 	AudioParamsPtr params = getAudioParams(object);
+	if (!params) return FALSE;
 
 	if (strcmp(cache->params->fileName, params->fileName) != 0) return TRUE;
 	if (cache->params->volume != params->volume) return TRUE;
