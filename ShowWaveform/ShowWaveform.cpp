@@ -37,6 +37,16 @@ BOOL func_WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam, AviUtl:
 	return theApp.func_WndProc(hwnd, message, wParam, lParam, editp, fp);
 }
 
+BOOL func_project_load(AviUtl::FilterPlugin* fp, AviUtl::EditHandle* editp, void* data, int32_t size)
+{
+	return theApp.func_project_load(fp, editp, data, size);
+}
+
+BOOL func_project_save(AviUtl::FilterPlugin* fp, AviUtl::EditHandle* editp, void* data, int32_t* size)
+{
+	return theApp.func_project_save(fp, editp, data, size);
+}
+
 BOOL APIENTRY DllMain(HINSTANCE instance, DWORD reason, LPVOID reserved)
 {
 	return theApp.DllMain(instance, reason, reserved);
@@ -47,7 +57,7 @@ BOOL APIENTRY DllMain(HINSTANCE instance, DWORD reason, LPVOID reserved)
 AviUtl::FilterPluginDLL* WINAPI GetFilterTable()
 {
 	LPCSTR name = "アイテム内音声波形";
-	LPCSTR information = "アイテム内音声波形 6.4.1 by 蛇色";
+	LPCSTR information = "アイテム内音声波形 7.0.0 by 蛇色";
 
 	static AviUtl::FilterPluginDLL filter =
 	{
@@ -55,10 +65,10 @@ AviUtl::FilterPluginDLL* WINAPI GetFilterTable()
 			AviUtl::FilterPluginDLL::Flag::AlwaysActive |
 //			AviUtl::FilterPluginDLL::Flag::DispFilter |
 			AviUtl::FilterPluginDLL::Flag::WindowSize |
-//			AviUtl::FilterPluginDLL::Flag::WindowThickFrame |
+			AviUtl::FilterPluginDLL::Flag::WindowThickFrame |
 			AviUtl::FilterPluginDLL::Flag::ExInformation,
 		.x = 300,
-		.y = 300,
+		.y = 350,
 		.name = name,
 		.func_proc = func_proc,
 		.func_init = func_init,
@@ -66,6 +76,8 @@ AviUtl::FilterPluginDLL* WINAPI GetFilterTable()
 		.func_update = func_update,
 		.func_WndProc = func_WndProc,
 		.information = information,
+		.func_project_load = func_project_load,
+		.func_project_save = func_project_save,
 	};
 
 	return &filter;

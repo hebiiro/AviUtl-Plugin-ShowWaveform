@@ -139,6 +139,10 @@ struct Design
 		static const Label labels[];
 	};
 
+	struct LineStyle {
+		static const Label labels[];
+	};
+
 	struct Fill {
 		MyColor color;
 	};
@@ -149,6 +153,7 @@ struct Design
 	};
 
 	struct Stroke {
+		int style;
 		int width;
 		MyColor color;
 	};
@@ -157,6 +162,7 @@ struct Design
 		int height;
 		MyColor color;
 		struct Shadow {
+			float dilate;
 			float blur;
 			POINT offset;
 			MyColor color;
@@ -165,7 +171,6 @@ struct Design
 
 	struct Marker {
 		Stroke stroke;
-		Text text;
 	};
 
 	_bstr_t fontDefault;
@@ -183,22 +188,49 @@ struct Design
 		GradientFill fill;
 	} background;
 	struct Body {
-		int margin;
+		struct Margin {
+			int x;
+			int y;
+		} margin;
 		Stroke stroke;
 	} body;
 	struct Scale {
-		int width;
-		Text text;
-		Stroke stroke;
-		struct Base {
+		struct Horz {
+			int minUnitWidth;
+			struct Primary {
+				int height;
+				Stroke stroke;
+				Text text;
+			} primary;
+			struct Secondary {
+				int height;
+				Stroke stroke;
+			} secondary;
+		} horz;
+		struct Vert {
+			int width;
+			Text text;
 			Stroke stroke;
-		} base;
+			struct Base {
+				Stroke stroke;
+			} base;
+		} vert;
 	} scale;
+	struct BPM {
+		struct Primary {
+			Stroke stroke;
+			Text text;
+		} primary;
+		struct Secondary {
+			Stroke stroke;
+		} secondary;
+	} bpm;
 	struct Graph {
 		GradientFill fill;
 		Stroke stroke;
 		Marker current;
 		Marker hot;
+		Marker last;
 	} graph;
 
 	Design();

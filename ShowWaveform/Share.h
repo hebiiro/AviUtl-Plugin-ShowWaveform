@@ -1,6 +1,9 @@
 ﻿#pragma once
 
-//---------------------------------------------------------------------
+//--------------------------------------------------------------------
+
+static const LPCTSTR PROP_NAME_WINDOW_CONTAINER = _T("WindowContainer");
+static const LPCTSTR PROP_NAME_DIALOG_CONTAINER = _T("DialogContainer");
 
 // OutProcess => InProcess
 static const UINT WM_AVIUTL_FILTER_INIT = ::RegisterWindowMessage(_T("WM_AVIUTL_FILTER_INIT"));
@@ -18,9 +21,10 @@ struct SendID {
 	static const int requestCache = 1;
 	static const int notifyProjectChanged = 2;
 	static const int notifyItemChanged = 3;
+	static const int notifyFullSamplesChanged = 4;
 };
 
-//---------------------------------------------------------------------
+//--------------------------------------------------------------------
 
 static const int32_t SAMPLE_FPS = 30;
 static const int32_t MAX_SAMPLE_COUNT = SAMPLE_FPS * 60 * 60 * 4; // 最大 4 時間
@@ -66,7 +70,22 @@ struct AudioParams {
 	uint32_t layerFlag = 0;
 };
 
-//---------------------------------------------------------------------
+struct FullSamplesParams {
+	BOOL showBPM = FALSE; // BPM を表示するかどうか。
+	struct Tempo {
+		int32_t orig = 0; // テンポの基準となるフレーム番号。
+		int32_t bpm = 120; // 1 分あたりの四分音符の数。テンポの速さはこの変数だけで決まる。
+		int32_t above = 4; // 楽譜に書いてある上の数字。拍子。テンポの速さには影響を与えない。
+		int32_t below = 4; // 楽譜に書いてある下の数字。分。テンポの速さには影響を与えない。
+	} tempo;
+};
+
+//--------------------------------------------------------------------
+
+inline FormatText getMutexName(HWND hwnd)
+{
+	return FormatText(_T("ShowWaveform.Mutex.%08X"), hwnd);
+}
 
 inline FormatText getSharedSenderBottleName(HWND hwnd)
 {
@@ -98,4 +117,121 @@ inline FormatText getSharedAudioParamsName(HWND hwnd)
 	return FormatText(_T("ShowWaveform.Shared.AudioParams.%08X"), hwnd);
 }
 
-//---------------------------------------------------------------------
+inline FormatText getSharedSenderFullSamplesParamsName(HWND hwnd)
+{
+	return FormatText(_T("ShowWaveform.Shared.SenderFullSamplesParams.%08X"), hwnd);
+}
+
+inline FormatText getSharedReceiverFullSamplesParamsName(HWND hwnd)
+{
+	return FormatText(_T("ShowWaveform.Shared.ReceiverFullSamplesParams.%08X"), hwnd);
+}
+
+//--------------------------------------------------------------------
+
+typedef std::shared_ptr<SenderBottle> SenderBottlePtr;
+typedef std::shared_ptr<ReceiverBottle> ReceiverBottlePtr;
+typedef std::shared_ptr<ProjectParams> ProjectParamsPtr;
+typedef std::shared_ptr<AudioParams> AudioParamsPtr;
+typedef std::shared_ptr<FullSamplesParams> FullSamplesParamsPtr;
+
+//--------------------------------------------------------------------
+
+struct Shared {
+	Mutex mutex;
+	SimpleFileMappingT<SenderBottle> senderBottle;
+	SimpleFileMappingT<ReceiverBottle> receiverBottle;
+	SimpleFileMappingT<ProjectParams> projectParams;
+	SimpleFileMappingT<AudioParams> audioParams;
+	SimpleFileMappingT<FullSamplesParams> senderFullSamplesParams;
+	SimpleFileMappingT<FullSamplesParams> receiverFullSamplesParams;
+
+	BOOL init(HWND hwnd)
+	{
+		MY_TRACE(_T("Shared::init()\n"));
+
+		mutex.init(0, FALSE, getMutexName(hwnd));
+		senderBottle.init(getSharedSenderBottleName(hwnd));
+		receiverBottle.init(getSharedReceiverBottleName(hwnd));
+		projectParams.init(getSharedProjectParamsName(hwnd));
+		audioParams.init(getSharedAudioParamsName(hwnd));
+		senderFullSamplesParams.init(getSharedSenderFullSamplesParamsName(hwnd));
+		receiverFullSamplesParams.init(getSharedReceiverFullSamplesParamsName(hwnd));
+
+		return TRUE;
+	}
+
+	BOOL term()
+	{
+		MY_TRACE(_T("Shared::term()\n"));
+
+		return TRUE;
+	}
+
+	SenderBottlePtr getSenderBottle()
+	{
+		SenderBottle* shared = senderBottle.getBuffer();
+		if (!shared) return 0;
+		return std::make_shared<SenderBottle>(*shared);
+	}
+
+	ProjectParamsPtr getProjectParams()
+	{
+		MY_TRACE(_T("Shared::getProjectParams()\n"));
+
+		ProjectParams* shared = projectParams.getBuffer();
+		if (!shared) return 0;
+		return std::make_shared<ProjectParams>(*shared);
+	}
+
+	AudioParamsPtr getAudioParams()
+	{
+		MY_TRACE(_T("Shared::getAudioParams()\n"));
+
+		AudioParams* shared = audioParams.getBuffer();
+		if (!shared) return 0;
+		return std::make_shared<AudioParams>(*shared);
+	}
+
+	FullSamplesParamsPtr getSenderFullSamplesParams()
+	{
+		MY_TRACE(_T("Shared::getSenderFullSamplesParams()\n"));
+
+		FullSamplesParams* shared = senderFullSamplesParams.getBuffer();
+		if (!shared) return 0;
+		return std::make_shared<FullSamplesParams>(*shared);
+	}
+
+	BOOL setSenderFullSamplesParams(const FullSamplesParams* params)
+	{
+		MY_TRACE(_T("Shared::setSenderFullSamplesParams()\n"));
+
+		Synchronizer sync(mutex);
+		FullSamplesParams* shared = senderFullSamplesParams.getBuffer();
+		if (!shared) return FALSE;
+		*shared = *params;
+		return TRUE;
+	}
+
+	FullSamplesParamsPtr getReceiverFullSamplesParams()
+	{
+		MY_TRACE(_T("Shared::getReceiverFullSamplesParams()\n"));
+
+		FullSamplesParams* shared = receiverFullSamplesParams.getBuffer();
+		if (!shared) return 0;
+		return std::make_shared<FullSamplesParams>(*shared);
+	}
+
+	BOOL setReceiverFullSamplesParams(const FullSamplesParams* params)
+	{
+		MY_TRACE(_T("Shared::setReceiverFullSamplesParams()\n"));
+
+		Synchronizer sync(mutex);
+		FullSamplesParams* shared = receiverFullSamplesParams.getBuffer();
+		if (!shared) return FALSE;
+		*shared = *params;
+		return TRUE;
+	}
+};
+
+//--------------------------------------------------------------------

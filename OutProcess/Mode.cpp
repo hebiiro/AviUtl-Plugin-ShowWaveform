@@ -1,20 +1,92 @@
 ﻿#include "pch.h"
 #include "Mode.h"
 #include "MainWindow.h"
+#include "App.h"
 
 //--------------------------------------------------------------------
 
-void Mode::drawBackground(MainWindow& window, const PaintContext& context)
+void Mode::nvgStrokeDesign(NVGcontext* vg, const Design::Stroke& stroke)
+{
+	nvgLineStyle(vg, stroke.style);
+	nvgStrokeWidth(vg, (float)stroke.width);
+	nvgStrokeColor(vg, stroke.color);
+}
+
+void Mode::drawLine(NVGcontext* vg, float mx, float my, float lx, float ly, const Design::Stroke& stroke)
+{
+	const float offset = -0.5f;
+
+	nvgBeginPath(vg);
+	nvgMoveTo(vg, mx + offset, my + offset);
+	nvgLineTo(vg, lx + offset, ly + offset);
+	nvgStrokeDesign(vg, stroke);
+	nvgStroke(vg);
+}
+
+void Mode::drawText(NVGcontext* vg, LPCSTR text, float x, float y, const Design::Text& design)
+{
+	float xText = x;
+	float yText = y;
+
+	nvgFontSize(vg, (float)design.height);
+
+	if (design.shadow.dilate > 0.0f || design.shadow.blur > 0.0f)
+	{
+		float xTextShadow = xText + design.shadow.offset.x;
+		float yTextShadow = yText + design.shadow.offset.y;
+
+		nvgFontDilate(vg, design.shadow.dilate);
+		nvgFontBlur(vg, design.shadow.blur);
+		nvgFillColor(vg, design.shadow.color);
+		nvgText(vg, xTextShadow, yTextShadow, text, 0);
+	}
+
+	nvgFontDilate(vg, 0.0f);
+	nvgFontBlur(vg, 0.0f);
+	nvgFillColor(vg, design.color);
+	nvgText(vg, xText, yText, text, 0);
+}
+
+void Mode::drawMarker(MainWindow& window, const LayoutContext& context, int frame, const Design::Marker& marker)
 {
 	NVGcontext* vg = window.m_vg;
+
+	int c = (int)theApp.fullSamples.size();
+
+	if (frame < 0 || frame >= c)
+		return;
+
+	{
+		// 垂直線を描画する。
+
+		int x = window.frame2client(frame);
+		int my = context.rc.top;
+		int ly = context.rc.bottom;
+
+		if (x >= context.graph.left && x <= context.graph.right)
+			drawLine(vg, (float)x, (float)my, (float)x, (float)ly, marker.stroke);
+	}
+}
+
+//--------------------------------------------------------------------
+
+void Mode::drawBackground(MainWindow& window, const LayoutContext& context)
+{
+	NVGcontext* vg = window.m_vg;
+
+	struct { float x, y, w, h; } background;
+	background.x = (float)context.x;
+	background.y = (float)context.y;
+	background.w = (float)context.w;
+	background.h = (float)context.h;
 
 	{
 		// 縦のグラデーションで背景を塗りつぶす。
 		NVGpaint paint = nvgLinearGradient(vg,
-			context.x, context.y, context.x, context.y + context.h,
+			background.x, background.y, background.x, background.y + background.h,
 			g_design.background.fill.color1, g_design.background.fill.color2);
 		nvgBeginPath(vg);
-		nvgRect(vg, context.x, context.y, context.w, context.h);
+		nvgRect(vg, background.x, background.y, background.w, background.h);
 		nvgFillPaint(vg, paint);
 		nvgFill(vg);
 	}
@@ -38,26 +110,26 @@ void Mode::drawBackground(MainWindow& window, const PaintContext& context)
 		{
 		case Design::ScaleMode::fit:
 			{
-				dst.w = context.width;
-				dst.h = context.width * imgh / imgw;
+				dst.w = context.w;
+				dst.h = context.w * imgh / imgw;
 
-				if (dst.h > context.height)
+				if (dst.h > context.h)
 				{
-					dst.w = context.height * imgw / imgh;
-					dst.h = context.height;
+					dst.w = context.h * imgw / imgh;
+					dst.h = context.h;
 				}
 
 				break;
 			}
 		case Design::ScaleMode::crop:
 			{
-				dst.w = context.width;
-				dst.h = context.width * imgh / imgw;
+				dst.w = context.w;
+				dst.h = context.w * imgh / imgw;
 
-				if (dst.h < context.height)
+				if (dst.h < context.h)
 				{
-					dst.w = context.height * imgw / imgh;
-					dst.h = context.height;
+					dst.w = context.h * imgw / imgh;
+					dst.h = context.h;
 				}
 
 				break;
@@ -88,7 +160,7 @@ void Mode::drawBackground(MainWindow& window, const PaintContext& context)
 		else
 		{
 			if (align & NVG_ALIGN_CENTER)
-				dst.x = context.rc.left + (context.width - dst.w) / 2;
+				dst.x = context.rc.left + (context.w - dst.w) / 2;
 	
 			dst.x += g_design.image.offset.x;
 		}
@@ -101,7 +173,7 @@ void Mode::drawBackground(MainWindow& window, const PaintContext& context)
 		else
 		{
 			if (align & NVG_ALIGN_MIDDLE)
-				dst.y = context.rc.top + (context.height - dst.h) / 2;
+				dst.y = context.rc.top + (context.h - dst.h) / 2;
 			
 			dst.y += g_design.image.offset.y;
 		}
@@ -110,188 +182,378 @@ void Mode::drawBackground(MainWindow& window, const PaintContext& context)
 			(float)dst.x, (float)dst.y, (float)dst.w, (float)dst.h,
 			g_design.image.angle / 360.0f * (2.0f * NVG_PI), window.m_image, g_design.image.alpha);
 		nvgBeginPath(vg);
-		nvgRect(vg, context.x, context.y, context.w, context.h);
+		nvgRect(vg, background.x, background.y, background.w, background.h);
 		nvgFillPaint(vg, imgPaint);
 		nvgFill(vg);
 	}
 }
 
-void Mode::drawBody(MainWindow& window, const PaintContext& context)
+void Mode::drawBody(MainWindow& window, const LayoutContext& context)
 {
 	// ボーダーを描画する。
 
 	NVGcontext* vg = window.m_vg;
-
-	nvgStrokeWidth(vg, (float)g_design.body.stroke.width);
-	nvgStrokeColor(vg, g_design.body.stroke.color);
+	const LayoutContext::Graph& graph = context.graph;
 
 	{
-		float mx = (float)(context.rc.left + g_design.body.margin);
+		float mx = (float)(graph.left);
 		float my = (float)(context.rc.top);
-		float lx = (float)(context.rc.left + g_design.body.margin);
+		float lx = (float)(graph.left);
 		float ly = (float)(context.rc.bottom);
 
-		nvgBeginPath(vg);
-		nvgMoveTo(vg, mx, my);
-		nvgLineTo(vg, lx, ly);
-		nvgStroke(vg);
+		drawLine(vg, mx, my, lx, ly, g_design.body.stroke);
 	}
 
 	{
-		float mx = (float)(context.rc.right - g_design.body.margin);
+		float mx = (float)(graph.right);
 		float my = (float)(context.rc.top);
-		float lx = (float)(context.rc.right - g_design.body.margin);
+		float lx = (float)(graph.right);
 		float ly = (float)(context.rc.bottom);
 
-		nvgBeginPath(vg);
-		nvgMoveTo(vg, mx, my);
-		nvgLineTo(vg, lx, ly);
-		nvgStroke(vg);
+		drawLine(vg, mx, my, lx, ly, g_design.body.stroke);
+	}
+
+	{
+		float mx = (float)(context.rc.left);
+		float my = (float)(graph.top);
+		float lx = (float)(context.rc.right);
+		float ly = (float)(graph.top);
+
+		drawLine(vg, mx, my, lx, ly, g_design.body.stroke);
+	}
+
+	{
+		float mx = (float)(context.rc.left);
+		float my = (float)(graph.bottom);
+		float lx = (float)(context.rc.right);
+		float ly = (float)(graph.bottom);
+
+		drawLine(vg, mx, my, lx, ly, g_design.body.stroke);
 	}
 }
 
-void Mode::drawScale(MainWindow& window, const PaintContext& context)
+void Mode::drawScale(MainWindow& window, const LayoutContext& context)
 {
-	// ゲージを描画する。
-
-	NVGcontext* vg = window.m_vg;
-#if 0
-	int textPadding = 1;
-	int textHeight = g_design.scale.text.height + textPadding * 2;
-
-	int range = m_maxRange - m_minRange;
-	int freq = range * textHeight / context.height + 1;
-
-	{
-		// ベースレベルを描画する。
-
-		float relativeLevel = (float)(m_baseLevel - m_minRange);
-		float y = context.rc.top + context.height * (1.0f - relativeLevel / range);
-
-		float mx = (float)(context.rc.left + g_design.body.margin);
-		float my = (float)(y);
-		float lx = (float)(context.rc.right - g_design.body.margin);
-		float ly = (float)(y);
-
-		nvgStrokeWidth(vg, (float)g_design.scale.base.stroke.width);
-		nvgStrokeColor(vg, g_design.scale.base.stroke.color);
-
-		nvgBeginPath(vg);
-		nvgMoveTo(vg, mx, my);
-		nvgLineTo(vg, lx, ly);
-		nvgStroke(vg);
-	}
-
-	nvgStrokeWidth(vg, (float)g_design.scale.stroke.width);
-	nvgStrokeColor(vg, g_design.scale.stroke.color);
-	nvgFontSize(vg, (float)g_design.scale.text.height);
-	nvgFontFaceId(vg, m_fontDefault);
-
-	for (int i = m_maxRange; i > m_minRange - freq; i--)
-	{
-		if (i % freq) continue;
-
-		float relativeLevel = (float)(i - m_minRange);
-		float y = context.rc.top + context.height * (1.0f - relativeLevel / range);
-
-		{
-			float mx = (float)(context.rc.left + g_design.body.margin);
-			float my = (float)(y);
-			float lx = (float)(context.rc.left + g_design.body.margin - g_design.scale.width);
-			float ly = (float)(y);
-
-			nvgBeginPath(vg);
-			nvgMoveTo(vg, mx, my);
-			nvgLineTo(vg, lx, ly);
-			nvgStroke(vg);
-		}
-
-		{
-			float mx = (float)(context.rc.right - g_design.body.margin);
-			float my = (float)(y);
-			float lx = (float)(context.rc.right - g_design.body.margin + g_design.scale.width);
-			float ly = (float)(y);
-
-			nvgBeginPath(vg);
-			nvgMoveTo(vg, mx, my);
-			nvgLineTo(vg, lx, ly);
-			nvgStroke(vg);
-		}
-
-		char text[MAX_PATH] = {};
-		::StringCbPrintfA(text, sizeof(text), "%+d", i);
-
-		{
-			nvgTextAlign(vg, NVG_ALIGN_RIGHT | NVG_ALIGN_BOTTOM);
-
-			float tx = (float)(context.rc.left + g_design.body.margin - textPadding);
-			float ty = y - textPadding;
-
-			drawText(tx, ty, text, g_design.scale.text);
-		}
-
-		{
-			nvgTextAlign(vg, NVG_ALIGN_LEFT | NVG_ALIGN_BOTTOM);
-
-			float tx = (float)(context.rc.right - g_design.body.margin + textPadding);
-			float ty = y - textPadding;
-
-			drawText(tx, ty, text, g_design.scale.text);
-		}
-	}
-#endif
+	drawHorzScale(window, context);
+	drawVertScale(window, context);
 }
 
-void Mode::drawGraph(MainWindow& window, const PaintContext& context)
+void Mode::drawHorzScale(MainWindow& window, const LayoutContext& context)
+{
+	// 水平目盛りを上下に描画する。
+
+	NVGcontext* vg = window.m_vg;
+	const LayoutContext::Graph& graph = context.graph;
+
+	nvgScissor(vg, (float)graph.x, (float)context.y, (float)graph.w, (float)context.h);
+
+	int ox = graph.x - context.hScroll; // 描画範囲の X 座標。
+	double unitSec = window.getUnitSec(context.zoomScale);
+	double timeBegin = window.px2sec(context.zoomScale, context.hScroll);
+	timeBegin /= unitSec;
+	timeBegin = floor(timeBegin);
+	timeBegin *= unitSec;
+	double timeEnd = window.px2sec(context.zoomScale, context.hScroll + graph.w);
+	timeEnd /= unitSec;
+	timeEnd = ceil(timeEnd);
+	timeEnd *= unitSec;
+
+	for (double time = timeBegin; time < timeEnd; time += unitSec)
+	{
+		int pxTime = ox + window.sec2px(context.zoomScale, time);
+
+		{
+			// 長い目盛りを描画する。
+
+			float x = (float)pxTime;
+
+			switch (window.m_horzScaleSettings.lineStyle)
+			{
+			case MainWindow::HorzScaleSettings::LineStyle::side:
+				{
+					{
+						float my = (float)(graph.top - g_design.scale.horz.primary.height);
+						float ly = (float)graph.top;
+
+						drawLine(vg, x, my, x, ly, g_design.scale.horz.primary.stroke);
+					}
+
+					{
+						float my = (float)(graph.bottom + g_design.scale.horz.primary.height);
+						float ly = (float)graph.bottom;
+
+						drawLine(vg, x, my, x, ly, g_design.scale.horz.primary.stroke);
+					}
+
+					break;
+				}
+			case MainWindow::HorzScaleSettings::LineStyle::straight:
+				{
+					float my = (float)(graph.top - g_design.scale.horz.primary.height);
+					float ly = (float)(graph.bottom + g_design.scale.horz.primary.height);
+
+					drawLine(vg, x, my, x, ly, g_design.scale.horz.primary.stroke);
+
+					break;
+				}
+			}
+		}
+
+		{
+			// 時間文字列を描画する。
+
+			int hour = (int)time / 60 / 60;
+			int min = (int)time / 60 % 60;
+			double sec = fmod(time, 60);
+
+			char text[MAX_PATH] = {};
+			::StringCbPrintfA(text, sizeof(text), "%02d:%02d:%05.2f", hour, min, sec);
+
+			int padding = 2;
+
+			{
+				float xText = (float)(pxTime + padding);
+				float yText = (float)(graph.top - g_design.scale.horz.primary.height);
+
+				nvgTextAlign(vg, NVG_ALIGN_LEFT | NVG_ALIGN_BOTTOM);
+
+				drawText(vg, text, xText, yText, g_design.scale.horz.primary.text);
+			}
+
+			{
+				float xText = (float)(pxTime + padding);
+				float yText = (float)(graph.bottom + g_design.scale.horz.primary.height);
+
+				nvgTextAlign(vg, NVG_ALIGN_LEFT | NVG_ALIGN_TOP);
+
+				drawText(vg, text, xText, yText, g_design.scale.horz.primary.text);
+			}
+		}
+
+		{
+			// 短い目盛りを描画する。
+
+			for (int j = 1; j < 10; j++)
+			{
+				double subTime = time + unitSec * j / 10.0;
+				int pxTime = ox + window.sec2px(context.zoomScale, subTime);
+				float x = (float)pxTime;
+
+				switch (window.m_horzScaleSettings.lineStyle)
+				{
+				case MainWindow::HorzScaleSettings::LineStyle::side:
+					{
+						{
+							float my = (float)(graph.top - g_design.scale.horz.secondary.height);
+							float ly = (float)graph.top;
+
+							drawLine(vg, x, my, x, ly, g_design.scale.horz.secondary.stroke);
+						}
+
+						{
+							float my = (float)(graph.bottom + g_design.scale.horz.secondary.height);
+							float ly = (float)graph.bottom;
+
+							drawLine(vg, x, my, x, ly, g_design.scale.horz.secondary.stroke);
+						}
+
+						break;
+					}
+				case MainWindow::HorzScaleSettings::LineStyle::straight:
+					{
+						float my = (float)(graph.top - g_design.scale.horz.secondary.height);
+						float ly = (float)(graph.bottom + g_design.scale.horz.secondary.height);
+
+						drawLine(vg, x, my, x, ly, g_design.scale.horz.secondary.stroke);
+
+						break;
+					}
+				}
+			}
+		}
+	}
+
+	nvgResetScissor(vg);
+}
+
+void Mode::drawVertScale(MainWindow& window, const LayoutContext& context)
+{
+}
+
+void Mode::drawGraph(MainWindow& window, const LayoutContext& context)
+{
+	drawBPM(window, context);
+	drawMarkers(window, context);
+}
+
+void Mode::drawBPM(MainWindow& window, const LayoutContext& context)
 {
 	NVGcontext* vg = window.m_vg;
-#if 0
-	int c = (int)fullSamples.size();
+	const LayoutContext::Graph& graph = context.graph;
 
-	if (c <= 0) return;
+	BOOL showBPM = window.getShowBPM();
+	int orig = window.getOrig(); // 基準フレーム番号。
+	int bpm = window.getBPM();
+	int above = window.getAbove(); // 楽譜に書いてある上の数字。
+	int below = window.getBelow(); // 楽譜に書いてある下の数字。
 
-	int hScroll = ::GetScrollPos(m_hwnd, SB_HORZ);
-
-	// グラフを描画する。
-
-	float gx = (float)(context.rc.left + g_design.body.margin);
-	float gy = (float)(context.rc.top);
-	float gw = (float)(context.width - g_design.body.margin * 2);
-	float gh = (float)(context.height);
-	float lgw = gw * (100 + m_zoom) / 100;
-	float left = gx;
-	float right = gx + gw;
-	float top = gy;
-	float bottom = gy + gh;
-	float padding = 10.0f;
-
-	struct PointF { float x, y; };
-	std::vector<PointF> points;
-	for (int i = 0; i < c; i++)
+	if (showBPM && bpm > 0 && above > 0 && below > 0)
 	{
-		float level = (fullSamples[i].rms - m_minRange) / (m_maxRange - m_minRange);
-		float x = left + lgw * i / (c - 1) - hScroll;
-		float y = std::min(bottom, bottom - gh * level);
+		nvgScissor(vg, (float)graph.x, (float)graph.y, (float)graph.w, (float)graph.h);
 
-		if (x >= left && x <= right)
-			points.emplace_back(x, y);
+		// BPM を描画する。
+
+		// 1小節の拍数 = (4 * above / below)
+		// 1拍の秒数 = (60 / bpm)
+		// 1小節の秒数 = (4 * above / below) * (60 / bpm)
+
+		int ox = graph.x - context.hScroll; // 描画範囲の X 座標。
+		double unitSec = (4.0 * above / below) * (60.0 / bpm);
+		double timeBegin = window.px2sec(context.zoomScale, context.hScroll);
+		timeBegin /= unitSec;
+		timeBegin = floor(timeBegin);
+		timeBegin *= unitSec;
+		double timeEnd = window.px2sec(context.zoomScale, context.hScroll + graph.w);
+		timeEnd /= unitSec;
+		timeEnd = ceil(timeEnd);
+		timeEnd *= unitSec;
+		double origSec = window.frame2sec(orig);
+		double offsetSec = std::fmod(origSec, unitSec);
+		int measure = (int)((timeBegin - origSec) / unitSec) - 1;
+
+		for (double time = timeBegin + offsetSec - unitSec; time < timeEnd; time += unitSec)
+		{
+			int pxTime = ox + window.sec2px(context.zoomScale, time);
+
+			{
+				// 長い目盛りを描画する。
+
+				float x = (float)pxTime;
+				float my = (float)graph.top;
+				float ly = (float)graph.bottom;
+
+				drawLine(vg, x, my, x, ly, g_design.bpm.primary.stroke);
+			}
+
+			{
+				// 小節文字列を描画する。
+
+				char text[MAX_PATH] = {};
+				::StringCbPrintfA(text, sizeof(text), "%d", measure++);
+
+				float xText = (float)(pxTime - 4);
+				float yText = (float)(graph.top + 2);
+
+				nvgTextAlign(vg, NVG_ALIGN_RIGHT | NVG_ALIGN_TOP);
+
+				drawText(vg, text, xText, yText, g_design.bpm.primary.text);
+			}
+
+			{
+				// 短い目盛りを描画する。
+
+				for (int j = 1; j < above; j++)
+				{
+					double subTime = time + unitSec * j / above;
+					int pxTime = ox + window.sec2px(context.zoomScale, subTime);
+					float x = (float)pxTime;
+					float my = (float)graph.top;
+					float ly = (float)graph.bottom;
+
+					drawLine(vg, x, my, x, ly, g_design.bpm.secondary.stroke);
+				}
+			}
+		}
+
+		nvgResetScissor(vg);
 	}
+}
+
+void Mode::drawMarkers(MainWindow& window, const LayoutContext& context)
+{
+	NVGcontext* vg = window.m_vg;
+	const LayoutContext::Graph& graph = context.graph;
+
+	{
+		// カレントフレームを描画する。
+		drawMarker(window, context, theApp.projectParams->currentFrame, g_design.graph.current);
+
+		// ホットフレームを描画する。
+		drawMarker(window, context, window.m_hotFrame, g_design.graph.hot);
+	}
+
+	int c = (int)theApp.fullSamples.size();
+
+	if (c > 0)
+	{
+		// 最終フレームを表す垂直線を描画する。
+
+		int x = window.frame2client(c - 1);
+		int my = context.rc.top;
+		int ly = context.rc.bottom;
+
+		if (x >= context.graph.left && x <= context.graph.right)
+			drawLine(vg, (float)x, (float)my, (float)x, (float)ly, g_design.graph.last.stroke);
+	}
+}
+
+void Mode::drawVertScaleLine(MainWindow& window, const LayoutContext& context, float y)
+{
+	NVGcontext* vg = window.m_vg;
+	const LayoutContext::Graph& graph = context.graph;
+
+	switch (window.m_vertScaleSettings.lineStyle)
+	{
+	case MainWindow::VertScaleSettings::LineStyle::side:
+		{
+			{
+				float mx = (float)graph.left;
+				float lx = (float)(graph.left - g_design.scale.vert.width);
+
+				drawLine(vg, mx, y, lx, y, g_design.scale.vert.stroke);
+			}
+
+			{
+				float mx = (float)graph.right;
+				float lx = (float)(graph.right + g_design.scale.vert.width);
+
+				drawLine(vg, mx, y, lx, y, g_design.scale.vert.stroke);
+			}
+
+			break;
+		}
+	case MainWindow::VertScaleSettings::LineStyle::straight:
+		{
+			float mx = (float)(graph.left - g_design.scale.vert.width);
+			float lx = (float)(graph.right + g_design.scale.vert.width);
+
+			drawLine(vg, mx, y, lx, y, g_design.scale.vert.stroke);
+
+			break;
+		}
+	}
+}
+
+void Mode::drawPoints(MainWindow& window, const LayoutContext& context, const std::vector<Mode::PointF>& points)
+{
+	NVGcontext* vg = window.m_vg;
+	const LayoutContext::Graph& graph = context.graph;
 
 	{
 		// グラフを塗りつぶす。
 
 		nvgBeginPath(vg);
-		nvgMoveTo(vg, gx, bottom + padding);
+		nvgMoveTo(vg, (float)graph.left, (float)(graph.bottom + context.padding));
 
 		for (const auto& point : points)
 			nvgLineTo(vg, point.x, point.y);
 
-		nvgLineTo(vg, gx + gw, bottom + padding);
+		nvgLineTo(vg, (float)graph.right, (float)(graph.bottom + context.padding));
 //		nvgClosePath(vg);
 //		nvgPathWinding(vg, NVG_SOLID);
 
 		NVGpaint paint = nvgLinearGradient(vg,
-			context.x, context.y, context.x, context.y + context.h,
+			(float)graph.left, (float)graph.top, (float)graph.left, (float)graph.bottom,
 			g_design.graph.fill.color1, g_design.graph.fill.color2);
 		nvgFillPaint(vg, paint);
 		nvgFill(vg);
@@ -301,7 +563,7 @@ void Mode::drawGraph(MainWindow& window, const PaintContext& context)
 		// グラフのストロークを描画する。
 
 		nvgBeginPath(vg);
-		nvgMoveTo(vg, gx, bottom);
+		nvgMoveTo(vg, (float)graph.left, (float)graph.bottom);
 
 		for (const auto& point : points)
 			nvgLineTo(vg, point.x, point.y);
@@ -310,237 +572,6 @@ void Mode::drawGraph(MainWindow& window, const PaintContext& context)
 		nvgStrokeColor(vg, g_design.graph.stroke.color);
 		nvgStroke(vg);
 	}
-
-	int frame = projectParams->currentFrame;
-
-	if (frame >= 0 && frame < c)
-	{
-		// カレントフレームを描画する。
-
-		// 垂直線を描画する。
-
-		float mx = left + lgw * frame / (c - 1) - hScroll;
-		float my = top;
-		float lx = mx;
-		float ly = bottom;
-
-		if (mx >= left && mx <= right)
-		{
-			nvgBeginPath(vg);
-			nvgMoveTo(vg, mx, my);
-			nvgLineTo(vg, lx, ly);
-			nvgStrokeWidth(vg, (float)g_design.graph.current.stroke.width);
-			nvgStrokeColor(vg, g_design.graph.current.stroke.color);
-			nvgStroke(vg);
-		}
-
-		// テキストを描画する。
-
-		char text[MAX_PATH] = {};
-		::StringCbPrintfA(text, sizeof(text), "%.2fdB @%d", fullSamples[frame], frame);
-
-		float padding = 4.0f;
-		float tx = left + padding;
-		float ty = top + padding;
-
-		nvgFontSize(vg, (float)g_design.graph.current.text.height);
-		nvgFontFaceId(vg, m_fontDefault);
-		nvgTextAlign(vg, NVG_ALIGN_LEFT | NVG_ALIGN_TOP);
-
-		drawText(tx, ty, text, g_design.graph.current.text);
-	}
-
-	frame = m_hotFrame;
-
-	if (frame >= 0 && frame < c)
-	{
-		// ホットフレームを描画する。
-
-		// 垂直線を描画する。
-
-		float mx = left + lgw * frame / (c - 1) - hScroll;
-		float my = top;
-		float lx = mx;
-		float ly = bottom;
-
-		nvgBeginPath(vg);
-		nvgMoveTo(vg, mx, my);
-		nvgLineTo(vg, lx, ly);
-		nvgStrokeWidth(vg, (float)g_design.graph.hot.stroke.width);
-		nvgStrokeColor(vg, g_design.graph.hot.stroke.color);
-		nvgStroke(vg);
-
-		// テキストを描画する。
-
-		char text[MAX_PATH] = {};
-		::StringCbPrintfA(text, sizeof(text), "%.2fdB @%d", fullSamples[frame], frame);
-
-		float padding = 4.0f;
-		float tx = right - padding;
-		float ty = top + padding;
-
-		nvgFontSize(vg, (float)g_design.graph.hot.text.height);
-		nvgFontFaceId(vg, m_fontDefault);
-		nvgTextAlign(vg, NVG_ALIGN_RIGHT | NVG_ALIGN_TOP);
-
-		drawText(tx, ty, text, g_design.graph.hot.text);
-	}
-#endif
-}
-
-void Mode::drawText(MainWindow& window, const PaintContext& context, float x, float y, LPCSTR text, const Design::Text& design)
-{
-	NVGcontext* vg = window.m_vg;
-
-	if (design.shadow.blur != 0.0f)
-	{
-		nvgFontBlur(vg, design.shadow.blur);
-		nvgFillColor(vg, design.shadow.color);
-		nvgText(vg, x + design.shadow.offset.x, y + design.shadow.offset.y, text, 0);
-	}
-
-	nvgFontBlur(vg, 0.0f);
-	nvgFillColor(vg, design.color);
-	nvgText(vg, x, y, text, 0);
-}
-
-void Mode::drawMarker(MainWindow& window, const PaintContext& context, int frame, float tx, float ty, const Design::Marker& design)
-{
-	NVGcontext* vg = window.m_vg;
-
-	int c = (int)window.fullSamples.size();
-
-	if (frame < 0 || frame >= c)
-		return;
-
-	// 垂直線を描画する。
-
-	float mx = context.left + context.lgw * frame / (c - 1) - context.hScroll;
-	float my = context.top;
-	float lx = mx;
-	float ly = context.bottom;
-
-	if (mx >= context.left && mx <= context.right)
-	{
-		nvgBeginPath(vg);
-		nvgMoveTo(vg, mx, my);
-		nvgLineTo(vg, lx, ly);
-		nvgStrokeWidth(vg, (float)design.stroke.width);
-		nvgStrokeColor(vg, design.stroke.color);
-		nvgStroke(vg);
-	}
-
-	// テキストを描画する。
-
-	char text[MAX_PATH] = {};
-	::StringCbPrintfA(text, sizeof(text), "%.2fdB @%d", window.fullSamples[frame].rms, frame);
-
-	nvgFontSize(vg, (float)design.text.height);
-	nvgFontFaceId(vg, window.m_fontDefault);
-
-	drawText(window, context, tx, ty, text, design.text);
-}
-
-void Mode::drawMarkers(MainWindow& window, const PaintContext& context)
-{
-	NVGcontext* vg = window.m_vg;
-
-	float padding = 4.0f;
-
-	// カレントフレームを描画する。
-	nvgTextAlign(vg, NVG_ALIGN_LEFT | NVG_ALIGN_TOP);
-	drawMarker(window, context, window.projectParams->currentFrame,
-		context.left + padding, context.top + padding, g_design.graph.current);
-
-	// ホットフレームを描画する。
-	nvgTextAlign(vg, NVG_ALIGN_RIGHT | NVG_ALIGN_TOP);
-	drawMarker(window, context, window.m_hotFrame,
-		context.right - padding, context.top + padding, g_design.graph.hot);
-}
-
-//--------------------------------------------------------------------
-
-LRESULT Mode::onMouseMove(MainWindow& window, HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
-{
-//	MY_TRACE(_T("Mode::onMouseMove(0x%08X, 0x%08X)\n"), wParam, lParam);
-
-	POINT point = LP2PT(lParam);
-
-	if (::GetCapture() == hwnd)
-	{
-		// scale をドラッグして変更する。
-
-		int offset = point.y - m_dragOriginPoint.y;
-
-		window.m_scale = m_dragOriginScale - offset;
-
-		::InvalidateRect(hwnd, 0, FALSE);
-	}
-
-	Mode::onMouseMove(window, point);
-
-	return ::DefWindowProc(hwnd, message, wParam, lParam);
-}
-
-LRESULT Mode::onLButtonDown(MainWindow& window, HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
-{
-	MY_TRACE(_T("Mode::onLButtonDown(0x%08X, 0x%08X)\n"), wParam, lParam);
-
-	POINT point = LP2PT(lParam);
-	RECT rc; ::GetClientRect(hwnd, &rc);
-
-	if (point.y < rc.top + g_design.body.margin ||
-		point.y > rc.bottom - g_design.body.margin)
-	{
-		// scale のドラッグを開始する。
-
-		::SetCapture(hwnd);
-		m_dragOriginPoint = point;
-		m_dragOriginScale = window.m_scale;
-	}
-	else
-	{
-		Mode::onLButtonDown(window, point);
-	}
-
-	return ::DefWindowProc(hwnd, message, wParam, lParam);
-}
-
-LRESULT Mode::onLButtonUp(MainWindow& window, HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
-{
-	MY_TRACE(_T("Mode::onLButtonUp(0x%08X, 0x%08X)\n"), wParam, lParam);
-
-	::ReleaseCapture();
-
-	return ::DefWindowProc(hwnd, message, wParam, lParam);
-}
-
-//--------------------------------------------------------------------
-
-LRESULT Mode::onMouseMove(MainWindow& window, const POINT& point)
-{
-	// ホットフレームを更新する。
-
-	int hotFrame = window.px2Frame(point.x);
-	if (window.m_hotFrame != hotFrame)
-	{
-		window.m_hotFrame = hotFrame;
-
-		::InvalidateRect(window.m_hwnd, 0, FALSE);
-	}
-
-	return 0;
-}
-
-LRESULT Mode::onLButtonDown(MainWindow& window, const POINT& point)
-{
-	// カレントフレームを変更する。
-
-	int32_t frame = window.px2Frame(point.x);
-
-	::PostMessage(g_parent, WM_AVIUTL_FILTER_CHANGE_FRAME, (WPARAM)frame, 0);
-
-	return 0;
 }
 
 //--------------------------------------------------------------------

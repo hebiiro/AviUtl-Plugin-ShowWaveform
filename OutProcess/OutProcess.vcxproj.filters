@@ -4,6 +4,9 @@
     <Filter Include="Framework">
       <UniqueIdentifier>{b2b8b579-a036-4aeb-aa10-399e689a71f3}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Resource">
+      <UniqueIdentifier>{639143d2-2767-4514-ba40-4e8535d9fa7e}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pch.h">
@@ -19,6 +22,14 @@
     <ClInclude Include="MainWindow.h" />
     <ClInclude Include="Design.h" />
     <ClInclude Include="Mode.h" />
+    <ClInclude Include="resource.h">
+      <Filter>Resource</Filter>
+    </ClInclude>
+    <ClInclude Include="App.h" />
+    <ClInclude Include="ReaderManager.h" />
+    <ClInclude Include="WaiterManager.h" />
+    <ClInclude Include="CacheManager.h" />
+    <ClInclude Include="MainDialog.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="pch.cpp">
@@ -30,15 +41,23 @@
     <ClCompile Include="MainWindow_Paint.cpp" />
     <ClCompile Include="Design.cpp" />
     <ClCompile Include="MainWindow_OpenGL.cpp" />
-    <ClCompile Include="MainWindow_Waveform.cpp" />
     <ClCompile Include="MainWindow_Mouse.cpp" />
-    <ClCompile Include="MainWindow_Reader.cpp" />
-    <ClCompile Include="MainWindow_Waiter.cpp" />
     <ClCompile Include="MainWindow_Layout.cpp" />
     <ClCompile Include="Mode_RMS.cpp" />
     <ClCompile Include="Mode.cpp" />
-    <ClCompile Include="Mode_Min.cpp" />
-    <ClCompile Include="Mode_Both.cpp" />
-    <ClCompile Include="Mode_Max.cpp" />
+    <ClCompile Include="App.cpp" />
+    <ClCompile Include="ReaderManager.cpp" />
+    <ClCompile Include="WaiterManager.cpp" />
+    <ClCompile Include="CacheManager.cpp" />
+    <ClCompile Include="App_Waveform.cpp" />
+    <ClCompile Include="MainDialog.cpp" />
+    <ClCompile Include="Mode_BottomUp.cpp" />
+    <ClCompile Include="Mode_Center.cpp" />
+    <ClCompile Include="Mode_TopDown.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="OutProcess.rc">
+      <Filter>Resource</Filter>
+    </ResourceCompile>
   </ItemGroup>
 </Project>

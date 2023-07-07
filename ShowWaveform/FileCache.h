@@ -13,8 +13,8 @@ struct FileCache {
 struct FileCacheManager {
 	FileCacheMap cacheMap;
 	FileCachePtr getCache(LPCSTR fileName, BOOL create);
-	void createCache(LPCSTR fileName);
-	void receiveCache();
+	BOOL createCache(LPCSTR fileName);
+	BOOL receiveCache();
 };
 
 //---------------------------------------------------------------------

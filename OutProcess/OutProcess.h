@@ -7,7 +7,4 @@ struct Label {
 	LPCWSTR label;
 };
 
-extern HINSTANCE g_instance;
-extern HWND g_parent;
-
 //--------------------------------------------------------------------

@@ -4,6 +4,10 @@
 
 //--------------------------------------------------------------------
 
+Shared shared;
+
+//--------------------------------------------------------------------
+
 CacheRequest::CacheRequest(LPCSTR fileName)
 	: fileName(fileName)
 {
@@ -44,13 +48,14 @@ void SubThread::onSendCacheRequest(const CacheRequest* cacheRequest)
 {
 	MY_TRACE(_T("SubThreadManager::onSendCacheRequest()\n"));
 
-	SenderBottle* shared = theApp.m_subThreadManager.m_sharedSenderBottle.getBuffer();
+	// 送信用のボトルを取得する。
+	SenderBottle* shared = ::shared.senderBottle.getBuffer();
 	if (shared)
 	{
 		::StringCbCopyA(shared->fileName, sizeof(shared->fileName), cacheRequest->fileName.c_str());
 
 		// サブプロセスにキャッシュの作成をリクエストする。
-		::SendMessage(theApp.m_subProcess.m_fullSamplesWindow, WM_AVIUTL_FILTER_SEND, SendID::requestCache, 0);
+		::SendMessage(theApp.m_subProcess.m_windowContainer.m_inner, WM_AVIUTL_FILTER_SEND, SendID::requestCache, 0);
 	}
 
 	// このリクエストをマップから削除する。
@@ -66,13 +71,13 @@ void SubThread::onSendProjectChanged(const ProjectParams* params)
 {
 	MY_TRACE(_T("SubThreadManager::onSendProjectChanged()\n"));
 
-	ProjectParams* shared = theApp.m_subThreadManager.m_sharedProjectParams.getBuffer();
+	ProjectParams* shared = ::shared.projectParams.getBuffer();
 	if (shared)
 	{
 		*shared = *params;
 
 		// サブプロセスにアイテムの変更を通知する。
-		::SendMessage(theApp.m_subProcess.m_fullSamplesWindow, WM_AVIUTL_FILTER_SEND, SendID::notifyProjectChanged, 0);
+		::SendMessage(theApp.m_subProcess.m_windowContainer.m_inner, WM_AVIUTL_FILTER_SEND, SendID::notifyProjectChanged, 0);
 	}
 
 	delete params;
@@ -82,13 +87,29 @@ void SubThread::onSendItemChanged(const AudioParams* params)
 {
 	MY_TRACE(_T("SubThreadManager::onSendItemChanged()\n"));
 
-	AudioParams* shared = theApp.m_subThreadManager.m_sharedAudioParams.getBuffer();
+	AudioParams* shared = ::shared.audioParams.getBuffer();
 	if (shared)
 	{
 		*shared = *params;
 
 		// サブプロセスにアイテムの変更を通知する。
-		::SendMessage(theApp.m_subProcess.m_fullSamplesWindow, WM_AVIUTL_FILTER_SEND, SendID::notifyItemChanged, 0);
+		::SendMessage(theApp.m_subProcess.m_windowContainer.m_inner, WM_AVIUTL_FILTER_SEND, SendID::notifyItemChanged, 0);
+	}
+
+	delete params;
+}
+
+void SubThread::onSendFullSamplesChanged(const FullSamplesParams* params)
+{
+	MY_TRACE(_T("SubThreadManager::onSendFullSamplesChanged()\n"));
+
+	FullSamplesParams* shared = ::shared.senderFullSamplesParams.getBuffer();
+	if (shared)
+	{
+		*shared = *params;
+
+		// サブプロセスにサブプロセスパラメータの変更を通知する。
+		::SendMessage(theApp.m_subProcess.m_windowContainer.m_inner, WM_AVIUTL_FILTER_SEND, SendID::notifyFullSamplesChanged, 0);
 	}
 
 	delete params;
@@ -98,14 +119,14 @@ void SubThread::onPostClearRequest()
 {
 	MY_TRACE(_T("SubThreadManager::onPostClearRequest()\n"));
 
-	::SendMessage(theApp.m_subProcess.m_fullSamplesWindow, WM_AVIUTL_FILTER_CLEAR, 0, 0);
+	::SendMessage(theApp.m_subProcess.m_windowContainer.m_inner, WM_AVIUTL_FILTER_CLEAR, 0, 0);
 }
 
 void SubThread::onPostRedrawRequest()
 {
 	MY_TRACE(_T("SubThreadManager::onPostRedrawRequest()\n"));
 
-	::SendMessage(theApp.m_subProcess.m_fullSamplesWindow, WM_AVIUTL_FILTER_REDRAW, 0, 0);
+	::SendMessage(theApp.m_subProcess.m_windowContainer.m_inner, WM_AVIUTL_FILTER_REDRAW, 0, 0);
 }
 
 DWORD SubThread::proc()
@@ -135,6 +156,11 @@ DWORD SubThread::proc()
 			case WM_SEND_ITEM_CHANGED:
 				{
 					onSendItemChanged((const AudioParams*)msg.wParam);
+					break;
+				}
+			case WM_SEND_FULL_SAMPLES_CHANGED:
+				{
+					onSendFullSamplesChanged((const FullSamplesParams*)msg.wParam);
 					break;
 				}
 			case WM_POST_CLEAR_REQUEST:
@@ -167,12 +193,15 @@ BOOL SubThreadManager::init(AviUtl::FilterPlugin* fp)
 {
 	MY_TRACE(_T("SubThreadManager::init()\n"));
 
-	HWND hwnd = theApp.m_subProcess.m_fullSamplesContainer.m_hwnd;
+	HWND hwnd = theApp.m_subProcess.m_windowContainer.m_hwnd;
 
-	m_sharedSenderBottle.init(getSharedSenderBottleName(hwnd));
-	m_sharedReceiverBottle.init(getSharedReceiverBottleName(hwnd));
-	m_sharedProjectParams.init(getSharedProjectParamsName(hwnd));
-	m_sharedAudioParams.init(getSharedAudioParamsName(hwnd));
+	shared.init(hwnd);
+
+	{
+		FullSamplesParams params; // 初期値。
+		shared.setSenderFullSamplesParams(&params);
+		shared.setReceiverFullSamplesParams(&params);
+	}
 
 	m_handle = ::CreateThread(0, 0, threadProc, 0, 0, &m_tid);
 	return !!m_handle;
@@ -181,6 +210,8 @@ BOOL SubThreadManager::init(AviUtl::FilterPlugin* fp)
 BOOL SubThreadManager::exit(AviUtl::FilterPlugin* fp)
 {
 	MY_TRACE(_T("SubThreadManager::exit()\n"));
+
+	shared.term();
 
 //	return ::PostThreadMessage(m_tid, WM_QUIT, 0, 0);
 	return ::TerminateThread(m_handle, -1);
@@ -197,14 +228,21 @@ BOOL SubThreadManager::notifyProjectChanged(const ProjectParamsPtr& params)
 {
 	MY_TRACE(_T("SubThreadManager::notifyProjectChanged()\n"));
 
-	return ::PostThreadMessage(m_tid, SubThread::WM_SEND_PROJECT_CHANGED, (WPARAM)new ProjectParams(*params.get()), 0);
+	return ::PostThreadMessage(m_tid, SubThread::WM_SEND_PROJECT_CHANGED, (WPARAM)new ProjectParams(*params), 0);
 }
 
 BOOL SubThreadManager::notifyItemChanged(const AudioParamsPtr& params)
 {
 	MY_TRACE(_T("SubThreadManager::notifyItemChanged()\n"));
 
-	return ::PostThreadMessage(m_tid, SubThread::WM_SEND_ITEM_CHANGED, (WPARAM)new AudioParams(*params.get()), 0);
+	return ::PostThreadMessage(m_tid, SubThread::WM_SEND_ITEM_CHANGED, (WPARAM)new AudioParams(*params), 0);
+}
+
+BOOL SubThreadManager::notifyFullSamplesChanged(const FullSamplesParamsPtr& params)
+{
+	MY_TRACE(_T("SubThreadManager::notifyFullSamplesChanged()\n"));
+
+	return ::PostThreadMessage(m_tid, SubThread::WM_SEND_FULL_SAMPLES_CHANGED, (WPARAM)new FullSamplesParams(*params), 0);
 }
 
 BOOL SubThreadManager::requestClear()

@@ -1,0 +1,135 @@
+// Microsoft Visual C++ generated resource script.
+//
+#include "resource.h"
+
+#define APSTUDIO_READONLY_SYMBOLS
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 2 resource.
+//
+#include "winres.h"
+
+/////////////////////////////////////////////////////////////////////////////
+#undef APSTUDIO_READONLY_SYMBOLS
+
+/////////////////////////////////////////////////////////////////////////////
+// 日本語 (日本) resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_JPN)
+LANGUAGE LANG_JAPANESE, SUBLANG_DEFAULT
+#pragma code_page(932)
+
+#ifdef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// TEXTINCLUDE
+//
+
+1 TEXTINCLUDE 
+BEGIN
+    "resource.h\0"
+END
+
+2 TEXTINCLUDE 
+BEGIN
+    "#include ""winres.h""\r\n"
+    "\0"
+END
+
+3 TEXTINCLUDE 
+BEGIN
+    "\r\n"
+    "\0"
+END
+
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Dialog
+//
+
+IDD_CONFIG_DIALOG DIALOGEX 0, 0, 185, 141
+STYLE DS_SETFONT | DS_FIXEDSYS | WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN | WS_SYSMENU
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    CONTROL         "BPM を表示",IDC_SHOW_BPM,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,4,4,88,12
+    LTEXT           "基準ﾌﾚｰﾑ : ",IDC_STATIC,4,20,44,12,SS_CENTERIMAGE,WS_EX_RIGHT
+    EDITTEXT        IDC_ORIG,48,20,44,12,ES_AUTOHSCROLL
+    CONTROL         "",IDC_ORIG_SPIN,"msctls_updown32",UDS_ALIGNRIGHT | UDS_AUTOBUDDY | UDS_ARROWKEYS,80,16,12,14
+    LTEXT           "BPM : ",IDC_STATIC,92,20,44,12,SS_CENTERIMAGE,WS_EX_RIGHT
+    EDITTEXT        IDC_BPM,136,20,44,12,ES_AUTOHSCROLL
+    CONTROL         "",IDC_BPM_SPIN,"msctls_updown32",UDS_ALIGNRIGHT | UDS_AUTOBUDDY | UDS_ARROWKEYS,168,16,12,14
+    LTEXT           "拍子 : ",IDC_STATIC,4,36,44,12,SS_CENTERIMAGE,WS_EX_RIGHT
+    EDITTEXT        IDC_ABOVE,48,36,44,12,ES_AUTOHSCROLL
+    CONTROL         "",IDC_ABOVE_SPIN,"msctls_updown32",UDS_ALIGNRIGHT | UDS_AUTOBUDDY | UDS_ARROWKEYS,80,32,12,14
+    LTEXT           "分 : ",IDC_STATIC,92,36,44,12,SS_CENTERIMAGE,WS_EX_RIGHT
+    EDITTEXT        IDC_BELOW,136,36,44,12,ES_AUTOHSCROLL
+    CONTROL         "",IDC_BELOW_SPIN,"msctls_updown32",UDS_ALIGNRIGHT | UDS_AUTOBUDDY | UDS_ARROWKEYS,168,32,12,14
+    LTEXT           "最大音量 : ",IDC_STATIC,4,52,44,12,SS_CENTERIMAGE,WS_EX_RIGHT
+    EDITTEXT        IDC_LIMIT_VOLUME,48,52,44,12,ES_AUTOHSCROLL
+    CONTROL         "",IDC_LIMIT_VOLUME_SPIN,"msctls_updown32",UDS_ALIGNRIGHT | UDS_AUTOBUDDY | UDS_ARROWKEYS,80,48,12,14
+    LTEXT           "基準音量 : ",IDC_STATIC,92,52,44,12,SS_CENTERIMAGE,WS_EX_RIGHT
+    EDITTEXT        IDC_BASE_VOLUME,136,52,44,12,ES_AUTOHSCROLL
+    CONTROL         "",IDC_BASE_VOLUME_SPIN,"msctls_updown32",UDS_ALIGNRIGHT | UDS_AUTOBUDDY | UDS_ARROWKEYS,168,48,12,14
+    LTEXT           "最小RMS : ",IDC_STATIC,4,68,44,12,SS_CENTERIMAGE,WS_EX_RIGHT
+    EDITTEXT        IDC_MIN_RMS,48,68,44,12,ES_AUTOHSCROLL
+    CONTROL         "",IDC_MIN_RMS_SPIN,"msctls_updown32",UDS_ALIGNRIGHT | UDS_AUTOBUDDY | UDS_ARROWKEYS,80,64,12,14
+    LTEXT           "最大RMS : ",IDC_STATIC,92,68,44,12,SS_CENTERIMAGE,WS_EX_RIGHT
+    EDITTEXT        IDC_MAX_RMS,136,68,44,12,ES_AUTOHSCROLL
+    CONTROL         "",IDC_MAX_RMS_SPIN,"msctls_updown32",UDS_ALIGNRIGHT | UDS_AUTOBUDDY | UDS_ARROWKEYS,168,64,12,14
+    LTEXT           "基準RMS : ",IDC_STATIC,4,84,44,12,SS_CENTERIMAGE,WS_EX_RIGHT
+    EDITTEXT        IDC_BASE_RMS,48,84,44,12,ES_AUTOHSCROLL
+    CONTROL         "",IDC_BASE_RMS_SPIN,"msctls_updown32",UDS_ALIGNRIGHT | UDS_AUTOBUDDY | UDS_ARROWKEYS,80,80,12,14
+    LTEXT           "ズーム : ",IDC_STATIC,92,84,44,12,SS_CENTERIMAGE,WS_EX_RIGHT
+    EDITTEXT        IDC_ZOOM,136,84,44,12,ES_AUTOHSCROLL
+    CONTROL         "",IDC_ZOOM_SPIN,"msctls_updown32",UDS_ALIGNRIGHT | UDS_AUTOBUDDY | UDS_ARROWKEYS,168,80,12,14
+    EDITTEXT        IDC_STATUS,4,100,176,36,ES_MULTILINE | ES_AUTOHSCROLL | ES_READONLY
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// DESIGNINFO
+//
+
+#ifdef APSTUDIO_INVOKED
+GUIDELINES DESIGNINFO
+BEGIN
+    IDD_CONFIG_DIALOG, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 178
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 134
+    END
+END
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// AFX_DIALOG_LAYOUT
+//
+
+IDD_CONFIG_DIALOG AFX_DIALOG_LAYOUT
+BEGIN
+    0
+END
+
+#endif    // 日本語 (日本) resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+
+#ifndef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 3 resource.
+//
+
+
+/////////////////////////////////////////////////////////////////////////////
+#endif    // not APSTUDIO_INVOKED
+

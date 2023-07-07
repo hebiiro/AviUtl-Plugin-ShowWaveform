@@ -179,30 +179,37 @@
     <Manifest />
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="App.h" />
+    <ClInclude Include="CacheManager.h" />
     <ClInclude Include="Design.h" />
     <ClInclude Include="framework.h" />
+    <ClInclude Include="MainDialog.h" />
     <ClInclude Include="MainWindow.h" />
     <ClInclude Include="Mode.h" />
     <ClInclude Include="OutProcess.h" />
     <ClInclude Include="pch.h" />
+    <ClInclude Include="ReaderManager.h" />
+    <ClInclude Include="resource.h" />
     <ClInclude Include="targetver.h" />
+    <ClInclude Include="WaiterManager.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="App.cpp" />
+    <ClCompile Include="App_Waveform.cpp" />
+    <ClCompile Include="CacheManager.cpp" />
     <ClCompile Include="Design.cpp" />
+    <ClCompile Include="MainDialog.cpp" />
     <ClCompile Include="MainWindow.cpp" />
     <ClCompile Include="MainWindow_Config.cpp" />
     <ClCompile Include="MainWindow_Layout.cpp" />
     <ClCompile Include="MainWindow_Mouse.cpp" />
     <ClCompile Include="MainWindow_OpenGL.cpp" />
     <ClCompile Include="MainWindow_Paint.cpp" />
-    <ClCompile Include="MainWindow_Reader.cpp" />
-    <ClCompile Include="MainWindow_Waiter.cpp" />
-    <ClCompile Include="MainWindow_Waveform.cpp" />
     <ClCompile Include="Mode.cpp" />
-    <ClCompile Include="Mode_Both.cpp" />
-    <ClCompile Include="Mode_Max.cpp" />
-    <ClCompile Include="Mode_Min.cpp" />
+    <ClCompile Include="Mode_BottomUp.cpp" />
+    <ClCompile Include="Mode_Center.cpp" />
     <ClCompile Include="Mode_RMS.cpp" />
+    <ClCompile Include="Mode_TopDown.cpp" />
     <ClCompile Include="OutProcess.cpp" />
     <ClCompile Include="pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
@@ -210,11 +217,16 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="ReaderManager.cpp" />
+    <ClCompile Include="WaiterManager.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\ReaderProcess\ReaderProcess.vcxproj">
       <Project>{db2053e8-60d4-4bd5-845a-11ca24e2c599}</Project>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="OutProcess.rc" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

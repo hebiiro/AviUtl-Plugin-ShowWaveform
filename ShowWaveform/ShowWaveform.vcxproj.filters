@@ -7,6 +7,9 @@
     <Filter Include="Framework">
       <UniqueIdentifier>{d8bd7764-ca8e-4dc1-8b9e-3ae1918c9bb9}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Resource">
+      <UniqueIdentifier>{b0df70ad-6fbb-43ea-acf0-034e4025bc3b}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ShowWaveform.h" />
@@ -31,6 +34,13 @@
     <ClInclude Include="Share.h" />
     <ClInclude Include="SubProcess.h" />
     <ClInclude Include="SubThread.h" />
+    <ClInclude Include="resource.h">
+      <Filter>Resource</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Common\Dialog.h">
+      <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="MainDialog.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="ShowWaveform.cpp" />
@@ -42,10 +52,16 @@
     </ClCompile>
     <ClCompile Include="SubProcess.cpp" />
     <ClCompile Include="SubThread.cpp" />
+    <ClCompile Include="MainDialog.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="ShowWaveform.def">
       <Filter>Framework</Filter>
     </None>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="ShowWaveform.rc">
+      <Filter>Resource</Filter>
+    </ResourceCompile>
   </ItemGroup>
 </Project>

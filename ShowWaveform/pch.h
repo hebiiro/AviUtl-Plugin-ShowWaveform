@@ -12,10 +12,9 @@
 #include <comdef.h>
 #include <mmsystem.h>
 #pragma comment(lib, "winmm.lib")
-
-#include <tchar.h>
 #include <strsafe.h>
 
+#include <tchar.h>
 #include <algorithm>
 #include <numeric>
 #include <memory>
@@ -28,6 +27,7 @@
 #include "AviUtl/aviutl_exedit_sdk/exedit.hpp"
 #include "Common/Tracer.h"
 #include "Common/WinUtility.h"
+#include "Common/Dialog.h"
 #include "Common/Profile.h"
 #include "Common/Hook.h"
 #include "Common/AviUtlInternal.h"

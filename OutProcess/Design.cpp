@@ -25,6 +25,14 @@ const Label Design::ScaleMode::labels[] = {
 	{ crop, L"crop" },
 };
 
+const Label Design::LineStyle::labels[] = {
+	{ 0, L"normal" },
+	{ NVG_LINE_SOLID, L"solid" },
+	{ NVG_LINE_DASHED, L"dashed" },
+	{ NVG_LINE_DOTTED, L"dotted" },
+	{ NVG_LINE_GLOW, L"glow" },
+};
+
 //--------------------------------------------------------------------
 
 Design::Design()
@@ -42,37 +50,65 @@ Design::Design()
 	image.alpha = 1.0f;
 	background.fill.color1 = nvgRGBAf(0.2f, 0.2f, 0.2f, 1.0f);
 	background.fill.color2 = nvgRGBAf(0.1f, 0.1f, 0.1f, 1.0f);
-	body.margin = 40;
+	body.margin.x = 40;
+	body.margin.y = 30;
+	body.stroke.style = NVG_LINE_SOLID;
 	body.stroke.width = 1;
-	body.stroke.color = nvgRGBAf(1.0f, 1.0f, 1.0f, 0.5f);
-	scale.width = 10;
-	scale.text.height = 16;
-	scale.text.color = nvgRGBAf(1.0f, 1.0f, 1.0f, 0.8f);
-	scale.text.shadow.blur = 2.0f;
-	scale.text.shadow.offset = { 0, 1 };
-	scale.text.shadow.color = nvgRGBAf(0.0f, 0.0f, 0.0f, 1.0f);
-	scale.stroke.width = 1;
-	scale.stroke.color = nvgRGBAf(1.0f, 1.0f, 1.0f, 0.5f);
-	scale.base.stroke.width = 1;
-	scale.base.stroke.color = nvgRGBAf(1.0f, 0.0f, 0.0f, 0.5f);
+	body.stroke.color = nvgRGBAf(1.0f, 1.0f, 1.0f, 0.8f);
+	scale.horz.minUnitWidth = 100;
+	scale.horz.primary.height = 10;
+	scale.horz.primary.stroke.style = NVG_LINE_SOLID;
+	scale.horz.primary.stroke.width = 1;
+	scale.horz.primary.stroke.color = nvgRGBAf(1.0f, 1.0f, 1.0f, 0.8f);
+	scale.horz.primary.text.height = 16;
+	scale.horz.primary.text.color = nvgRGBAf(1.0f, 1.0f, 1.0f, 0.8f);
+	scale.horz.primary.text.shadow.dilate = 1.0f;
+	scale.horz.primary.text.shadow.blur = 1.0f;
+	scale.horz.primary.text.shadow.offset = { 0, 0 };
+	scale.horz.primary.text.shadow.color = nvgRGBAf(0.0f, 0.0f, 0.0f, 0.5f);
+	scale.horz.secondary.height = 5;
+	scale.horz.secondary.stroke.style = NVG_LINE_SOLID;
+	scale.horz.secondary.stroke.width = 1;
+	scale.horz.secondary.stroke.color = nvgRGBAf(1.0f, 1.0f, 1.0f, 0.4f);
+	scale.vert.width = 10;
+	scale.vert.text.height = 16;
+	scale.vert.text.color = nvgRGBAf(1.0f, 1.0f, 1.0f, 0.8f);
+	scale.vert.text.shadow.dilate = 1.0f;
+	scale.vert.text.shadow.blur = 1.0f;
+	scale.vert.text.shadow.offset = { 0, 0 };
+	scale.vert.text.shadow.color = nvgRGBAf(0.0f, 0.0f, 0.0f, 0.5f);
+	scale.vert.stroke.style = NVG_LINE_SOLID;
+	scale.vert.stroke.width = 1;
+	scale.vert.stroke.color = nvgRGBAf(1.0f, 1.0f, 1.0f, 0.4f);
+	scale.vert.base.stroke.style = NVG_LINE_SOLID;
+	scale.vert.base.stroke.width = 1;
+	scale.vert.base.stroke.color = nvgRGBAf(1.0f, 0.0f, 0.0f, 0.5f);
 	graph.fill.color1 = nvgRGBAf(1.0f, 1.0f, 0.0f, 0.4f);
 	graph.fill.color2 = nvgRGBAf(1.0f, 1.0f, 0.0f, 0.4f);
+	graph.stroke.style = NVG_LINE_SOLID;
 	graph.stroke.width = 1;
 	graph.stroke.color = nvgRGBAf(1.0f, 1.0f, 0.0f, 0.2f);
+	graph.current.stroke.style = NVG_LINE_SOLID;
 	graph.current.stroke.width = 1;
 	graph.current.stroke.color = nvgRGBAf(0.0f, 1.0f, 0.0f, 0.4f);
-	graph.current.text.height = 32;
-	graph.current.text.color = nvgRGBAf(1.0f, 1.0f, 1.0f, 0.8f);
-	graph.current.text.shadow.blur = 4.0f;
-	graph.current.text.shadow.offset = { 0, 1 };
-	graph.current.text.shadow.color = nvgRGBAf(0.0f, 1.0f, 0.0f, 0.5f);
+	graph.hot.stroke.style = NVG_LINE_SOLID;
 	graph.hot.stroke.width = 1;
 	graph.hot.stroke.color = nvgRGBAf(1.0f, 0.0f, 1.0f, 0.4f);
-	graph.hot.text.height = 32;
-	graph.hot.text.color = nvgRGBAf(1.0f, 1.0f, 1.0f, 0.8f);
-	graph.hot.text.shadow.blur = 4.0f;
-	graph.hot.text.shadow.offset = { 0, 1 };
-	graph.hot.text.shadow.color = nvgRGBAf(1.0f, 0.0f, 1.0f, 0.5f);
+	graph.last.stroke.style = NVG_LINE_SOLID;
+	graph.last.stroke.width = 1;
+	graph.last.stroke.color = nvgRGBAf(1.0f, 1.0f, 1.0f, 0.5f);
+	bpm.primary.stroke.style = NVG_LINE_SOLID;
+	bpm.primary.stroke.width = 1;
+	bpm.primary.stroke.color = nvgRGBAf(1.0f, 1.0f, 1.0f, 0.5f);
+	bpm.primary.text.height = 12;
+	bpm.primary.text.color = nvgRGBAf(1.0f, 1.0f, 1.0f, 0.8f);
+	bpm.primary.text.shadow.dilate = 1.0f;
+	bpm.primary.text.shadow.blur = 1.0f;
+	bpm.primary.text.shadow.offset = { 0, 0 };
+	bpm.primary.text.shadow.color = nvgRGBAf(0.0f, 0.0f, 0.0f, 0.5f);
+	bpm.secondary.stroke.style = NVG_LINE_DASHED;
+	bpm.secondary.stroke.width = 1;
+	bpm.secondary.stroke.color = nvgRGBAf(1.0f, 1.0f, 1.0f, 0.5f);
 }
 
 Design::~Design()
@@ -97,42 +133,72 @@ void Design::load(LPCWSTR fileName)
 	getPrivateProfileColor(fileName, L"Design", L"background.fill.color1", background.fill.color1);
 	getPrivateProfileColor(fileName, L"Design", L"background.fill.color2", background.fill.color2);
 
-	getPrivateProfileInt(fileName, L"Design", L"body.margin", body.margin);
+	getPrivateProfileInt(fileName, L"Design", L"body.margin.x", body.margin.x);
+	getPrivateProfileInt(fileName, L"Design", L"body.margin.y", body.margin.y);
+	getPrivateProfileLabel(fileName, L"Design", L"body.stroke.style", body.stroke.style, LineStyle::labels);
 	getPrivateProfileInt(fileName, L"Design", L"body.stroke.width", body.stroke.width);
 	getPrivateProfileColor(fileName, L"Design", L"body.stroke.color", body.stroke.color);
 
-	getPrivateProfileInt(fileName, L"Design", L"scale.width", scale.width);
-	getPrivateProfileInt(fileName, L"Design", L"scale.text.height", scale.text.height);
-	getPrivateProfileColor(fileName, L"Design", L"scale.text.color", scale.text.color);
-	getPrivateProfileReal(fileName, L"Design", L"scale.text.shadow.blur", scale.text.shadow.blur);
-	getPrivateProfileInt(fileName, L"Design", L"scale.text.shadow.offset.x", scale.text.shadow.offset.x);
-	getPrivateProfileInt(fileName, L"Design", L"scale.text.shadow.offset.y", scale.text.shadow.offset.y);
-	getPrivateProfileColor(fileName, L"Design", L"scale.text.shadow.color", scale.text.shadow.color);
-	getPrivateProfileInt(fileName, L"Design", L"scale.stroke.width", scale.stroke.width);
-	getPrivateProfileColor(fileName, L"Design", L"scale.stroke.color", scale.stroke.color);
-	getPrivateProfileInt(fileName, L"Design", L"scale.base.stroke.width", scale.base.stroke.width);
-	getPrivateProfileColor(fileName, L"Design", L"scale.base.stroke.color", scale.base.stroke.color);
+	getPrivateProfileInt(fileName, L"Design", L"scale.horz.minUnitWidth", scale.horz.minUnitWidth);
+	getPrivateProfileInt(fileName, L"Design", L"scale.horz.primary.height", scale.horz.primary.height);
+	getPrivateProfileLabel(fileName, L"Design", L"scale.horz.primary.stroke.style", scale.horz.primary.stroke.style, LineStyle::labels);
+	getPrivateProfileInt(fileName, L"Design", L"scale.horz.primary.stroke.width", scale.horz.primary.stroke.width);
+	getPrivateProfileColor(fileName, L"Design", L"scale.horz.primary.stroke.color", scale.horz.primary.stroke.color);
+	getPrivateProfileInt(fileName, L"Design", L"scale.horz.primary.text.height", scale.horz.primary.text.height);
+	getPrivateProfileColor(fileName, L"Design", L"scale.horz.primary.text.color", scale.horz.primary.text.color);
+	getPrivateProfileReal(fileName, L"Design", L"scale.horz.primary.text.shadow.dilate", scale.horz.primary.text.shadow.dilate);
+	getPrivateProfileReal(fileName, L"Design", L"scale.horz.primary.text.shadow.blur", scale.horz.primary.text.shadow.blur);
+	getPrivateProfileInt(fileName, L"Design", L"scale.horz.primary.text.shadow.offset.x", scale.horz.primary.text.shadow.offset.x);
+	getPrivateProfileInt(fileName, L"Design", L"scale.horz.primary.text.shadow.offset.y", scale.horz.primary.text.shadow.offset.y);
+	getPrivateProfileColor(fileName, L"Design", L"scale.horz.primary.text.shadow.color", scale.horz.primary.text.shadow.color);
+	getPrivateProfileInt(fileName, L"Design", L"scale.horz.secondary.height", scale.horz.secondary.height);
+	getPrivateProfileLabel(fileName, L"Design", L"scale.horz.secondary.stroke.style", scale.horz.secondary.stroke.style, LineStyle::labels);
+	getPrivateProfileInt(fileName, L"Design", L"scale.horz.secondary.stroke.width", scale.horz.secondary.stroke.width);
+	getPrivateProfileColor(fileName, L"Design", L"scale.horz.secondary.stroke.color", scale.horz.secondary.stroke.color);
+
+	getPrivateProfileInt(fileName, L"Design", L"scale.vert.width", scale.vert.width);
+	getPrivateProfileInt(fileName, L"Design", L"scale.vert.text.height", scale.vert.text.height);
+	getPrivateProfileColor(fileName, L"Design", L"scale.vert.text.color", scale.vert.text.color);
+	getPrivateProfileReal(fileName, L"Design", L"scale.vert.text.shadow.dilate", scale.vert.text.shadow.dilate);
+	getPrivateProfileReal(fileName, L"Design", L"scale.vert.text.shadow.blur", scale.vert.text.shadow.blur);
+	getPrivateProfileInt(fileName, L"Design", L"scale.vert.text.shadow.offset.x", scale.vert.text.shadow.offset.x);
+	getPrivateProfileInt(fileName, L"Design", L"scale.vert.text.shadow.offset.y", scale.vert.text.shadow.offset.y);
+	getPrivateProfileColor(fileName, L"Design", L"scale.vert.text.shadow.color", scale.vert.text.shadow.color);
+	getPrivateProfileLabel(fileName, L"Design", L"scale.vert.stroke.style", scale.vert.stroke.style, LineStyle::labels);
+	getPrivateProfileInt(fileName, L"Design", L"scale.vert.stroke.width", scale.vert.stroke.width);
+	getPrivateProfileColor(fileName, L"Design", L"scale.vert.stroke.color", scale.vert.stroke.color);
+	getPrivateProfileLabel(fileName, L"Design", L"scale.vert.base.stroke.style", scale.vert.base.stroke.style, LineStyle::labels);
+	getPrivateProfileInt(fileName, L"Design", L"scale.vert.base.stroke.width", scale.vert.base.stroke.width);
+	getPrivateProfileColor(fileName, L"Design", L"scale.vert.base.stroke.color", scale.vert.base.stroke.color);
 
 	getPrivateProfileColor(fileName, L"Design", L"graph.fill.color1", graph.fill.color1);
 	getPrivateProfileColor(fileName, L"Design", L"graph.fill.color2", graph.fill.color2);
+	getPrivateProfileLabel(fileName, L"Design", L"graph.stroke.style", graph.stroke.style, LineStyle::labels);
 	getPrivateProfileInt(fileName, L"Design", L"graph.stroke.width", graph.stroke.width);
 	getPrivateProfileColor(fileName, L"Design", L"graph.stroke.color", graph.stroke.color);
+	getPrivateProfileLabel(fileName, L"Design", L"graph.current.stroke.style", graph.current.stroke.style, LineStyle::labels);
 	getPrivateProfileInt(fileName, L"Design", L"graph.current.stroke.width", graph.current.stroke.width);
 	getPrivateProfileColor(fileName, L"Design", L"graph.current.stroke.color", graph.current.stroke.color);
-	getPrivateProfileInt(fileName, L"Design", L"graph.current.text.height", graph.current.text.height);
-	getPrivateProfileColor(fileName, L"Design", L"graph.current.text.color", graph.current.text.color);
-	getPrivateProfileReal(fileName, L"Design", L"graph.current.text.shadow.blur", graph.current.text.shadow.blur);
-	getPrivateProfileInt(fileName, L"Design", L"graph.current.text.shadow.offset.x", graph.current.text.shadow.offset.x);
-	getPrivateProfileInt(fileName, L"Design", L"graph.current.text.shadow.offset.y", graph.current.text.shadow.offset.y);
-	getPrivateProfileColor(fileName, L"Design", L"graph.current.text.shadow.color", graph.current.text.shadow.color);
+	getPrivateProfileLabel(fileName, L"Design", L"graph.hot.stroke.style", graph.hot.stroke.style, LineStyle::labels);
 	getPrivateProfileInt(fileName, L"Design", L"graph.hot.stroke.width", graph.hot.stroke.width);
 	getPrivateProfileColor(fileName, L"Design", L"graph.hot.stroke.color", graph.hot.stroke.color);
-	getPrivateProfileInt(fileName, L"Design", L"graph.hot.text.height", graph.hot.text.height);
-	getPrivateProfileColor(fileName, L"Design", L"graph.hot.text.color", graph.hot.text.color);
-	getPrivateProfileReal(fileName, L"Design", L"graph.hot.text.shadow.blur", graph.hot.text.shadow.blur);
-	getPrivateProfileInt(fileName, L"Design", L"graph.hot.text.shadow.offset.x", graph.hot.text.shadow.offset.x);
-	getPrivateProfileInt(fileName, L"Design", L"graph.hot.text.shadow.offset.y", graph.hot.text.shadow.offset.y);
-	getPrivateProfileColor(fileName, L"Design", L"graph.hot.text.shadow.color", graph.hot.text.shadow.color);
+	getPrivateProfileLabel(fileName, L"Design", L"graph.last.stroke.style", graph.last.stroke.style, LineStyle::labels);
+	getPrivateProfileInt(fileName, L"Design", L"graph.last.stroke.width", graph.last.stroke.width);
+	getPrivateProfileColor(fileName, L"Design", L"graph.last.stroke.color", graph.last.stroke.color);
+
+	getPrivateProfileLabel(fileName, L"Design", L"bpm.primary.stroke.style", bpm.primary.stroke.style, LineStyle::labels);
+	getPrivateProfileInt(fileName, L"Design", L"bpm.primary.stroke.width", bpm.primary.stroke.width);
+	getPrivateProfileColor(fileName, L"Design", L"bpm.primary.stroke.color", bpm.primary.stroke.color);
+	getPrivateProfileInt(fileName, L"Design", L"bpm.primary.text.height", bpm.primary.text.height);
+	getPrivateProfileColor(fileName, L"Design", L"bpm.primary.text.color", bpm.primary.text.color);
+	getPrivateProfileReal(fileName, L"Design", L"bpm.primary.text.shadow.dilate", bpm.primary.text.shadow.dilate);
+	getPrivateProfileReal(fileName, L"Design", L"bpm.primary.text.shadow.blur", bpm.primary.text.shadow.blur);
+	getPrivateProfileInt(fileName, L"Design", L"bpm.primary.text.shadow.offset.x", bpm.primary.text.shadow.offset.x);
+	getPrivateProfileInt(fileName, L"Design", L"bpm.primary.text.shadow.offset.y", bpm.primary.text.shadow.offset.y);
+	getPrivateProfileColor(fileName, L"Design", L"bpm.primary.text.shadow.color", bpm.primary.text.shadow.color);
+	getPrivateProfileLabel(fileName, L"Design", L"bpm.secondary.stroke.style", bpm.secondary.stroke.style, LineStyle::labels);
+	getPrivateProfileInt(fileName, L"Design", L"bpm.secondary.stroke.width", bpm.secondary.stroke.width);
+	getPrivateProfileColor(fileName, L"Design", L"bpm.secondary.stroke.color", bpm.secondary.stroke.color);
 }
 
 void Design::save(LPCWSTR fileName)
@@ -153,42 +219,72 @@ void Design::save(LPCWSTR fileName)
 	setPrivateProfileColor(fileName, L"Design", L"background.fill.color1", background.fill.color1);
 	setPrivateProfileColor(fileName, L"Design", L"background.fill.color2", background.fill.color2);
 
-	setPrivateProfileInt(fileName, L"Design", L"body.margin", body.margin);
+	setPrivateProfileInt(fileName, L"Design", L"body.margin.x", body.margin.x);
+	setPrivateProfileInt(fileName, L"Design", L"body.margin.y", body.margin.y);
+	setPrivateProfileLabel(fileName, L"Design", L"body.stroke.style", body.stroke.style, LineStyle::labels);
 	setPrivateProfileInt(fileName, L"Design", L"body.stroke.width", body.stroke.width);
 	setPrivateProfileColor(fileName, L"Design", L"body.stroke.color", body.stroke.color);
 
-	setPrivateProfileInt(fileName, L"Design", L"scale.width", scale.width);
-	setPrivateProfileInt(fileName, L"Design", L"scale.text.height", scale.text.height);
-	setPrivateProfileColor(fileName, L"Design", L"scale.text.color", scale.text.color);
-	setPrivateProfileReal(fileName, L"Design", L"scale.text.shadow.blur", scale.text.shadow.blur);
-	setPrivateProfileInt(fileName, L"Design", L"scale.text.shadow.offset.x", scale.text.shadow.offset.x);
-	setPrivateProfileInt(fileName, L"Design", L"scale.text.shadow.offset.y", scale.text.shadow.offset.y);
-	setPrivateProfileColor(fileName, L"Design", L"scale.text.shadow.color", scale.text.shadow.color);
-	setPrivateProfileInt(fileName, L"Design", L"scale.stroke.width", scale.stroke.width);
-	setPrivateProfileColor(fileName, L"Design", L"scale.stroke.color", scale.stroke.color);
-	setPrivateProfileInt(fileName, L"Design", L"scale.base.stroke.width", scale.base.stroke.width);
-	setPrivateProfileColor(fileName, L"Design", L"scale.base.stroke.color", scale.base.stroke.color);
+	setPrivateProfileInt(fileName, L"Design", L"scale.horz.minUnitWidth", scale.horz.minUnitWidth);
+	setPrivateProfileInt(fileName, L"Design", L"scale.horz.primary.height", scale.horz.primary.height);
+	setPrivateProfileLabel(fileName, L"Design", L"scale.horz.primary.stroke.style", scale.horz.primary.stroke.style, LineStyle::labels);
+	setPrivateProfileInt(fileName, L"Design", L"scale.horz.primary.stroke.width", scale.horz.primary.stroke.width);
+	setPrivateProfileColor(fileName, L"Design", L"scale.horz.primary.stroke.color", scale.horz.primary.stroke.color);
+	setPrivateProfileInt(fileName, L"Design", L"scale.horz.primary.text.height", scale.horz.primary.text.height);
+	setPrivateProfileColor(fileName, L"Design", L"scale.horz.primary.text.color", scale.horz.primary.text.color);
+	setPrivateProfileReal(fileName, L"Design", L"scale.horz.primary.text.shadow.dilate", scale.horz.primary.text.shadow.dilate);
+	setPrivateProfileReal(fileName, L"Design", L"scale.horz.primary.text.shadow.blur", scale.horz.primary.text.shadow.blur);
+	setPrivateProfileInt(fileName, L"Design", L"scale.horz.primary.text.shadow.offset.x", scale.horz.primary.text.shadow.offset.x);
+	setPrivateProfileInt(fileName, L"Design", L"scale.horz.primary.text.shadow.offset.y", scale.horz.primary.text.shadow.offset.y);
+	setPrivateProfileColor(fileName, L"Design", L"scale.horz.primary.text.shadow.color", scale.horz.primary.text.shadow.color);
+	setPrivateProfileInt(fileName, L"Design", L"scale.horz.secondary.height", scale.horz.secondary.height);
+	setPrivateProfileLabel(fileName, L"Design", L"scale.horz.secondary.stroke.style", scale.horz.secondary.stroke.style, LineStyle::labels);
+	setPrivateProfileInt(fileName, L"Design", L"scale.horz.secondary.stroke.width", scale.horz.secondary.stroke.width);
+	setPrivateProfileColor(fileName, L"Design", L"scale.horz.secondary.stroke.color", scale.horz.secondary.stroke.color);
+
+	setPrivateProfileInt(fileName, L"Design", L"scale.vert.width", scale.vert.width);
+	setPrivateProfileInt(fileName, L"Design", L"scale.vert.text.height", scale.vert.text.height);
+	setPrivateProfileColor(fileName, L"Design", L"scale.vert.text.color", scale.vert.text.color);
+	setPrivateProfileReal(fileName, L"Design", L"scale.vert.text.shadow.dilate", scale.vert.text.shadow.dilate);
+	setPrivateProfileReal(fileName, L"Design", L"scale.vert.text.shadow.blur", scale.vert.text.shadow.blur);
+	setPrivateProfileInt(fileName, L"Design", L"scale.vert.text.shadow.offset.x", scale.vert.text.shadow.offset.x);
+	setPrivateProfileInt(fileName, L"Design", L"scale.vert.text.shadow.offset.y", scale.vert.text.shadow.offset.y);
+	setPrivateProfileColor(fileName, L"Design", L"scale.vert.text.shadow.color", scale.vert.text.shadow.color);
+	setPrivateProfileLabel(fileName, L"Design", L"scale.vert.stroke.style", scale.vert.stroke.style, LineStyle::labels);
+	setPrivateProfileInt(fileName, L"Design", L"scale.vert.stroke.width", scale.vert.stroke.width);
+	setPrivateProfileColor(fileName, L"Design", L"scale.vert.stroke.color", scale.vert.stroke.color);
+	setPrivateProfileLabel(fileName, L"Design", L"scale.vert.base.stroke.style", scale.vert.base.stroke.style, LineStyle::labels);
+	setPrivateProfileInt(fileName, L"Design", L"scale.vert.base.stroke.width", scale.vert.base.stroke.width);
+	setPrivateProfileColor(fileName, L"Design", L"scale.vert.base.stroke.color", scale.vert.base.stroke.color);
 
 	setPrivateProfileColor(fileName, L"Design", L"graph.fill.color1", graph.fill.color1);
 	setPrivateProfileColor(fileName, L"Design", L"graph.fill.color2", graph.fill.color2);
+	setPrivateProfileLabel(fileName, L"Design", L"graph.stroke.style", graph.stroke.style, LineStyle::labels);
 	setPrivateProfileInt(fileName, L"Design", L"graph.stroke.width", graph.stroke.width);
 	setPrivateProfileColor(fileName, L"Design", L"graph.stroke.color", graph.stroke.color);
+	setPrivateProfileLabel(fileName, L"Design", L"graph.current.stroke.style", graph.current.stroke.style, LineStyle::labels);
 	setPrivateProfileInt(fileName, L"Design", L"graph.current.stroke.width", graph.current.stroke.width);
 	setPrivateProfileColor(fileName, L"Design", L"graph.current.stroke.color", graph.current.stroke.color);
-	setPrivateProfileInt(fileName, L"Design", L"graph.current.text.height", graph.current.text.height);
-	setPrivateProfileColor(fileName, L"Design", L"graph.current.text.color", graph.current.text.color);
-	setPrivateProfileReal(fileName, L"Design", L"graph.current.text.shadow.blur", graph.current.text.shadow.blur);
-	setPrivateProfileInt(fileName, L"Design", L"graph.current.text.shadow.offset.x", graph.current.text.shadow.offset.x);
-	setPrivateProfileInt(fileName, L"Design", L"graph.current.text.shadow.offset.y", graph.current.text.shadow.offset.y);
-	setPrivateProfileColor(fileName, L"Design", L"graph.current.text.shadow.color", graph.current.text.shadow.color);
+	setPrivateProfileLabel(fileName, L"Design", L"graph.hot.stroke.style", graph.hot.stroke.style, LineStyle::labels);
 	setPrivateProfileInt(fileName, L"Design", L"graph.hot.stroke.width", graph.hot.stroke.width);
 	setPrivateProfileColor(fileName, L"Design", L"graph.hot.stroke.color", graph.hot.stroke.color);
-	setPrivateProfileInt(fileName, L"Design", L"graph.hot.text.height", graph.hot.text.height);
-	setPrivateProfileColor(fileName, L"Design", L"graph.hot.text.color", graph.hot.text.color);
-	setPrivateProfileReal(fileName, L"Design", L"graph.hot.text.shadow.blur", graph.hot.text.shadow.blur);
-	setPrivateProfileInt(fileName, L"Design", L"graph.hot.text.shadow.offset.x", graph.hot.text.shadow.offset.x);
-	setPrivateProfileInt(fileName, L"Design", L"graph.hot.text.shadow.offset.y", graph.hot.text.shadow.offset.y);
-	setPrivateProfileColor(fileName, L"Design", L"graph.hot.text.shadow.color", graph.hot.text.shadow.color);
+	setPrivateProfileLabel(fileName, L"Design", L"graph.last.stroke.style", graph.last.stroke.style, LineStyle::labels);
+	setPrivateProfileInt(fileName, L"Design", L"graph.last.stroke.width", graph.last.stroke.width);
+	setPrivateProfileColor(fileName, L"Design", L"graph.last.stroke.color", graph.last.stroke.color);
+
+	setPrivateProfileLabel(fileName, L"Design", L"bpm.primary.stroke.style", bpm.primary.stroke.style, LineStyle::labels);
+	setPrivateProfileInt(fileName, L"Design", L"bpm.primary.stroke.width", bpm.primary.stroke.width);
+	setPrivateProfileColor(fileName, L"Design", L"bpm.primary.stroke.color", bpm.primary.stroke.color);
+	setPrivateProfileInt(fileName, L"Design", L"bpm.primary.text.height", bpm.primary.text.height);
+	setPrivateProfileColor(fileName, L"Design", L"bpm.primary.text.color", bpm.primary.text.color);
+	setPrivateProfileReal(fileName, L"Design", L"bpm.primary.text.shadow.dilate", bpm.primary.text.shadow.dilate);
+	setPrivateProfileReal(fileName, L"Design", L"bpm.primary.text.shadow.blur", bpm.primary.text.shadow.blur);
+	setPrivateProfileInt(fileName, L"Design", L"bpm.primary.text.shadow.offset.x", bpm.primary.text.shadow.offset.x);
+	setPrivateProfileInt(fileName, L"Design", L"bpm.primary.text.shadow.offset.y", bpm.primary.text.shadow.offset.y);
+	setPrivateProfileColor(fileName, L"Design", L"bpm.primary.text.shadow.color", bpm.primary.text.shadow.color);
+	setPrivateProfileLabel(fileName, L"Design", L"bpm.secondary.stroke.style", bpm.secondary.stroke.style, LineStyle::labels);
+	setPrivateProfileInt(fileName, L"Design", L"bpm.secondary.stroke.width", bpm.secondary.stroke.width);
+	setPrivateProfileColor(fileName, L"Design", L"bpm.secondary.stroke.color", bpm.secondary.stroke.color);
 }
 
 //--------------------------------------------------------------------

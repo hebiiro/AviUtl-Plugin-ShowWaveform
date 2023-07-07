@@ -1,5 +1,6 @@
 ﻿#include "pch.h"
-#include "MainWindow.h"
+#include "ReaderManager.h"
+#include "App.h"
 
 //--------------------------------------------------------------------
 
@@ -8,7 +9,7 @@ Reader::Reader(HWND hwnd)
 	MY_TRACE(_T("Reader::Reader(0x%08p)\n"), hwnd);
 
 	TCHAR path[MAX_PATH] = {};
-	::GetModuleFileName(g_instance, path, MAX_PATH);
+	::GetModuleFileName(theApp.instance, path, MAX_PATH);
 	::PathRemoveFileSpec(path);
 	::PathAppend(path, _T("ReaderProcess.exe"));
 	MY_TRACE_TSTR(path);
@@ -59,7 +60,7 @@ ReaderBottle* Reader::getBottle()
 //--------------------------------------------------------------------
 
 // リーダーを取得する。
-ReaderPtr MainWindow::getReader(DWORD id)
+ReaderPtr ReaderManager::getReader(DWORD id)
 {
 	auto it = readerMap.find(id);
 	if (it == readerMap.end()) return 0;
@@ -67,11 +68,11 @@ ReaderPtr MainWindow::getReader(DWORD id)
 }
 
 // リーダーを作成する。
-ReaderPtr MainWindow::createReader(LPCSTR fileName)
+ReaderPtr ReaderManager::createReader(LPCSTR fileName)
 {
-	MY_TRACE(_T("MainWindow::createReader(%hs)\n"), fileName);
+	MY_TRACE(_T("ReaderManager::createReader(%hs)\n"), fileName);
 
-	ReaderPtr reader = std::make_shared<Reader>(m_hwnd);
+	ReaderPtr reader = std::make_shared<Reader>(theApp.mainWindow);
 	ReaderBottle* shared = reader->getBottle();
 	if (!shared) return 0;
 	::StringCbCopyA(shared->fileName, sizeof(shared->fileName), fileName);
@@ -80,48 +81,16 @@ ReaderPtr MainWindow::createReader(LPCSTR fileName)
 }
 
 // リーダーを削除する。
-void MainWindow::eraseReader(DWORD id)
+void ReaderManager::eraseReader(DWORD id)
 {
-	MY_TRACE(_T("MainWindow::eraseReader(%d)\n"), id);
+	MY_TRACE(_T("ReaderManager::eraseReader(%d)\n"), id);
 
 	readerMap.erase(id);
 }
 
-// リーダーがボトルに詰め込んだ音声サンプルからキャッシュを作成する。
-CachePtr MainWindow::createCache(const ReaderPtr& reader)
+BOOL ReaderManager::hasEmpty()
 {
-	MY_TRACE(_T("MainWindow::createCache()\n"));
-
-	ReaderBottle* shared = reader->getBottle();
-	if (!shared) return 0;
-
-	MY_TRACE_STR(shared->fileName);
-
-	CachePtr cache = std::make_shared<Cache>();
-	cache->fileName = shared->fileName;
-	cache->samples.insert(cache->samples.end(),
-		shared->samples, shared->samples + shared->sampleCount);
-	cacheMap[cache->fileName] = cache;
-	return cache;
-}
-
-// キャッシュをボトルに詰めてからメインプロセスに送る。(受け取るように促す)
-void MainWindow::sendCache(const CachePtr& cache)
-{
-	MY_TRACE(_T("MainWindow::sendCache(%hs)\n"), cache->fileName.c_str());
-
-	ReceiverBottle* shared = m_sharedReceiverBottle.getBuffer();
-	MY_TRACE_HEX(shared);
-	if (!shared) return;
-
-	::StringCbCopyA(shared->fileName, sizeof(shared->fileName), cache->fileName.c_str());
-
-	shared->sampleCount = (int32_t)cache->samples.size();
-	MY_TRACE_INT(shared->sampleCount);
-	memcpy(shared->samples, cache->samples.data(), sizeof(Sample) * cache->samples.size());
-
-	MY_TRACE_HEX(g_parent);
-	::SendMessage(g_parent, WM_AVIUTL_FILTER_RECEIVE, 0, 0);
+	return (int)readerMap.size() < maxReaderCount;
 }
 
 //--------------------------------------------------------------------

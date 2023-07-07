@@ -1,11 +1,11 @@
 ﻿#include "pch.h"
 #include "App.h"
 
-//---------------------------------------------------------------------
+//--------------------------------------------------------------------
 
 App theApp;
 
-//---------------------------------------------------------------------
+//--------------------------------------------------------------------
 
 App::App()
 {
@@ -40,269 +40,6 @@ BOOL App::DllMain(HINSTANCE instance, DWORD reason, LPVOID reserved)
 	return TRUE;
 }
 
-void App::createControls()
-{
-	MY_TRACE(_T("App::createControls()\n"));
-
-	AviUtl::SysInfo si = {};
-	m_fp->exfunc->get_sys_info(0, &si);
-
-	controls.label.scale = ::CreateWindowEx(
-		0,
-		WC_STATIC, _T("描画サイズ : "),
-		WS_CHILD | WS_VISIBLE | SS_RIGHT | SS_CENTERIMAGE,
-		0, 0, 0, 0,
-		m_fp->hwnd, 0, m_instance, 0);
-	::SendMessage(controls.label.scale, WM_SETFONT, (WPARAM)si.hfont, FALSE);
-
-	controls.edit.scale = ::CreateWindowEx(
-		WS_EX_CLIENTEDGE,
-		WC_EDIT, 0,
-		WS_CHILD | WS_VISIBLE | WS_TABSTOP,
-		0, 0, 0, 0,
-		m_fp->hwnd, (HMENU)ControlID::Edit::scale, m_instance, 0);
-	::SendMessage(controls.edit.scale, WM_SETFONT, (WPARAM)si.hfont, FALSE);
-	::SetDlgItemInt(m_fp->hwnd, ControlID::Edit::scale, m_scale, TRUE);
-
-	controls.spin.scale = ::CreateWindowEx(
-		0,
-		UPDOWN_CLASS, 0,
-		WS_CHILD | WS_VISIBLE | UDS_ALIGNRIGHT | UDS_ARROWKEYS | UDS_HORZ,
-//		WS_CHILD | WS_VISIBLE | UDS_ALIGNRIGHT | UDS_ARROWKEYS | UDS_SETBUDDYINT | UDS_HORZ,
-		0, 0, 0, 0,
-		m_fp->hwnd, (HMENU)ControlID::Spin::scale, m_instance, 0);
-	::SendMessage(controls.spin.scale, WM_SETFONT, (WPARAM)si.hfont, FALSE);
-//	::SendMessage(controls.spin.scale, UDM_SETBUDDY, (WPARAM)controls.edit.scale, 0);
-//	::SendMessage(controls.spin.scale, UDM_SETRANGE, 0, MAKELPARAM(0, 2000));
-
-	controls.label.showType = ::CreateWindowEx(
-		0,
-		WC_STATIC, _T("表示タイプ : "),
-		WS_CHILD | WS_VISIBLE | SS_RIGHT | SS_CENTERIMAGE,
-		0, 0, 0, 0,
-		m_fp->hwnd, 0, m_instance, 0);
-	::SendMessage(controls.label.showType, WM_SETFONT, (WPARAM)si.hfont, FALSE);
-
-	controls.comboBox.showType = ::CreateWindowEx(
-		0,
-		WC_COMBOBOX, 0,
-		WS_CHILD | WS_VISIBLE | WS_TABSTOP | WS_HSCROLL | WS_VSCROLL |
-		CBS_DROPDOWNLIST | CBS_HASSTRINGS,
-		0, 0, 0, 400,
-		m_fp->hwnd, (HMENU)ControlID::ComboBox::showType, m_instance, 0);
-	::SendMessage(controls.comboBox.showType, WM_SETFONT, (WPARAM)si.hfont, FALSE);
-	ComboBox_AddString(controls.comboBox.showType, _T("中央"));
-	ComboBox_AddString(controls.comboBox.showType, _T("下"));
-	ComboBox_AddString(controls.comboBox.showType, _T("上"));
-	ComboBox_SetCurSel(controls.comboBox.showType, m_showType);
-
-	controls.label.updateMode = ::CreateWindowEx(
-		0,
-		WC_STATIC, _T("更新モード : "),
-		WS_CHILD | WS_VISIBLE | SS_RIGHT | SS_CENTERIMAGE,
-		0, 0, 0, 0,
-		m_fp->hwnd, 0, m_instance, 0);
-	::SendMessage(controls.label.updateMode, WM_SETFONT, (WPARAM)si.hfont, FALSE);
-
-	controls.comboBox.updateMode = ::CreateWindowEx(
-		0,
-		WC_COMBOBOX, 0,
-		WS_CHILD | WS_VISIBLE | WS_TABSTOP | WS_HSCROLL | WS_VSCROLL |
-		CBS_DROPDOWNLIST | CBS_HASSTRINGS,
-		0, 0, 0, 400,
-		m_fp->hwnd, (HMENU)ControlID::ComboBox::updateMode, m_instance, 0);
-	::SendMessage(controls.comboBox.updateMode, WM_SETFONT, (WPARAM)si.hfont, FALSE);
-	ComboBox_AddString(controls.comboBox.updateMode, _T("更新しない"));
-	ComboBox_AddString(controls.comboBox.updateMode, _T("更新する"));
-	ComboBox_AddString(controls.comboBox.updateMode, _T("再生中は更新しない"));
-	ComboBox_SetCurSel(controls.comboBox.updateMode, m_updateMode);
-
-	controls.label.xorMode = ::CreateWindowEx(
-		0,
-		WC_STATIC, _T("描画モード : "),
-		WS_CHILD | WS_VISIBLE | SS_RIGHT | SS_CENTERIMAGE,
-		0, 0, 0, 0,
-		m_fp->hwnd, 0, m_instance, 0);
-	::SendMessage(controls.label.xorMode, WM_SETFONT, (WPARAM)si.hfont, FALSE);
-
-	controls.comboBox.xorMode = ::CreateWindowEx(
-		0,
-		WC_COMBOBOX, 0,
-		WS_CHILD | WS_VISIBLE | WS_TABSTOP | WS_HSCROLL | WS_VSCROLL |
-		CBS_DROPDOWNLIST | CBS_HASSTRINGS,
-		0, 0, 0, 400,
-		m_fp->hwnd, (HMENU)ControlID::ComboBox::xorMode, m_instance, 0);
-	::SendMessage(controls.comboBox.xorMode, WM_SETFONT, (WPARAM)si.hfont, FALSE);
-	ComboBox_AddString(controls.comboBox.xorMode, _T("通常"));
-	ComboBox_AddString(controls.comboBox.xorMode, _T("XOR"));
-	ComboBox_AddString(controls.comboBox.xorMode, _T("NotXOR"));
-	ComboBox_AddString(controls.comboBox.xorMode, _T("Not"));
-	ComboBox_SetCurSel(controls.comboBox.xorMode, m_xorMode);
-
-	controls.button.penColor = ::CreateWindowEx(
-		0,
-		WC_BUTTON, _T("ペンの色を選択"),
-		WS_CHILD | WS_VISIBLE | WS_TABSTOP,
-		0, 0, 0, 0,
-		m_fp->hwnd, (HMENU)ControlID::Button::penColor, m_instance, 0);
-	::SendMessage(controls.button.penColor, WM_SETFONT, (WPARAM)si.hfont, FALSE);
-
-	controls.button.brushColor = ::CreateWindowEx(
-		0,
-		WC_BUTTON, _T("ブラシの色を選択"),
-		WS_CHILD | WS_VISIBLE | WS_TABSTOP,
-		0, 0, 0, 0,
-		m_fp->hwnd, (HMENU)ControlID::Button::brushColor, m_instance, 0);
-	::SendMessage(controls.button.brushColor, WM_SETFONT, (WPARAM)si.hfont, FALSE);
-
-	controls.button.clear = ::CreateWindowEx(
-		0,
-		WC_BUTTON, _T("キャッシュをクリア"),
-		WS_CHILD | WS_VISIBLE | WS_TABSTOP,
-		0, 0, 0, 0,
-		m_fp->hwnd, (HMENU)ControlID::Button::clear, m_instance, 0);
-	::SendMessage(controls.button.clear, WM_SETFONT, (WPARAM)si.hfont, FALSE);
-
-	controls.button.showFull = ::CreateWindowEx(
-		0,
-		WC_BUTTON, _T("全体の音声波形を表示"),
-		WS_CHILD | WS_VISIBLE | WS_TABSTOP,
-		0, 0, 0, 0,
-		m_fp->hwnd, (HMENU)ControlID::Button::showFull, m_instance, 0);
-	::SendMessage(controls.button.showFull, WM_SETFONT, (WPARAM)si.hfont, FALSE);
-
-	controls.checkBox.showWaveform = ::CreateWindowEx(
-		0,
-		WC_BUTTON, _T("音声波形を表示"),
-		WS_CHILD | WS_VISIBLE | WS_TABSTOP | BS_AUTOCHECKBOX,
-		0, 0, 0, 0,
-		m_fp->hwnd, (HMENU)ControlID::CheckBox::showWaveform, m_instance, 0);
-	::SendMessage(controls.checkBox.showWaveform, WM_SETFONT, (WPARAM)si.hfont, FALSE);
-	if (m_showWaveform) Button_SetCheck(controls.checkBox.showWaveform, BST_CHECKED);
-
-	controls.checkBox.showText = ::CreateWindowEx(
-		0,
-		WC_BUTTON, _T("テキストを表示"),
-		WS_CHILD | WS_VISIBLE | WS_TABSTOP | BS_AUTOCHECKBOX,
-		0, 0, 0, 0,
-		m_fp->hwnd, (HMENU)ControlID::CheckBox::showText, m_instance, 0);
-	::SendMessage(controls.checkBox.showText, WM_SETFONT, (WPARAM)si.hfont, FALSE);
-	if (m_showText) Button_SetCheck(controls.checkBox.showText, BST_CHECKED);
-
-	controls.checkBox.noScrollText = ::CreateWindowEx(
-		0,
-		WC_BUTTON, _T("テキストをスクロールしない"),
-		WS_CHILD | WS_VISIBLE | WS_TABSTOP | BS_AUTOCHECKBOX,
-		0, 0, 0, 0,
-		m_fp->hwnd, (HMENU)ControlID::CheckBox::noScrollText, m_instance, 0);
-	::SendMessage(controls.checkBox.noScrollText, WM_SETFONT, (WPARAM)si.hfont, FALSE);
-	if (m_noScrollText) Button_SetCheck(controls.checkBox.noScrollText, BST_CHECKED);
-
-	controls.checkBox.behind = ::CreateWindowEx(
-		0,
-		WC_BUTTON, _T("テキストより後ろに描画"),
-		WS_CHILD | WS_VISIBLE | WS_TABSTOP | BS_AUTOCHECKBOX,
-		0, 0, 0, 0,
-		m_fp->hwnd, (HMENU)ControlID::CheckBox::behind, m_instance, 0);
-	::SendMessage(controls.checkBox.behind, WM_SETFONT, (WPARAM)si.hfont, FALSE);
-	if (m_behind) Button_SetCheck(controls.checkBox.behind, BST_CHECKED);
-}
-
-void App::recalcLayout()
-{
-	MY_TRACE(_T("App::recalcLayout()\n"));
-
-	if (!m_fp)
-		return;
-
-	RECT rcClient; ::GetClientRect(m_fp->hwnd, &rcClient);
-	RECT rcComboBox; ::GetClientRect(controls.comboBox.xorMode, &rcComboBox);
-	int controlWidth = getWidth(rcClient) / 2;
-	int controlHeight = getHeight(rcComboBox);
-
-	int x1 = rcClient.left;
-	int x2 = rcClient.left + controlWidth;
-	int y = rcClient.top;
-	int margin = 4;
-
-	x1 += margin;
-	controlWidth -= margin * 2;
-
-	::SetWindowPos(controls.label.scale, 0, x1, y, controlWidth, controlHeight, SWP_NOZORDER);
-	::SetWindowPos(controls.edit.scale, 0, x2, y, controlWidth / 2 - margin, controlHeight, SWP_NOZORDER);
-	::SetWindowPos(controls.spin.scale, 0, x2 + controlWidth / 2, y, controlWidth / 2, controlHeight, SWP_NOZORDER);
-	y += controlHeight + margin;
-	::SetWindowPos(controls.label.showType, 0, x1, y, controlWidth, controlHeight, SWP_NOZORDER);
-	::SetWindowPos(controls.comboBox.showType, 0, x2, y, controlWidth, controlHeight, SWP_NOZORDER);
-	y += controlHeight + margin;
-	::SetWindowPos(controls.label.updateMode, 0, x1, y, controlWidth, controlHeight, SWP_NOZORDER);
-	::SetWindowPos(controls.comboBox.updateMode, 0, x2, y, controlWidth, controlHeight, SWP_NOZORDER);
-	y += controlHeight + margin;
-	::SetWindowPos(controls.label.xorMode, 0, x1, y, controlWidth, controlHeight, SWP_NOZORDER);
-	::SetWindowPos(controls.comboBox.xorMode, 0, x2, y, controlWidth, controlHeight, SWP_NOZORDER);
-	y += controlHeight + margin;
-	::SetWindowPos(controls.button.penColor, 0, x1, y, controlWidth, controlHeight, SWP_NOZORDER);
-	::SetWindowPos(controls.button.brushColor, 0, x2, y, controlWidth, controlHeight, SWP_NOZORDER);
-	y += controlHeight + margin;
-	::SetWindowPos(controls.button.clear, 0, x1, y, controlWidth, controlHeight, SWP_NOZORDER);
-	::SetWindowPos(controls.button.showFull, 0, x2, y, controlWidth, controlHeight, SWP_NOZORDER);
-	y += controlHeight + margin;
-	::SetWindowPos(controls.checkBox.showWaveform, 0, x1, y, controlWidth, controlHeight, SWP_NOZORDER);
-	::SetWindowPos(controls.checkBox.showText, 0, x2, y, controlWidth, controlHeight, SWP_NOZORDER);
-	y += controlHeight + margin;
-	::SetWindowPos(controls.checkBox.noScrollText, 0, x1, y, controlWidth, controlHeight, SWP_NOZORDER);
-	::SetWindowPos(controls.checkBox.behind, 0, x2, y, controlWidth, controlHeight, SWP_NOZORDER);
-	y += controlHeight + margin;
-}
-
-void App::load()
-{
-	MY_TRACE(_T("App::load()\n"));
-
-	// ini ファイルから設定を読み込む。
-	WCHAR fileName[MAX_PATH] = {};
-	::GetModuleFileNameW(m_instance, fileName, MAX_PATH);
-	::PathRemoveExtensionW(fileName);
-	::PathAppendW(fileName, L"ShowWaveform.ini");
-	MY_TRACE_WSTR(fileName);
-
-	getPrivateProfileColor(fileName, L"Config", L"penColor", m_penColor);
-	getPrivateProfileColor(fileName, L"Config", L"brushColor", m_brushColor);
-	getPrivateProfileInt(fileName, L"Config", L"scale", m_scale);
-	getPrivateProfileInt(fileName, L"Config", L"showType", m_showType);
-	getPrivateProfileInt(fileName, L"Config", L"updateMode", m_updateMode);
-	getPrivateProfileInt(fileName, L"Config", L"xorMode", m_xorMode);
-	getPrivateProfileInt(fileName, L"Config", L"showWaveform", m_showWaveform);
-	getPrivateProfileInt(fileName, L"Config", L"showText", m_showText);
-	getPrivateProfileInt(fileName, L"Config", L"noScrollText", m_noScrollText);
-	getPrivateProfileInt(fileName, L"Config", L"behind", m_behind);
-	getPrivateProfileWindow(fileName, L"FullSamples", m_subProcess.m_fullSamplesContainer.m_hwnd);
-}
-
-void App::save()
-{
-	MY_TRACE(_T("App::save()\n"));
-
-	// ini ファイルから設定を読み込む。
-	WCHAR fileName[MAX_PATH] = {};
-	::GetModuleFileNameW(m_instance, fileName, MAX_PATH);
-	::PathRemoveExtensionW(fileName);
-	::PathAppendW(fileName, L"ShowWaveform.ini");
-	MY_TRACE_WSTR(fileName);
-
-	setPrivateProfileColor(fileName, L"Config", L"penColor", m_penColor);
-	setPrivateProfileColor(fileName, L"Config", L"brushColor", m_brushColor);
-	setPrivateProfileInt(fileName, L"Config", L"scale", m_scale);
-	setPrivateProfileInt(fileName, L"Config", L"showType", m_showType);
-	setPrivateProfileInt(fileName, L"Config", L"updateMode", m_updateMode);
-	setPrivateProfileInt(fileName, L"Config", L"xorMode", m_xorMode);
-	setPrivateProfileInt(fileName, L"Config", L"showWaveform", m_showWaveform);
-	setPrivateProfileInt(fileName, L"Config", L"showText", m_showText);
-	setPrivateProfileInt(fileName, L"Config", L"noScrollText", m_noScrollText);
-	setPrivateProfileInt(fileName, L"Config", L"behind", m_behind);
-	setPrivateProfileWindow(fileName, L"FullSamples", m_subProcess.m_fullSamplesContainer.m_hwnd);
-}
-
 BOOL App::func_init(AviUtl::FilterPlugin* fp)
 {
 	MY_TRACE(_T("App::func_init()\n"));
@@ -313,10 +50,12 @@ BOOL App::func_init(AviUtl::FilterPlugin* fp)
 	if (!m_subProcess.init(fp)) return FALSE;
 	if (!m_subThreadManager.init(fp)) return FALSE;
 
-	true_DrawObject = m_auin.GetDrawObject();
-	hookAbsoluteCall(m_auin.GetExEdit() + 0x0003794B, drawObjectText);
+	uintptr_t exedit = m_auin.GetExEdit();
 
-	castAddress(CallShowColorDialog, m_auin.GetExEdit() + 0x0004D2A0);
+	true_DrawObject = m_auin.GetDrawObject();
+	true_DrawObjectText = hookAbsoluteCall(exedit + 0x0003794B, hook_DrawObjectText);
+
+	castAddress(CallShowColorDialog, exedit + 0x0004D2A0);
 
 	DetourTransactionBegin();
 	DetourUpdateThread(::GetCurrentThread());
@@ -355,9 +94,11 @@ BOOL App::func_proc(AviUtl::FilterPlugin* fp, AviUtl::FilterProcInfo* fpip)
 	if (fp->exfunc->is_saving(fpip->editp))
 		return FALSE; // 音声を保存するときは何もしない。
 
+	// サブプロセスに送信しないといけないので、カレントフレームを取得しておく。
 	fp->exfunc->get_file_info(fpip->editp, &m_fi);
 	m_currentFrame = fpip->frame;
 
+	// 再生中かどうかのフラグをチェックする。
 	BOOL isPlaying = !!((DWORD)fpip->editp->aviutl_window_info.flag & 0x00040000);
 
 	switch (m_updateMode)
@@ -382,8 +123,8 @@ BOOL App::func_proc(AviUtl::FilterPlugin* fp, AviUtl::FilterProcInfo* fpip)
 	if (!isPlaying)
 	{
 		// サブプロセスのウィンドウがまだ作成されていない場合は更新を遅らせる。
-		if (!m_subProcess.m_fullSamplesWindow)
-			m_subProcess.m_fullSamplesContainer.delayedUpdate();
+		if (!m_subProcess.m_windowContainer.m_inner)
+			m_subProcess.m_windowContainer.delayedUpdate();
 		else
 			updateItemCache(TRUE);
 	}
@@ -413,8 +154,7 @@ BOOL App::func_WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam, Av
 			MY_TRACE(_T("App::func_WndProc(Init, 0x%08X, 0x%08X)\n"), wParam, lParam);
 
 			load();
-			createControls();
-			recalcLayout();
+			createDialog();
 
 			m_exists = TRUE;
 
@@ -434,8 +174,6 @@ BOOL App::func_WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam, Av
 		{
 			MY_TRACE(_T("App::func_WndProc(WM_SIZE, 0x%08X, 0x%08X)\n"), wParam, lParam);
 
-			recalcLayout();
-
 			break;
 		}
 	case AviUtl::FilterPlugin::WindowMessage::Command:
@@ -446,192 +184,158 @@ BOOL App::func_WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam, Av
 
 			break;
 		}
-	case WM_COMMAND:
-		{
-			UINT code = HIWORD(wParam);
-			UINT id = LOWORD(wParam);
-			HWND sender = (HWND)lParam;
-
-			switch (id)
-			{
-			case ControlID::Edit::scale:
-				{
-					if (code == EN_UPDATE)
-					{
-						m_scale = (int)::GetDlgItemInt(hwnd, ControlID::Edit::scale, 0, TRUE);
-
-						// 拡張編集ウィンドウを再描画する。
-						::InvalidateRect(m_auin.GetExEditWindow(), 0, FALSE);
-					}
-
-					break;
-				}
-			case ControlID::ComboBox::showType:
-				{
-					m_showType = ComboBox_GetCurSel(controls.comboBox.showType);
-
-					// 拡張編集ウィンドウを再描画する。
-					::InvalidateRect(m_auin.GetExEditWindow(), 0, FALSE);
-
-					break;
-				}
-			case ControlID::ComboBox::updateMode:
-				{
-					m_updateMode = ComboBox_GetCurSel(controls.comboBox.updateMode);
-
-					// 拡張編集ウィンドウを再描画する。
-					::InvalidateRect(m_auin.GetExEditWindow(), 0, FALSE);
-
-					break;
-				}
-			case ControlID::ComboBox::xorMode:
-				{
-					m_xorMode = ComboBox_GetCurSel(controls.comboBox.xorMode);
-
-					// 拡張編集ウィンドウを再描画する。
-					::InvalidateRect(m_auin.GetExEditWindow(), 0, FALSE);
-
-					break;
-				}
-			case ControlID::Button::penColor:
-				{
-					if (IDOK == CallShowColorDialog(0, &m_penColor, 2))
-					{
-						// 拡張編集ウィンドウを再描画する。
-						::InvalidateRect(m_auin.GetExEditWindow(), 0, FALSE);
-					}
-
-					break;
-				}
-			case ControlID::Button::brushColor:
-				{
-					if (IDOK == CallShowColorDialog(0, &m_brushColor, 2))
-					{
-						// 拡張編集ウィンドウを再描画する。
-						::InvalidateRect(m_auin.GetExEditWindow(), 0, FALSE);
-					}
-
-					break;
-				}
-			case ControlID::Button::clear:
-				{
-					// 全てのキャッシュをクリアする。
-					m_subThreadManager.requestClear();
-					m_fileCacheManager.cacheMap.clear();
-					m_itemCacheManager.cacheMap.clear();
-
-					// AviUtl を再描画する。
-					::PostMessage(hwnd, AviUtl::FilterPlugin::WindowMessage::Command, 0, 0);
-
-					break;
-				}
-			case ControlID::Button::showFull:
-				{
-					// 全体の音声波形ウィンドウを表示する。
-					::ShowWindow(m_subProcess.m_fullSamplesContainer.m_hwnd, SW_SHOW);
-
-					// WM_SHOWWINDOW が自動的には送られないので手動で送る。
-					::PostMessage(m_subProcess.m_fullSamplesContainer.m_hwnd, WM_SHOWWINDOW, TRUE, 0);
-
-					// 全体の音声波形を更新する。
-					m_subThreadManager.requestRedraw();
-
-					break;
-				}
-			case ControlID::CheckBox::showWaveform:
-				{
-					m_showWaveform = BST_CHECKED == Button_GetCheck(controls.checkBox.showWaveform);
-
-					// 拡張編集ウィンドウを再描画する。
-					::InvalidateRect(m_auin.GetExEditWindow(), 0, FALSE);
-
-					break;
-				}
-			case ControlID::CheckBox::showText:
-				{
-					m_showText = BST_CHECKED == Button_GetCheck(controls.checkBox.showText);
-
-					// 拡張編集ウィンドウを再描画する。
-					::InvalidateRect(m_auin.GetExEditWindow(), 0, FALSE);
-
-					break;
-				}
-			case ControlID::CheckBox::noScrollText:
-				{
-					m_noScrollText = BST_CHECKED == Button_GetCheck(controls.checkBox.noScrollText);
-
-					// 拡張編集ウィンドウを再描画する。
-					::InvalidateRect(m_auin.GetExEditWindow(), 0, FALSE);
-
-					break;
-				}
-			case ControlID::CheckBox::behind:
-				{
-					m_behind = BST_CHECKED == Button_GetCheck(controls.checkBox.behind);
-
-					// 拡張編集ウィンドウを再描画する。
-					::InvalidateRect(m_auin.GetExEditWindow(), 0, FALSE);
-
-					break;
-				}
-			}
-
-			break;
-		}
-	case WM_NOTIFY:
-		{
-			MY_TRACE(_T("App::func_WndProc(WM_NOTIFY, 0x%08X, 0x%08X)\n"), wParam, lParam);
-
-			switch (wParam)
-			{
-			case ControlID::Spin::scale:
-				{
-					NMHDR* header = (NMHDR*)lParam;
-					if (header->code == UDN_DELTAPOS)
-					{
-						int scale = ::GetDlgItemInt(hwnd, ControlID::Edit::scale, 0, TRUE);
-
-						NM_UPDOWN* nm = (NM_UPDOWN*)header;
-						if (nm->iDelta < 0)
-						{
-							scale += 10;
-						}
-						else
-						{
-							scale -= 10;
-						}
-
-						scale = std::max<int>(scale, 0);
-						scale = std::min<int>(scale, 2000);
-
-						::SetDlgItemInt(hwnd, ControlID::Edit::scale, scale, TRUE);
-				    }
-
-					break;
-				}
-			}
-
-			break;
-		}
 	}
 
 	return FALSE;
 }
 
-inline BOOL checkMin(std::vector<POINT>& points, int x, int y)
+struct ProjectData {
+	FullSamplesParams fullSamplesParams;
+};
+
+BOOL App::func_project_load(AviUtl::FilterPlugin* fp, AviUtl::EditHandle* editp, void* data, int32_t size)
 {
-	POINT& back = points.back();
-	if (back.x != x) return TRUE;
-	back.y = std::min<int>(back.y, y);
-	return FALSE;
+	MY_TRACE(_T("App::func_project_load()\n"));
+
+	if (size != sizeof(ProjectData))
+		return FALSE;
+
+	auto projectData = (ProjectData*)data;
+
+	// サブプロセスのウィンドウがまだ作成されていない場合は更新を遅らせる。
+	if (!m_subProcess.m_windowContainer.m_inner)
+		m_subProcess.m_windowContainer.delayedSendFullSamplesParams(&projectData->fullSamplesParams);
+	else
+		sendFullSamplesParams(&projectData->fullSamplesParams);
+
+	return TRUE;
 }
 
-inline BOOL checkMax(std::vector<POINT>& points, int x, int y)
+BOOL App::func_project_save(AviUtl::FilterPlugin* fp, AviUtl::EditHandle* editp, void* data, int32_t* size)
 {
-	POINT& back = points.back();
-	if (back.x != x) return TRUE;
-	back.y = std::max<int>(back.y, y);
-	return FALSE;
+	MY_TRACE(_T("App::func_project_save()\n"));
+
+	if (size)
+		*size = sizeof(ProjectData);
+
+	if (data)
+	{
+		auto projectData = (ProjectData*)data;
+
+		FullSamplesParamsPtr params = receiveFullSamplesParams();
+
+		if (params)
+			projectData->fullSamplesParams = *params;
+	}
+
+	return TRUE;
+}
+
+void App::load()
+{
+	MY_TRACE(_T("App::load()\n"));
+
+	// ini ファイルから設定を読み込む。
+
+	WCHAR fileName[MAX_PATH] = {};
+	::GetModuleFileNameW(m_instance, fileName, MAX_PATH);
+	::PathRemoveExtensionW(fileName);
+	::PathAppendW(fileName, L"ShowWaveform.ini");
+	MY_TRACE_WSTR(fileName);
+
+	getPrivateProfileColor(fileName, L"Config", L"penColor", m_penColor);
+	getPrivateProfileColor(fileName, L"Config", L"brushColor", m_brushColor);
+	getPrivateProfileInt(fileName, L"Config", L"scale", m_scale);
+	getPrivateProfileInt(fileName, L"Config", L"showType", m_showType);
+	getPrivateProfileInt(fileName, L"Config", L"updateMode", m_updateMode);
+	getPrivateProfileInt(fileName, L"Config", L"xorMode", m_xorMode);
+	getPrivateProfileInt(fileName, L"Config", L"showWaveform", m_showWaveform);
+	getPrivateProfileInt(fileName, L"Config", L"showText", m_showText);
+	getPrivateProfileInt(fileName, L"Config", L"noScrollText", m_noScrollText);
+	getPrivateProfileInt(fileName, L"Config", L"behind", m_behind);
+	getPrivateProfileWindow(fileName, L"FullSamplesWindowContainer", m_subProcess.m_windowContainer.m_hwnd);
+	getPrivateProfileWindow(fileName, L"FullSamplesDialogContainer", m_subProcess.m_dialogContainer.m_hwnd);
+}
+
+void App::save()
+{
+	MY_TRACE(_T("App::save()\n"));
+
+	// ini ファイルに設定を保存する。
+
+	WCHAR fileName[MAX_PATH] = {};
+	::GetModuleFileNameW(m_instance, fileName, MAX_PATH);
+	::PathRemoveExtensionW(fileName);
+	::PathAppendW(fileName, L"ShowWaveform.ini");
+	MY_TRACE_WSTR(fileName);
+
+	setPrivateProfileColor(fileName, L"Config", L"penColor", m_penColor);
+	setPrivateProfileColor(fileName, L"Config", L"brushColor", m_brushColor);
+	setPrivateProfileInt(fileName, L"Config", L"scale", m_scale);
+	setPrivateProfileInt(fileName, L"Config", L"showType", m_showType);
+	setPrivateProfileInt(fileName, L"Config", L"updateMode", m_updateMode);
+	setPrivateProfileInt(fileName, L"Config", L"xorMode", m_xorMode);
+	setPrivateProfileInt(fileName, L"Config", L"showWaveform", m_showWaveform);
+	setPrivateProfileInt(fileName, L"Config", L"showText", m_showText);
+	setPrivateProfileInt(fileName, L"Config", L"noScrollText", m_noScrollText);
+	setPrivateProfileInt(fileName, L"Config", L"behind", m_behind);
+	setPrivateProfileWindow(fileName, L"FullSamplesWindowContainer", m_subProcess.m_windowContainer.m_hwnd);
+	setPrivateProfileWindow(fileName, L"FullSamplesDialogContainer", m_subProcess.m_dialogContainer.m_hwnd);
+}
+
+BOOL App::createDialog()
+{
+	MY_TRACE(_T("App::createDialog()\n"));
+
+	// メインダイアログを作成する。
+
+	if (!m_mainDialog.create(m_instance, MAKEINTRESOURCE(IDD_MAIN_DIALOG), m_fp->hwnd))
+	{
+		::MessageBox(m_fp->hwnd, _T("メインダイアログの作成に失敗しました"), _T("ShowWaveform"), MB_OK);
+
+		return FALSE;
+	}
+
+	// コントロールを初期化する。
+
+	m_mainDialog.ignoreNotification(TRUE);
+
+	::SetDlgItemInt(m_mainDialog, IDC_SCALE, m_scale, TRUE);
+
+	HWND showType = ::GetDlgItem(m_mainDialog, IDC_SHOW_TYPE);
+	ComboBox_AddString(showType, _T("中央"));
+	ComboBox_AddString(showType, _T("下"));
+	ComboBox_AddString(showType, _T("上"));
+	ComboBox_SetCurSel(showType, m_showType);
+
+	HWND updateMode = ::GetDlgItem(m_mainDialog, IDC_UPDATE_MODE);
+	ComboBox_AddString(updateMode, _T("更新しない"));
+	ComboBox_AddString(updateMode, _T("更新する"));
+	ComboBox_AddString(updateMode, _T("再生中は更新しない"));
+	ComboBox_SetCurSel(updateMode, m_updateMode);
+
+	HWND xorMode = ::GetDlgItem(m_mainDialog, IDC_XOR_MODE);
+	ComboBox_AddString(xorMode, _T("通常"));
+	ComboBox_AddString(xorMode, _T("XOR"));
+	ComboBox_AddString(xorMode, _T("NotXOR"));
+	ComboBox_AddString(xorMode, _T("Not"));
+	ComboBox_SetCurSel(xorMode, m_xorMode);
+
+	HWND showWaveform = ::GetDlgItem(m_mainDialog, IDC_SHOW_WAVEFORM);
+	Button_SetCheck(showWaveform, m_showWaveform ? BST_CHECKED : BST_UNCHECKED);
+
+	HWND showText = ::GetDlgItem(m_mainDialog, IDC_SHOW_TEXT);
+	Button_SetCheck(showText, m_showText ? BST_CHECKED : BST_UNCHECKED);
+
+	HWND noScrollText = ::GetDlgItem(m_mainDialog, IDC_NO_SCROLL_TEXT);
+	Button_SetCheck(noScrollText, m_noScrollText ? BST_CHECKED : BST_UNCHECKED);
+
+	HWND behind = ::GetDlgItem(m_mainDialog, IDC_BEHIND);
+	Button_SetCheck(behind, m_behind ? BST_CHECKED : BST_UNCHECKED);
+
+	m_mainDialog.ignoreNotification(FALSE);
+
+	return TRUE;
 }
 
 BOOL App::updateProjectParams()
@@ -652,6 +356,40 @@ BOOL App::updateItemCache(BOOL send)
 	MY_TRACE(_T("App::updateItemCache(%d)\n"), send);
 
 	return m_itemCacheManager.update(send);
+}
+
+// サブプロセスに値を送る。
+BOOL App::sendFullSamplesParams(FullSamplesParams* _params)
+{
+	MY_TRACE(_T("App::sendFullSamplesParams()\n"));
+
+	FullSamplesParamsPtr params = std::make_shared<FullSamplesParams>(*_params);
+
+	return m_subThreadManager.notifyFullSamplesChanged(params);
+}
+
+// 共有メモリから値を取得する。
+FullSamplesParamsPtr App::receiveFullSamplesParams()
+{
+	MY_TRACE(_T("App::receiveFullSamplesParams()\n"));
+
+	return shared.getReceiverFullSamplesParams();
+}
+
+inline BOOL checkMin(std::vector<POINT>& points, int x, int y)
+{
+	POINT& back = points.back();
+	if (back.x != x) return TRUE;
+	back.y = std::min<int>(back.y, y);
+	return FALSE;
+}
+
+inline BOOL checkMax(std::vector<POINT>& points, int x, int y)
+{
+	POINT& back = points.back();
+	if (back.x != x) return TRUE;
+	back.y = std::max<int>(back.y, y);
+	return FALSE;
 }
 
 void App::drawWaveform(HDC dc, LPCRECT rcClip, LPCRECT rcItem)
@@ -682,7 +420,7 @@ void App::drawWaveform(HDC dc, LPCRECT rcClip, LPCRECT rcItem)
 		{
 			// min と max を描画する。
 
-			points.emplace_back(std::max(rcClip->left, rcItem->left), cy);
+			points.emplace_back(std::max<int>(rcClip->left, rcItem->left), cy);
 
 			int i = 0;
 
@@ -734,7 +472,7 @@ void App::drawWaveform(HDC dc, LPCRECT rcClip, LPCRECT rcItem)
 		{
 			// min のみを描画する。
 
-			points.emplace_back(std::max(rcClip->left, rcItem->left), rcItem->bottom);
+			points.emplace_back(std::max<int>(rcClip->left, rcItem->left), rcItem->bottom);
 
 			int i = 0;
 
@@ -771,7 +509,7 @@ void App::drawWaveform(HDC dc, LPCRECT rcClip, LPCRECT rcItem)
 		{
 			// max のみを描画する。
 
-			points.emplace_back(std::max(rcClip->left, rcItem->left), rcItem->top);
+			points.emplace_back(std::max<int>(rcClip->left, rcItem->left), rcItem->top);
 
 			int i = 0;
 
@@ -824,11 +562,118 @@ void App::drawWaveform(HDC dc, LPCRECT rcClip, LPCRECT rcItem)
 	if (m_penColor != CLR_NONE) ::DeleteObject(pen);
 }
 
-//---------------------------------------------------------------------
+//--------------------------------------------------------------------
+
+void App::setScale(int scale)
+{
+	m_scale = scale;
+
+	// 拡張編集ウィンドウを再描画する。
+	::InvalidateRect(m_auin.GetExEditWindow(), 0, FALSE);
+}
+
+void App::setShowType(int showType)
+{
+	m_showType = showType;
+
+	// 拡張編集ウィンドウを再描画する。
+	::InvalidateRect(m_auin.GetExEditWindow(), 0, FALSE);
+}
+
+void App::setUpdateMode(int updateMode)
+{
+	m_updateMode = updateMode;
+
+	// 拡張編集ウィンドウを再描画する。
+	::InvalidateRect(m_auin.GetExEditWindow(), 0, FALSE);
+}
+
+void App::setXORMode(int xorMode)
+{
+	m_xorMode = xorMode;
+
+	// 拡張編集ウィンドウを再描画する。
+	::InvalidateRect(m_auin.GetExEditWindow(), 0, FALSE);
+}
+
+void App::selectPenColor()
+{
+	if (IDOK == CallShowColorDialog(0, &m_penColor, 2))
+	{
+		// 拡張編集ウィンドウを再描画する。
+		::InvalidateRect(m_auin.GetExEditWindow(), 0, FALSE);
+	}
+}
+
+void App::selectBrushColor()
+{
+	if (IDOK == CallShowColorDialog(0, &m_brushColor, 2))
+	{
+		// 拡張編集ウィンドウを再描画する。
+		::InvalidateRect(m_auin.GetExEditWindow(), 0, FALSE);
+	}
+}
+
+void App::clearAllCache()
+{
+	// 全てのキャッシュをクリアする。
+	m_subThreadManager.requestClear();
+	m_fileCacheManager.cacheMap.clear();
+	m_itemCacheManager.cacheMap.clear();
+
+	// AviUtl を再描画する。
+	::PostMessage(m_fp->hwnd, AviUtl::FilterPlugin::WindowMessage::Command, 0, 0);
+}
+
+void App::showFull()
+{
+	// 全体の音声波形ウィンドウを表示する。
+	::ShowWindow(m_subProcess.m_windowContainer.m_hwnd, SW_SHOW);
+
+	// WM_SHOWWINDOW が自動的には送られないので手動で送る。
+	::PostMessage(m_subProcess.m_windowContainer.m_hwnd, WM_SHOWWINDOW, TRUE, 0);
+
+	// 全体の音声波形を更新する。
+	m_subThreadManager.requestRedraw();
+}
+
+void App::setShowWaveform(BOOL showWaveform)
+{
+	m_showWaveform = showWaveform;
+
+	// 拡張編集ウィンドウを再描画する。
+	::InvalidateRect(m_auin.GetExEditWindow(), 0, FALSE);
+}
+
+void App::setShowText(BOOL showText)
+{
+	m_showText = showText;
+
+	// 拡張編集ウィンドウを再描画する。
+	::InvalidateRect(m_auin.GetExEditWindow(), 0, FALSE);
+}
+
+void App::setNoScrollText(BOOL noScrollText)
+{
+	m_noScrollText = noScrollText;
+
+	// 拡張編集ウィンドウを再描画する。
+	::InvalidateRect(m_auin.GetExEditWindow(), 0, FALSE);
+}
+
+void App::setBehind(BOOL behind)
+{
+	m_behind = behind;
+
+	// 拡張編集ウィンドウを再描画する。
+	::InvalidateRect(m_auin.GetExEditWindow(), 0, FALSE);
+}
+
+//--------------------------------------------------------------------
 
 IMPLEMENT_HOOK_PROC_NULL(void, CDECL, DrawObject, (HDC dc, int objectIndex))
 {
-//	MY_TRACE(_T("DrawObject(%d)\n"), objectIndex);
+	MY_TRACE(_T("DrawObject(%d)\n"), objectIndex);
 
 	// 描画オブジェクトを保存しておく。
 	theApp.m_currentDrawObject = theApp.m_auin.GetObject(objectIndex);
@@ -837,9 +682,9 @@ IMPLEMENT_HOOK_PROC_NULL(void, CDECL, DrawObject, (HDC dc, int objectIndex))
 	theApp.m_currentDrawObject = 0;
 }
 
-BOOL WINAPI drawObjectText(HDC dc, int x, int y, UINT options, LPCRECT rc, LPCSTR text, UINT c, CONST INT* dx)
+IMPLEMENT_HOOK_PROC_NULL(BOOL, WINAPI, DrawObjectText, (HDC dc, int x, int y, UINT options, LPCRECT rc, LPCSTR text, UINT c, CONST INT* dx))
 {
-//	MY_TRACE(_T("drawObjectText(0x%08X, %d, %d, 0x%08X)\n"), dc, x, y, options);
+	MY_TRACE(_T("DrawObjectText(0x%08X, %d, %d, 0x%08X)\n"), dc, x, y, options);
 //	MY_TRACE_RECT2(rc[0]); // クリッピング矩形
 //	MY_TRACE_RECT2(rc[1]); // アイテム全体の矩形
 
@@ -847,13 +692,13 @@ BOOL WINAPI drawObjectText(HDC dc, int x, int y, UINT options, LPCRECT rc, LPCST
 		x = std::max(70, x);
 
 	if (!(theApp.m_currentDrawObject->flag & ExEdit::Object::Flag::Sound))
-		return ::ExtTextOut(dc, x, y, options, rc, text, c, dx);
+		return true_DrawObjectText(dc, x, y, options, rc, text, c, dx);
 
 	if (!theApp.m_behind)
 	{
 		// フラグが立っている場合はテキストを描画する。
 		if (theApp.m_showText)
-			::ExtTextOut(dc, x, y, options, rc, text, c, dx);
+			true_DrawObjectText(dc, x, y, options, rc, text, c, dx);
 	}
 
 	// フラグが立っている場合は音声波形を描画する。
@@ -875,10 +720,10 @@ BOOL WINAPI drawObjectText(HDC dc, int x, int y, UINT options, LPCRECT rc, LPCST
 	{
 		// フラグが立っている場合はテキストを描画する。
 		if (theApp.m_showText)
-			::ExtTextOut(dc, x, y, options, rc, text, c, dx);
+			true_DrawObjectText(dc, x, y, options, rc, text, c, dx);
 	}
 
 	return TRUE;
 }
 
-//---------------------------------------------------------------------
+//--------------------------------------------------------------------

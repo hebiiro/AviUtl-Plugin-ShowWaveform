@@ -28,21 +28,21 @@ FileCachePtr FileCacheManager::getCache(LPCSTR fileName, BOOL create)
 	return 0;
 }
 
-void FileCacheManager::createCache(LPCSTR fileName)
+BOOL FileCacheManager::createCache(LPCSTR fileName)
 {
 	MY_TRACE(_T("FileCacheManager::createCache(%hs)\n"), fileName);
 
 	// サブスレッドマネージャにキャッシュの作成を要請する。
-	theApp.m_subThreadManager.requestCache(fileName);
+	return theApp.m_subThreadManager.requestCache(fileName);
 }
 
-void FileCacheManager::receiveCache()
+BOOL FileCacheManager::receiveCache()
 {
 	MY_TRACE(_T("FileCacheManager::receiveCache()\n"));
 
-	// サブスレッドマネージャからボトルを受け取る。
-	ReceiverBottle* shared = theApp.m_subThreadManager.m_sharedReceiverBottle.getBuffer();
-	if (!shared) return;
+	// 受け取り用のボトルを取得する。
+	ReceiverBottle* shared = ::shared.receiverBottle.getBuffer();
+	if (!shared) return FALSE;
 
 	MY_TRACE_STR(shared->fileName);
 	MY_TRACE_INT(shared->sampleCount);
@@ -54,6 +54,8 @@ void FileCacheManager::receiveCache()
 	cache->samples.insert(cache->samples.end(),
 		shared->samples, shared->samples + shared->sampleCount);
 	cacheMap[shared->fileName] = cache;
+
+	return TRUE;
 }
 
 //---------------------------------------------------------------------

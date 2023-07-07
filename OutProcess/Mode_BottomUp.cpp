@@ -5,16 +5,18 @@
 
 //--------------------------------------------------------------------
 
-int RMSMode::getID() const
+int BottomUpMode::getID() const
 {
-	return MainWindow::Mode::rms;
+	return MainWindow::Mode::bottomUp;
 }
 
 //--------------------------------------------------------------------
 
-void RMSMode::drawVertScale(MainWindow& window, const LayoutContext& context)
+void BottomUpMode::drawVertScale(MainWindow& window, const LayoutContext& context)
 {
 	// 垂直目盛りを左右に描画する。
+
+	if (window.m_limitVolume <= 0) return;
 
 	NVGcontext* vg = window.m_vg;
 	const LayoutContext::Graph& graph = context.graph;
@@ -24,33 +26,25 @@ void RMSMode::drawVertScale(MainWindow& window, const LayoutContext& context)
 	int textPadding = 4;
 	int textHeight = g_design.scale.vert.text.height + textPadding * 2;
 
-	int minRMS = window.getMinRMS();
-	int maxRMS = window.getMaxRMS();
-	int baseRMS = window.getBaseRMS();
-
-	float range = (float)(maxRMS - minRMS);
-	MY_TRACE_REAL(range);
-	int freq = (int)(range * textHeight / graph.h) + 1;
-	MY_TRACE_INT(freq);
-
-	for (int i = maxRMS; i > minRMS - freq; i--)
+	int prev = -(textHeight + 1);
+	for (int i = 0; i <= 10; i++)
 	{
-		if (i % freq) continue;
+		int oy = graph.h * i / 10;
+		if (oy - prev < textHeight) continue;
+		prev = oy;
 
-		float relativeLevel = (float)(i - minRMS);
-		int y = (int)(graph.y + graph.h * (1.0f - relativeLevel / range));
-		float fy = (float)y;
+		float fy = (float)(graph.bottom - oy);
 
 		drawVertScaleLine(window, context, fy);
 
 		char text[MAX_PATH] = {};
-		::StringCbPrintfA(text, sizeof(text), "%+d", i);
+		::StringCbPrintfA(text, sizeof(text), "%d", window.m_limitVolume * i / 10);
 
 		{
 			nvgTextAlign(vg, NVG_ALIGN_RIGHT | NVG_ALIGN_BOTTOM);
 
 			float tx = (float)(graph.left - textPadding);
-			float ty = (float)(y - textPadding);
+			float ty = (float)(fy - textPadding);
 
 			drawText(vg, text, tx, ty, g_design.scale.vert.text);
 		}
@@ -59,17 +53,16 @@ void RMSMode::drawVertScale(MainWindow& window, const LayoutContext& context)
 			nvgTextAlign(vg, NVG_ALIGN_LEFT | NVG_ALIGN_BOTTOM);
 
 			float tx = (float)(graph.right + textPadding);
-			float ty = (float)(y - textPadding);
+			float ty = (float)(fy - textPadding);
 
 			drawText(vg, text, tx, ty, g_design.scale.vert.text);
 		}
 	}
 
 	{
-		// 基準 RMS を描画する。
+		// 基準音量を描画する。
 
-		float relativeLevel = (float)(baseRMS - minRMS);
-		int y = (int)(graph.top + graph.h * (1.0f - relativeLevel / range));
+		int y = graph.bottom - graph.h * window.m_baseVolume / window.m_limitVolume;
 
 		if (y > graph.top && y < graph.bottom)
 		{
@@ -84,11 +77,12 @@ void RMSMode::drawVertScale(MainWindow& window, const LayoutContext& context)
 	nvgResetScissor(vg);
 }
 
-void RMSMode::drawGraph(MainWindow& window, const LayoutContext& context)
+void BottomUpMode::drawGraph(MainWindow& window, const LayoutContext& context)
 {
 	int c = (int)theApp.fullSamples.size();
 
 	if (c <= 0) return;
+	if (window.m_limitVolume <= 0) return;
 
 	NVGcontext* vg = window.m_vg;
 	const LayoutContext::Graph& graph = context.graph;
@@ -96,8 +90,7 @@ void RMSMode::drawGraph(MainWindow& window, const LayoutContext& context)
 	nvgScissor(vg, (float)graph.x, (float)graph.y, (float)graph.w, (float)graph.h);
 
 	int ox = graph.x - context.hScroll; // 描画範囲の X 座標。
-	int minRMS = window.getMinRMS();
-	int maxRMS = window.getMaxRMS();
+	int lh = graph.h * 100 / window.m_limitVolume;
 
 	// グラフを描画する。
 
@@ -108,9 +101,9 @@ void RMSMode::drawGraph(MainWindow& window, const LayoutContext& context)
 
 		for (int i = 0; i < c; i++)
 		{
-			float level = (theApp.fullSamples[i].rms - minRMS) / (maxRMS - minRMS);
+			float level = theApp.fullSamples[i].level;
 			float x = (float)window.frame2client(i);
-			float y = std::min((float)graph.bottom, (float)graph.bottom - graph.h * level);
+			float y = (float)graph.bottom - lh * level;
 
 			points.emplace_back(x, y);
 		}
@@ -126,8 +119,6 @@ void RMSMode::drawGraph(MainWindow& window, const LayoutContext& context)
 			nvgLineTo(vg, point.x, point.y);
 
 		nvgLineTo(vg, (float)graph.right, (float)(graph.bottom + context.padding));
-//		nvgClosePath(vg);
-//		nvgPathWinding(vg, NVG_SOLID);
 
 		NVGpaint paint = nvgLinearGradient(vg,
 			(float)graph.left, (float)graph.top,

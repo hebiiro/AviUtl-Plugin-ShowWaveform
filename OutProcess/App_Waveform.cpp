@@ -1,64 +1,44 @@
 ﻿#include "pch.h"
-#include "MainWindow.h"
+#include "App.h"
 
 //--------------------------------------------------------------------
 
-BOOL MainWindow::initWaveform()
+// キャッシュをボトルに詰めてからメインプロセスに送る。(受け取るように促す)
+BOOL App::sendCache(const CachePtr& cache)
 {
-	MY_TRACE(_T("MainWindow::initWaveform()\n"));
+	MY_TRACE(_T("App::sendCache(%hs)\n"), cache->fileName.c_str());
 
-	m_sharedSenderBottle.init(getSharedSenderBottleName(g_parent));
-	m_sharedReceiverBottle.init(getSharedReceiverBottleName(g_parent));
-	m_sharedProjectParams.init(getSharedProjectParamsName(g_parent));
-	m_sharedAudioParams.init(getSharedAudioParamsName(g_parent));
+	ReceiverBottle* shared = ::shared.receiverBottle.getBuffer();
+	MY_TRACE_HEX(shared);
+	if (!shared) return FALSE;
+
+	::StringCbCopyA(shared->fileName, sizeof(shared->fileName), cache->fileName.c_str());
+
+	shared->sampleCount = (int32_t)cache->samples.size();
+	MY_TRACE_INT(shared->sampleCount);
+	memcpy(shared->samples, cache->samples.data(), sizeof(Sample) * cache->samples.size());
+
+	MY_TRACE_HEX(windowContainer);
+	::SendMessage(windowContainer, WM_AVIUTL_FILTER_RECEIVE, 0, 0);
 
 	return TRUE;
 }
 
-BOOL MainWindow::termWaveform()
+BOOL App::recalcFullSamples()
 {
-	MY_TRACE(_T("MainWindow::termWaveform()\n"));
-
-	return TRUE;
-}
-
-//--------------------------------------------------------------------
-
-SenderBottlePtr MainWindow::getSenderBottle()
-{
-	SenderBottle* shared = (SenderBottle*)m_sharedSenderBottle.getBuffer();
-	if (!shared) return 0;
-	SenderBottlePtr bottle = std::make_shared<SenderBottle>();
-	memcpy(bottle.get(), shared, sizeof(*shared));
-	return bottle;
-}
-
-CachePtr MainWindow::getCache(LPCSTR fileName)
-{
-	MY_TRACE(_T("MainWindow::getCache(%hs)\n"), fileName);
-
-	auto it = cacheMap.find(fileName);
-	if (it == cacheMap.end()) return 0;
-	return it->second;
-}
-
-//--------------------------------------------------------------------
-
-void MainWindow::recalcFullSamples()
-{
-	MY_TRACE(_T("MainWindow::recalcFullSamples()\n"));
+	MY_TRACE(_T("App::recalcFullSamples()\n"));
 
 	// プロジェクトパラメータが有効かどうかチェックする。
-	if (!projectParams) return;
-	if (projectParams->frameNumber <= 0) return;
+	if (!projectParams) return FALSE;
+	if (projectParams->frameNumber <= 0) return FALSE;
 
 	// 全てのアイテムのキャッシュが作成済みかチェックする。
 	for (auto pair : audioParamsMap)
 	{
 		const AudioParamsPtr& params = pair.second;
 		if (params->sceneSet != projectParams->sceneIndex) continue;
-		auto it = cacheMap.find(params->fileName);
-		if (it == cacheMap.end()) return;
+		const CachePtr& cache = cacheManager.getCache(params->fileName);
+		if (!cache) return FALSE;
 	}
 
 	// バッファを確保する。
@@ -73,9 +53,8 @@ void MainWindow::recalcFullSamples()
 		const AudioParamsPtr& params = pair.second;
 		if (params->sceneSet != projectParams->sceneIndex) continue;
 		if (params->layerFlag & (uint32_t)ExEdit::LayerSetting::Flag::UnDisp) continue;
-		auto it = cacheMap.find(params->fileName);
-		if (it == cacheMap.end()) continue;
-		const CachePtr& cache = it->second;
+		const CachePtr& cache = cacheManager.getCache(params->fileName);
+		if (!cache) continue;
 
 		// 現在のフレームレートの1フレーム毎のサンプルに変換する。
 
@@ -105,36 +84,19 @@ void MainWindow::recalcFullSamples()
 	{
 		fullSamples[i].rms = 20 * log10f(fullSamples[i].level);
 
-		MY_TRACE(_T("%d : %f, %f\n"), i, fullSamples[i].level, fullSamples[i].rms);
+//		MY_TRACE(_T("%d : %f, %f\n"), i, fullSamples[i].level, fullSamples[i].rms);
 	}
 
-	::InvalidateRect(m_hwnd, 0, FALSE);
+	mainWindow.recalcLayout();
+	mainWindow.outputFrames();
+	mainWindow.redraw();
+
+	return TRUE;
 }
 
-//--------------------------------------------------------------------
-
-ProjectParamsPtr MainWindow::getProjectParams()
+BOOL App::setProjectParams(const ProjectParamsPtr& params)
 {
-	MY_TRACE(_T("MainWindow::getProjectParams()\n"));
-
-	ProjectParamsPtr params = std::make_shared<ProjectParams>();
-
-	{
-//		Synchronizer sync(m_mutex);
-		ProjectParams* shared = (ProjectParams*)m_sharedProjectParams.getBuffer();
-
-		if (!shared)
-			return 0;
-
-		memcpy(params.get(), shared, sizeof(*shared));
-	}
-
-	return params;
-}
-
-void MainWindow::setProjectParams(const ProjectParamsPtr& params)
-{
-	MY_TRACE(_T("MainWindow::setProjectParams()\n"));
+	MY_TRACE(_T("App::setProjectParams()\n"));
 
 	if (projectParams &&
 		projectParams->video_scale == params->video_scale &&
@@ -153,10 +115,13 @@ void MainWindow::setProjectParams(const ProjectParamsPtr& params)
 			projectParams->currentFrame = params->currentFrame;
 
 			// 再描画する。
-			::InvalidateRect(m_hwnd, 0, FALSE);
+			mainWindow.redraw();
+
+			// カレントフレームをステータスボックスに出力する。
+			mainWindow.outputFrames();
 		}
 
-		return;
+		return FALSE;
 	}
 
 	projectParams = params;
@@ -166,37 +131,18 @@ void MainWindow::setProjectParams(const ProjectParamsPtr& params)
 	MY_TRACE_INT(projectParams->sceneIndex);
 	MY_TRACE_INT(projectParams->currentFrame);
 
-	if (::IsWindowVisible(m_hwnd))
+	if (::IsWindowVisible(mainWindow))
 	{
 		// 全体の音声波形を再計算する。
 		recalcFullSamples();
 	}
+
+	return TRUE;
 }
 
-//--------------------------------------------------------------------
-
-AudioParamsPtr MainWindow::getAudioParams()
+BOOL App::setAudioParams(const AudioParamsPtr& params)
 {
-	MY_TRACE(_T("MainWindow::getAudioParams()\n"));
-
-	AudioParamsPtr params = std::make_shared<AudioParams>();
-
-	{
-//		Synchronizer sync(m_mutex);
-		AudioParams* shared = (AudioParams*)m_sharedAudioParams.getBuffer();
-
-		if (!shared)
-			return 0;
-
-		memcpy(params.get(), shared, sizeof(*shared));
-	}
-
-	return params;
-}
-
-void MainWindow::setAudioParams(const AudioParamsPtr& params)
-{
-	MY_TRACE(_T("MainWindow::setAudioParams()\n"));
+	MY_TRACE(_T("App::setAudioParams()\n"));
 
 	MY_TRACE_STR(params->fileName);
 	MY_TRACE_HEX(params->id);
@@ -212,6 +158,40 @@ void MainWindow::setAudioParams(const AudioParamsPtr& params)
 		audioParamsMap[params->id] = params;
 	else
 		audioParamsMap.erase(params->id);
+
+	if (::IsWindowVisible(mainWindow))
+	{
+		// 全体の音声波形を再計算する。
+		recalcFullSamples();
+	}
+
+	return TRUE;
+}
+
+BOOL App::setFullSamplesParams(const FullSamplesParamsPtr& params)
+{
+	MY_TRACE(_T("App::setFullSamplesParams()\n"));
+
+	MY_TRACE_INT(params->showBPM);
+	MY_TRACE_INT(params->tempo.orig);
+	MY_TRACE_INT(params->tempo.bpm);
+	MY_TRACE_INT(params->tempo.above);
+	MY_TRACE_INT(params->tempo.below);
+
+	setShowBPM(params->showBPM);
+	setOrig(params->tempo.orig);
+	setBPM(params->tempo.bpm);
+	setAbove(params->tempo.above);
+	setBelow(params->tempo.below);
+	mainWindow.updateShared();
+
+	if (::IsWindowVisible(mainWindow))
+	{
+		// 全体の音声波形を再描画する。
+		mainWindow.redraw();
+	}
+
+	return TRUE;
 }
 
 //--------------------------------------------------------------------

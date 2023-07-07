@@ -1,7 +1,7 @@
 ﻿#include "pch.h"
 #include "MainWindow.h"
 
-#define NANOVG_GL2_IMPLEMENTATION
+#define NANOVG_GL3_IMPLEMENTATION
 #include "NanoVG/nanovg_gl.h"
 
 //--------------------------------------------------------------------
@@ -72,13 +72,18 @@ BOOL MainWindow::initOpenGL()
 
 	MakeCurrent makeCurrent(dc, m_rc);
 
-	// glad を初期化する。
+	{
+		// glad を初期化する。
 
-	gladLoaderLoadGL();
+		int result = gladLoaderLoadGL();
+
+		MY_TRACE_INT(result);
+	}
 
 	// NanoVG を初期化する。
 
-	m_vg = nvgCreateGL2(NVG_ANTIALIAS | NVG_STENCIL_STROKES | NVG_DEBUG);
+	m_vg = nvgCreateGL3(NVG_ANTIALIAS | NVG_STENCIL_STROKES);
+//	m_vg = nvgCreateGL3(NVG_ANTIALIAS | NVG_STENCIL_STROKES | NVG_DEBUG);
 	MY_TRACE_HEX(m_vg);
 
 	return TRUE;
@@ -88,7 +93,7 @@ BOOL MainWindow::termOpenGL()
 {
 	MY_TRACE(_T("MainWindow::termOpenGL()\n"));
 
-	nvgDeleteGL2(m_vg), m_vg = 0;
+	nvgDeleteGL3(m_vg), m_vg = 0;
 
 	wglDeleteContext(m_rc), m_rc = 0;
 

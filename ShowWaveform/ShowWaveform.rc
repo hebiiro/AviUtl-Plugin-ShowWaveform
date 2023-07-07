@@ -1,0 +1,152 @@
+// Microsoft Visual C++ generated resource script.
+//
+#include "resource.h"
+
+#define APSTUDIO_READONLY_SYMBOLS
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 2 resource.
+//
+#include "winres.h"
+
+/////////////////////////////////////////////////////////////////////////////
+#undef APSTUDIO_READONLY_SYMBOLS
+
+/////////////////////////////////////////////////////////////////////////////
+// 日本語 (日本) resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_JPN)
+LANGUAGE LANG_JAPANESE, SUBLANG_DEFAULT
+#pragma code_page(932)
+
+#ifdef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// TEXTINCLUDE
+//
+
+1 TEXTINCLUDE 
+BEGIN
+    "resource.h\0"
+END
+
+2 TEXTINCLUDE 
+BEGIN
+    "#include ""winres.h""\r\n"
+    "\0"
+END
+
+3 TEXTINCLUDE 
+BEGIN
+    "\r\n"
+    "\0"
+END
+
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Dialog
+//
+
+IDD_MAIN_DIALOG DIALOGEX 0, 0, 185, 165
+STYLE DS_SETFONT | DS_FIXEDSYS | WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN | WS_SYSMENU
+FONT 8, "MS Shell Dlg", 400, 0, 0x80
+BEGIN
+    LTEXT           "描画サイズ : ",IDC_STATIC,4,4,88,12,SS_CENTERIMAGE,WS_EX_RIGHT
+    EDITTEXT        IDC_SCALE,92,4,88,12,ES_AUTOHSCROLL
+    CONTROL         "",IDC_SCALE_SPIN,"msctls_updown32",UDS_ALIGNRIGHT | UDS_AUTOBUDDY | UDS_ARROWKEYS,152,4,12,14
+    LTEXT           "表示タイプ : ",IDC_STATIC,4,20,88,12,SS_CENTERIMAGE,WS_EX_RIGHT
+    COMBOBOX        IDC_SHOW_TYPE,92,20,88,144,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "更新モード : ",IDC_STATIC,4,36,88,12,SS_CENTERIMAGE,WS_EX_RIGHT
+    COMBOBOX        IDC_UPDATE_MODE,92,36,88,144,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "描画モード : ",IDC_STATIC,4,52,88,12,SS_CENTERIMAGE,WS_EX_RIGHT
+    COMBOBOX        IDC_XOR_MODE,92,52,88,144,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    PUSHBUTTON      "ペンの色を選択",IDC_PEN_COLOR,4,68,88,12
+    PUSHBUTTON      "ブラシの色を選択",IDC_BRUSH_COLOR,92,68,88,12
+    PUSHBUTTON      "キャッシュをクリア",IDC_CLEAR,4,84,88,12
+    PUSHBUTTON      "全体の音声波形を表示",IDC_SHOW_FULL,92,84,88,12
+    CONTROL         "音声波形を表示",IDC_SHOW_WAVEFORM,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,4,100,176,12
+    CONTROL         "テキストを表示",IDC_SHOW_TEXT,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,4,116,176,12
+    CONTROL         "テキストをスクロールしない",IDC_NO_SCROLL_TEXT,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,4,132,176,12
+    CONTROL         "テキストより後ろに描画",IDC_BEHIND,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,4,148,176,12
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// DESIGNINFO
+//
+
+#ifdef APSTUDIO_INVOKED
+GUIDELINES DESIGNINFO
+BEGIN
+    IDD_MAIN_DIALOG, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 178
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 158
+    END
+END
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// AFX_DIALOG_LAYOUT
+//
+
+IDD_MAIN_DIALOG AFX_DIALOG_LAYOUT
+BEGIN
+    0
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Dialog Info
+//
+
+IDD_MAIN_DIALOG DLGINIT
+BEGIN
+    IDC_SHOW_TYPE, 0x403, 5, 0
+0x8692, 0x9b89, "\000" 
+    IDC_SHOW_TYPE, 0x403, 3, 0
+0xba89, "\000" 
+    IDC_SHOW_TYPE, 0x403, 3, 0
+0xe38f, "\000" 
+    IDC_UPDATE_MODE, 0x403, 11, 0
+0x588d, 0x5690, 0xb582, 0xc882, 0xa282, "\000" 
+    IDC_UPDATE_MODE, 0x403, 9, 0
+0x588d, 0x5690, 0xb782, 0xe982, "\000" 
+    IDC_UPDATE_MODE, 0x403, 19, 0
+0xc48d, 0xb690, 0x8692, 0xcd82, 0x588d, 0x5690, 0xb582, 0xc882, 0xa282, 
+"\000" 
+    IDC_XOR_MODE, 0x403, 5, 0
+0xca92, 0xed8f, "\000" 
+    IDC_XOR_MODE, 0x403, 4, 0
+0x4f58, 0x0052, 
+    IDC_XOR_MODE, 0x403, 7, 0
+0x6f4e, 0x5874, 0x524f, "\000" 
+    IDC_XOR_MODE, 0x403, 4, 0
+0x6f4e, 0x0074, 
+    0
+END
+
+#endif    // 日本語 (日本) resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+
+#ifndef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 3 resource.
+//
+
+
+/////////////////////////////////////////////////////////////////////////////
+#endif    // not APSTUDIO_INVOKED
+

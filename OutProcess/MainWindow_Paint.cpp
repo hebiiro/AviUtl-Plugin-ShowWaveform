@@ -1,5 +1,6 @@
 ﻿#include "pch.h"
 #include "MainWindow.h"
+#include "App.h"
 
 //--------------------------------------------------------------------
 
@@ -11,15 +12,14 @@ void MainWindow::doPaint(HDC dc, const RECT& rc)
 	int w = getWidth(rc);
 	int h = getHeight(rc);
 
-	MY_TRACE_INT(w);
-	MY_TRACE_INT(h);
-
 	glViewport(0, 0, w, h);
 	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
 	nvgBeginFrame(m_vg, (float)w, (float)h, 1.0f);
 	nvgSave(m_vg);
+
+	nvgFontFaceId(m_vg, m_fontDefault);
 
 	doPaint(rc);
 
@@ -31,31 +31,10 @@ void MainWindow::doPaint(HDC dc, const RECT& rc)
 
 void MainWindow::doPaint(const RECT& rc)
 {
-	if (!projectParams) return;
+	if (!theApp.projectParams) return;
 
-	PaintContext context;
-	context.rc = rc;
-	context.width = getWidth(rc);
-	context.height = getHeight(rc);
-
-	if (context.width <= 0 || context.height <= 0) return;
-
-	context.x = (float)rc.left;
-	context.y = (float)rc.top;
-	context.w = (float)context.width;
-	context.h = (float)context.height;
-
-	context.hScroll = ::GetScrollPos(m_hwnd, SB_HORZ);
-	context.gx = (float)(context.rc.left + g_design.body.margin);
-	context.gy = (float)(context.rc.top);
-	context.gw = (float)(context.width - g_design.body.margin * 2);
-	context.gh = (float)(context.height);
-	context.lgw = context.gw * (100 + m_zoom) / 100;
-	context.left = context.gx;
-	context.right = context.gx + context.gw;
-	context.top = context.gy;
-	context.bottom = context.gy + context.gh;
-	context.padding = 10.0f;
+	LayoutContext context = {};
+	if (!getLayoutContext(context, rc)) return;
 
 	m_mode->drawBackground(*this, context);
 	m_mode->drawScale(*this, context);

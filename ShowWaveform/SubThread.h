@@ -4,6 +4,10 @@
 
 //--------------------------------------------------------------------
 
+extern Shared shared;
+
+//--------------------------------------------------------------------
+
 struct CacheRequest
 {
 	std::string fileName;
@@ -20,6 +24,7 @@ struct SubThread
 	static const UINT WM_SEND_ITEM_CHANGED = WM_APP + 4;
 	static const UINT WM_POST_CLEAR_REQUEST = WM_APP + 5;
 	static const UINT WM_POST_REDRAW_REQUEST = WM_APP + 6;
+	static const UINT WM_SEND_FULL_SAMPLES_CHANGED = WM_APP + 7;
 
 	std::map<std::string, const CacheRequest*> cacheRequestMap;
 
@@ -30,6 +35,7 @@ struct SubThread
 	void onSendCacheRequest(const CacheRequest* cacheRequest);
 	void onSendProjectChanged(const ProjectParams* params);
 	void onSendItemChanged(const AudioParams* params);
+	void onSendFullSamplesChanged(const FullSamplesParams* params);
 	void onPostClearRequest();
 	void onPostRedrawRequest();
 	DWORD proc();
@@ -37,11 +43,6 @@ struct SubThread
 
 struct SubThreadManager
 {
-	SimpleFileMappingT<SenderBottle> m_sharedSenderBottle;
-	SimpleFileMappingT<ReceiverBottle> m_sharedReceiverBottle;
-	SimpleFileMappingT<ProjectParams> m_sharedProjectParams;
-	SimpleFileMappingT<AudioParams> m_sharedAudioParams;
-
 	DWORD m_tid = 0;
 	Handle m_handle;
 
@@ -51,6 +52,7 @@ struct SubThreadManager
 	BOOL requestCache(LPCSTR fileName);
 	BOOL notifyProjectChanged(const ProjectParamsPtr& params);
 	BOOL notifyItemChanged(const AudioParamsPtr& params);
+	BOOL notifyFullSamplesChanged(const FullSamplesParamsPtr& params);
 	BOOL requestClear();
 	BOOL requestRedraw();
 

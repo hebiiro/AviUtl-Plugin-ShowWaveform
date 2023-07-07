@@ -21,5 +21,6 @@ typedef std::shared_ptr<SenderBottle> SenderBottlePtr;
 typedef std::shared_ptr<ReceiverBottle> ReceiverBottlePtr;
 typedef std::shared_ptr<ProjectParams> ProjectParamsPtr;
 typedef std::shared_ptr<AudioParams> AudioParamsPtr;
+typedef std::shared_ptr<FullSamplesParams> FullSamplesParamsPtr;
 
 //---------------------------------------------------------------------
