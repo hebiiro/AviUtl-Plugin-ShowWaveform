@@ -78,8 +78,8 @@ struct App
 	BOOL createDialog();
 	BOOL updateProjectParams();
 	BOOL updateItemCache(BOOL send);
-	BOOL sendFullSamplesParams(FullSamplesParams* params); // サブプロセスに値を送る。
-	FullSamplesParamsPtr receiveFullSamplesParams(); // 共有メモリから値を取得する。
+	BOOL sendTotalsParams(TotalsParams* params); // サブプロセスに値を送る。
+	TotalsParamsPtr receiveTotalsParams(); // 共有メモリから値を取得する。
 	void drawWaveform(HDC dc, LPCRECT rcClip, LPCRECT rcItem);
 
 	void setScale(int scale);

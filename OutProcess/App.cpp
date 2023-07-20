@@ -329,11 +329,11 @@ LRESULT App::onAviUtlFilterSend(HWND hwnd, UINT message, WPARAM wParam, LPARAM l
 
 			break;
 		}
-	case SendID::notifyFullSamplesChanged:
+	case SendID::notifyTotalsChanged:
 		{
-			FullSamplesParamsPtr params = shared.getSenderFullSamplesParams();
+			TotalsParamsPtr params = shared.getSenderTotalsParams();
 			if (params)
-				setFullSamplesParams(params);
+				setTotalsParams(params);
 
 			break;
 		}
@@ -387,7 +387,7 @@ LRESULT App::onAviUtlFilterRedraw(HWND hwnd, UINT message, WPARAM wParam, LPARAM
 	if (::IsWindowVisible(mainWindow))
 	{
 		// 全体の音声波形を再計算する。
-		recalcFullSamples();
+		recalcTotals();
 	}
 
 	return 0;

@@ -5,11 +5,118 @@
 
 //--------------------------------------------------------------------
 
+NVGpaint Mode::nvgVertGradient(NVGcontext* vg, const XYWHRect& rc, const Design::GradientFill& design)
+{
+	return nvgLinearGradient(vg,
+		(float)rc.x, (float)rc.y, (float)rc.x, (float)(rc.y + rc.h),
+		design.color1, design.color2);
+};
+
 void Mode::nvgStrokeDesign(NVGcontext* vg, const Design::Stroke& stroke)
 {
 	nvgLineStyle(vg, stroke.style);
 	nvgStrokeWidth(vg, (float)stroke.width);
 	nvgStrokeColor(vg, stroke.color);
+}
+
+void Mode::nvgXYWHRect(NVGcontext* vg, const XYWHRect& rc)
+{
+	nvgRect(vg, (float)rc.x, (float)rc.y, (float)rc.w, (float)rc.h);
+}
+
+void Mode::drawImage(NVGcontext* vg, int image, const XYWHRect& rc, const Design::Image& design)
+{
+	if (!image) return;
+
+	int imgw = 0, imgh = 0;
+	nvgImageSize(vg, image, &imgw, &imgh);
+
+	XYWHRect dst, src;
+
+	dst.x = src.x = 0;
+	dst.y = src.y = 0;
+	dst.w = src.w = imgw;
+	dst.h = src.h = imgh;
+
+	switch (design.scaleMode)
+	{
+	case Design::ScaleMode::fit:
+		{
+			dst.w = rc.w;
+			dst.h = rc.w * imgh / imgw;
+
+			if (dst.h > rc.h)
+			{
+				dst.w = rc.h * imgw / imgh;
+				dst.h = rc.h;
+			}
+
+			break;
+		}
+	case Design::ScaleMode::crop:
+		{
+			dst.w = rc.w;
+			dst.h = rc.w * imgh / imgw;
+
+			if (dst.h < rc.h)
+			{
+				dst.w = rc.h * imgw / imgh;
+				dst.h = rc.h;
+			}
+
+			break;
+		}
+	}
+
+	int align = 0;
+
+	switch (design.align.x)
+	{
+	case Design::AlignX::left: align |= NVG_ALIGN_LEFT; break;
+	case Design::AlignX::right: align |= NVG_ALIGN_RIGHT; break;
+	case Design::AlignX::center: align |= NVG_ALIGN_CENTER; break;
+	}
+
+	switch (design.align.y)
+	{
+	case Design::AlignY::top: align |= NVG_ALIGN_TOP; break;
+	case Design::AlignY::bottom: align |= NVG_ALIGN_BOTTOM; break;
+	case Design::AlignY::center: align |= NVG_ALIGN_MIDDLE; break;
+	}
+
+	if (align & NVG_ALIGN_RIGHT)
+	{
+		dst.x = (rc.x + rc.w) - dst.w;
+		dst.x -= design.offset.x;
+	}
+	else
+	{
+		if (align & NVG_ALIGN_CENTER)
+			dst.x = rc.x + (rc.w - dst.w) / 2;
+	
+		dst.x += design.offset.x;
+	}
+
+	if (align & NVG_ALIGN_BOTTOM)
+	{
+		dst.y = (rc.y + rc.h) - dst.h;
+		dst.y -= design.offset.y;
+	}
+	else
+	{
+		if (align & NVG_ALIGN_MIDDLE)
+			dst.y = rc.y + (rc.h - dst.h) / 2;
+			
+		dst.y += design.offset.y;
+	}
+
+	NVGpaint imgPaint = nvgImagePattern(vg,
+		(float)dst.x, (float)dst.y, (float)dst.w, (float)dst.h,
+		design.angle / 360.0f * (2.0f * NVG_PI), image, design.alpha);
+	nvgBeginPath(vg);
+	nvgXYWHRect(vg, rc);
+	nvgFillPaint(vg, imgPaint);
+	nvgFill(vg);
 }
 
 void Mode::drawLine(NVGcontext* vg, float mx, float my, float lx, float ly, const Design::Stroke& stroke)
@@ -51,7 +158,7 @@ void Mode::drawMarker(MainWindow& window, const LayoutContext& context, int fram
 {
 	NVGcontext* vg = window.m_vg;
 
-	int c = (int)theApp.fullSamples.size();
+	int c = (int)theApp.totals.size();
 
 	if (frame < 0 || frame >= c)
 		return;
@@ -74,118 +181,21 @@ void Mode::drawBackground(MainWindow& window, const LayoutContext& context)
 {
 	NVGcontext* vg = window.m_vg;
 
-	struct { float x, y, w, h; } background;
-	background.x = (float)context.x;
-	background.y = (float)context.y;
-	background.w = (float)context.w;
-	background.h = (float)context.h;
+	XYWHRect background;
+	background.x = context.x;
+	background.y = context.y;
+	background.w = context.w;
+	background.h = context.h;
 
-	{
-		// 縦のグラデーションで背景を塗りつぶす。
-		NVGpaint paint = nvgLinearGradient(vg,
-			background.x, background.y, background.x, background.y + background.h,
-			g_design.background.fill.color1, g_design.background.fill.color2);
-		nvgBeginPath(vg);
-		nvgRect(vg, background.x, background.y, background.w, background.h);
-		nvgFillPaint(vg, paint);
-		nvgFill(vg);
-	}
+	// 縦のグラデーションで背景を塗りつぶす。
+	NVGpaint paint = nvgVertGradient(vg, background, g_design.background.fill);
+	nvgBeginPath(vg);
+	nvgXYWHRect(vg, background);
+	nvgFillPaint(vg, paint);
+	nvgFill(vg);
 
-	if (window.m_image)
-	{
-		// 背景画像を描画する。
-
-		int imgw = 0, imgh = 0;
-		nvgImageSize(vg, window.m_image, &imgw, &imgh);
-
-		struct { int x, y, w, h; } dst;
-		struct { int x, y, w, h; } src;
-
-		dst.x = src.x = 0;
-		dst.y = src.y = 0;
-		dst.w = src.w = imgw;
-		dst.h = src.h = imgh;
-
-		switch (g_design.image.scaleMode)
-		{
-		case Design::ScaleMode::fit:
-			{
-				dst.w = context.w;
-				dst.h = context.w * imgh / imgw;
-
-				if (dst.h > context.h)
-				{
-					dst.w = context.h * imgw / imgh;
-					dst.h = context.h;
-				}
-
-				break;
-			}
-		case Design::ScaleMode::crop:
-			{
-				dst.w = context.w;
-				dst.h = context.w * imgh / imgw;
-
-				if (dst.h < context.h)
-				{
-					dst.w = context.h * imgw / imgh;
-					dst.h = context.h;
-				}
-
-				break;
-			}
-		}
-
-		int align = 0;
-
-		switch (g_design.image.align.x)
-		{
-		case Design::AlignX::left: align |= NVG_ALIGN_LEFT; break;
-		case Design::AlignX::right: align |= NVG_ALIGN_RIGHT; break;
-		case Design::AlignX::center: align |= NVG_ALIGN_CENTER; break;
-		}
-
-		switch (g_design.image.align.y)
-		{
-		case Design::AlignY::top: align |= NVG_ALIGN_TOP; break;
-		case Design::AlignY::bottom: align |= NVG_ALIGN_BOTTOM; break;
-		case Design::AlignY::center: align |= NVG_ALIGN_MIDDLE; break;
-		}
-
-		if (align & NVG_ALIGN_RIGHT)
-		{
-			dst.x = context.rc.right - dst.w;
-			dst.x -= g_design.image.offset.x;
-		}
-		else
-		{
-			if (align & NVG_ALIGN_CENTER)
-				dst.x = context.rc.left + (context.w - dst.w) / 2;
-	
-			dst.x += g_design.image.offset.x;
-		}
-
-		if (align & NVG_ALIGN_BOTTOM)
-		{
-			dst.y = context.rc.bottom - dst.h;
-			dst.y -= g_design.image.offset.y;
-		}
-		else
-		{
-			if (align & NVG_ALIGN_MIDDLE)
-				dst.y = context.rc.top + (context.h - dst.h) / 2;
-			
-			dst.y += g_design.image.offset.y;
-		}
-
-		NVGpaint imgPaint = nvgImagePattern(vg,
-			(float)dst.x, (float)dst.y, (float)dst.w, (float)dst.h,
-			g_design.image.angle / 360.0f * (2.0f * NVG_PI), window.m_image, g_design.image.alpha);
-		nvgBeginPath(vg);
-		nvgRect(vg, background.x, background.y, background.w, background.h);
-		nvgFillPaint(vg, imgPaint);
-		nvgFill(vg);
-	}
+	// 背景画像を描画する。
+	drawImage(vg, window.m_image, background, g_design.image);
 }
 
 void Mode::drawBody(MainWindow& window, const LayoutContext& context)
@@ -482,7 +492,7 @@ void Mode::drawMarkers(MainWindow& window, const LayoutContext& context)
 		drawMarker(window, context, window.m_hotFrame, g_design.graph.hot);
 	}
 
-	int c = (int)theApp.fullSamples.size();
+	int c = (int)theApp.totals.size();
 
 	if (c > 0)
 	{

@@ -138,7 +138,7 @@ struct MainWindow
 		VertScaleSettings::VisibleStyle::both,
 		VertScaleSettings::LineStyle::straight,
 	};
-	FullSamplesParams m_fullSamplesParams;
+	TotalsParams m_totalsParams;
 	ModePtr m_mode = std::make_shared<RMSMode>();
 
 	int m_hotFrame = 0;

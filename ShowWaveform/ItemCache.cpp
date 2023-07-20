@@ -107,9 +107,9 @@ ItemCachePtr ItemCacheManager::update(BOOL send, ExEdit::Object* object)
 	// オブジェクトの状態を保存しておく。
 	itemCache->params = params;
 
-	// 現在のフレームレートの1フレーム毎のサンプルに変換する。
+	// 現在のフレームレートの1フレーム毎の音量に変換する。
 
-	double scale = (double)SAMPLE_FPS * theApp.m_fi.video_scale / theApp.m_fi.video_rate;
+	double scale = (double)Volume::Resolution * theApp.m_fi.video_scale / theApp.m_fi.video_rate;
 	int32_t range = object->frame_end - object->frame_begin;
 	for (int32_t i = 0; i <= range; i++)
 	{
@@ -117,12 +117,12 @@ ItemCachePtr ItemCacheManager::update(BOOL send, ExEdit::Object* object)
 		double temp2 = scale * params->playBegin;
 		int32_t src = (int32_t)(temp1 + temp2);
 
-		if (src >= (int32_t)fileCache->samples.size())
+		if (src >= (int32_t)fileCache->volumes.size())
 			break;
 
-		Sample sample = fileCache->samples[src];
-		sample.level *= params->volume;
-		itemCache->samples.emplace_back(sample);
+		Volume volume = fileCache->volumes[src];
+		volume.level *= params->volume;
+		itemCache->volumes.emplace_back(volume);
 	}
 
 	return itemCache;

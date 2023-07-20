@@ -24,7 +24,7 @@ struct SubThread
 	static const UINT WM_SEND_ITEM_CHANGED = WM_APP + 4;
 	static const UINT WM_POST_CLEAR_REQUEST = WM_APP + 5;
 	static const UINT WM_POST_REDRAW_REQUEST = WM_APP + 6;
-	static const UINT WM_SEND_FULL_SAMPLES_CHANGED = WM_APP + 7;
+	static const UINT WM_SEND_TOTALS_CHANGED = WM_APP + 7;
 
 	std::map<std::string, const CacheRequest*> cacheRequestMap;
 
@@ -35,7 +35,7 @@ struct SubThread
 	void onSendCacheRequest(const CacheRequest* cacheRequest);
 	void onSendProjectChanged(const ProjectParams* params);
 	void onSendItemChanged(const AudioParams* params);
-	void onSendFullSamplesChanged(const FullSamplesParams* params);
+	void onSendTotalsChanged(const TotalsParams* params);
 	void onPostClearRequest();
 	void onPostRedrawRequest();
 	DWORD proc();
@@ -52,7 +52,7 @@ struct SubThreadManager
 	BOOL requestCache(LPCSTR fileName);
 	BOOL notifyProjectChanged(const ProjectParamsPtr& params);
 	BOOL notifyItemChanged(const AudioParamsPtr& params);
-	BOOL notifyFullSamplesChanged(const FullSamplesParamsPtr& params);
+	BOOL notifyTotalsChanged(const TotalsParamsPtr& params);
 	BOOL requestClear();
 	BOOL requestRedraw();
 

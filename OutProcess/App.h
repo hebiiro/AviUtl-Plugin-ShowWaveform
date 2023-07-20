@@ -10,12 +10,12 @@
 
 typedef std::map<uint32_t, AudioParamsPtr> AudioParamsMap;
 
-struct FullSample {
+struct Total {
 	float level;
 	float rms;
 };
 
-typedef std::vector<FullSample> FullSamples;
+typedef std::vector<Total> Totals;
 
 //--------------------------------------------------------------------
 
@@ -66,15 +66,15 @@ struct App {
 
 	// App_Waveform
 
-	FullSamples fullSamples;
+	Totals totals;
 	ProjectParamsPtr projectParams;
 	AudioParamsMap audioParamsMap;
 
 	BOOL sendCache(const CachePtr& cache);
-	BOOL recalcFullSamples();
+	BOOL recalcTotals();
 	BOOL setProjectParams(const ProjectParamsPtr& params);
 	BOOL setAudioParams(const AudioParamsPtr& params);
-	BOOL setFullSamplesParams(const FullSamplesParamsPtr& params);
+	BOOL setTotalsParams(const TotalsParamsPtr& params);
 };
 
 extern App theApp;

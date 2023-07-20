@@ -86,7 +86,7 @@ void RMSMode::drawVertScale(MainWindow& window, const LayoutContext& context)
 
 void RMSMode::drawGraph(MainWindow& window, const LayoutContext& context)
 {
-	int c = (int)theApp.fullSamples.size();
+	int c = (int)theApp.totals.size();
 
 	if (c <= 0) return;
 
@@ -108,7 +108,7 @@ void RMSMode::drawGraph(MainWindow& window, const LayoutContext& context)
 
 		for (int i = 0; i < c; i++)
 		{
-			float level = (theApp.fullSamples[i].rms - minRMS) / (maxRMS - minRMS);
+			float level = (theApp.totals[i].rms - minRMS) / (maxRMS - minRMS);
 			float x = (float)window.frame2client(i);
 			float y = std::min((float)graph.bottom, (float)graph.bottom - graph.h * level);
 

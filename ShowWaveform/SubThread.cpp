@@ -99,17 +99,17 @@ void SubThread::onSendItemChanged(const AudioParams* params)
 	delete params;
 }
 
-void SubThread::onSendFullSamplesChanged(const FullSamplesParams* params)
+void SubThread::onSendTotalsChanged(const TotalsParams* params)
 {
-	MY_TRACE(_T("SubThreadManager::onSendFullSamplesChanged()\n"));
+	MY_TRACE(_T("SubThreadManager::onSendTotalsChanged()\n"));
 
-	FullSamplesParams* shared = ::shared.senderFullSamplesParams.getBuffer();
+	TotalsParams* shared = ::shared.senderTotalsParams.getBuffer();
 	if (shared)
 	{
 		*shared = *params;
 
 		// サブプロセスにサブプロセスパラメータの変更を通知する。
-		::SendMessage(theApp.m_subProcess.m_windowContainer.m_inner, WM_AVIUTL_FILTER_SEND, SendID::notifyFullSamplesChanged, 0);
+		::SendMessage(theApp.m_subProcess.m_windowContainer.m_inner, WM_AVIUTL_FILTER_SEND, SendID::notifyTotalsChanged, 0);
 	}
 
 	delete params;
@@ -158,9 +158,9 @@ DWORD SubThread::proc()
 					onSendItemChanged((const AudioParams*)msg.wParam);
 					break;
 				}
-			case WM_SEND_FULL_SAMPLES_CHANGED:
+			case WM_SEND_TOTALS_CHANGED:
 				{
-					onSendFullSamplesChanged((const FullSamplesParams*)msg.wParam);
+					onSendTotalsChanged((const TotalsParams*)msg.wParam);
 					break;
 				}
 			case WM_POST_CLEAR_REQUEST:
@@ -198,9 +198,9 @@ BOOL SubThreadManager::init(AviUtl::FilterPlugin* fp)
 	shared.init(hwnd);
 
 	{
-		FullSamplesParams params; // 初期値。
-		shared.setSenderFullSamplesParams(&params);
-		shared.setReceiverFullSamplesParams(&params);
+		TotalsParams params; // 初期値。
+		shared.setSenderTotalsParams(&params);
+		shared.setReceiverTotalsParams(&params);
 	}
 
 	m_handle = ::CreateThread(0, 0, threadProc, 0, 0, &m_tid);
@@ -238,11 +238,11 @@ BOOL SubThreadManager::notifyItemChanged(const AudioParamsPtr& params)
 	return ::PostThreadMessage(m_tid, SubThread::WM_SEND_ITEM_CHANGED, (WPARAM)new AudioParams(*params), 0);
 }
 
-BOOL SubThreadManager::notifyFullSamplesChanged(const FullSamplesParamsPtr& params)
+BOOL SubThreadManager::notifyTotalsChanged(const TotalsParamsPtr& params)
 {
-	MY_TRACE(_T("SubThreadManager::notifyFullSamplesChanged()\n"));
+	MY_TRACE(_T("SubThreadManager::notifyTotalsChanged()\n"));
 
-	return ::PostThreadMessage(m_tid, SubThread::WM_SEND_FULL_SAMPLES_CHANGED, (WPARAM)new FullSamplesParams(*params), 0);
+	return ::PostThreadMessage(m_tid, SubThread::WM_SEND_TOTALS_CHANGED, (WPARAM)new TotalsParams(*params), 0);
 }
 
 BOOL SubThreadManager::requestClear()

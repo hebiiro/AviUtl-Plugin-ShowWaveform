@@ -1,10 +1,7 @@
 ﻿#pragma once
-
 #include "Resource.h"
 
-//--------------------------------------------------------------------
-
-struct MainDialog : public Dialog
+struct MainDialog : public Tools::Dialog
 {
 	BOOL m_ignoreNotification = FALSE;
 
@@ -37,5 +34,3 @@ struct MainDialog : public Dialog
 	virtual INT_PTR onDlgProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam);
 	LRESULT onAviUtlFilterResize(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam);
 };
-
-//--------------------------------------------------------------------

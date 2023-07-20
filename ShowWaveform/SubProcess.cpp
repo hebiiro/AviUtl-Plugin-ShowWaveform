@@ -151,13 +151,13 @@ void SubProcess::WindowContainer::delayedUpdate()
 	::SetTimer(m_hwnd, TimerID::Update, 100, 0);
 }
 
-void SubProcess::WindowContainer::delayedSendFullSamplesParams(const FullSamplesParams* params)
+void SubProcess::WindowContainer::delayedSendTotalsParams(const TotalsParams* params)
 {
-	MY_TRACE(_T("SubProcess::WindowContainer::delayedSendFullSamplesParams()\n"));
+	MY_TRACE(_T("SubProcess::WindowContainer::delayedSendTotalsParams()\n"));
 
-	m_delayedFullSampleParams = *params;
+	m_delayedTotalsParams = *params;
 
-	::SetTimer(m_hwnd, TimerID::SendFullSamplesParams, 100, 0);
+	::SetTimer(m_hwnd, TimerID::SendTotalsParams, 100, 0);
 }
 
 LRESULT SubProcess::WindowContainer::onWndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
@@ -192,15 +192,15 @@ LRESULT SubProcess::WindowContainer::onWndProc(HWND hwnd, UINT message, WPARAM w
 
 					break;
 				}
-			case TimerID::SendFullSamplesParams:
+			case TimerID::SendTotalsParams:
 				{
 					if (m_inner)
 					{
-						MY_TRACE(_T("delayed send full samples params\n"));
+						MY_TRACE(_T("delayed send totals params\n"));
 
-						::KillTimer(hwnd, TimerID::SendFullSamplesParams);
+						::KillTimer(hwnd, TimerID::SendTotalsParams);
 
-						theApp.sendFullSamplesParams(&m_delayedFullSampleParams);
+						theApp.sendTotalsParams(&m_delayedTotalsParams);
 					}
 
 					break;

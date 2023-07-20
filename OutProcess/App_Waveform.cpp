@@ -14,9 +14,9 @@ BOOL App::sendCache(const CachePtr& cache)
 
 	::StringCbCopyA(shared->fileName, sizeof(shared->fileName), cache->fileName.c_str());
 
-	shared->sampleCount = (int32_t)cache->samples.size();
-	MY_TRACE_INT(shared->sampleCount);
-	memcpy(shared->samples, cache->samples.data(), sizeof(Sample) * cache->samples.size());
+	shared->volumeCount = (int32_t)cache->volumes.size();
+	MY_TRACE_INT(shared->volumeCount);
+	memcpy(shared->volumes, cache->volumes.data(), sizeof(Volume) * cache->volumes.size());
 
 	MY_TRACE_HEX(windowContainer);
 	::SendMessage(windowContainer, WM_AVIUTL_FILTER_RECEIVE, 0, 0);
@@ -24,9 +24,9 @@ BOOL App::sendCache(const CachePtr& cache)
 	return TRUE;
 }
 
-BOOL App::recalcFullSamples()
+BOOL App::recalcTotals()
 {
-	MY_TRACE(_T("App::recalcFullSamples()\n"));
+	MY_TRACE(_T("App::recalcTotals()\n"));
 
 	// プロジェクトパラメータが有効かどうかチェックする。
 	if (!projectParams) return FALSE;
@@ -42,10 +42,10 @@ BOOL App::recalcFullSamples()
 	}
 
 	// バッファを確保する。
-	fullSamples.resize(projectParams->frameNumber);
-	memset(fullSamples.data(), 0, sizeof(fullSamples[0]) * fullSamples.size());
+	totals.resize(projectParams->frameNumber);
+	memset(totals.data(), 0, sizeof(totals[0]) * totals.size());
 
-	float scale = (float)SAMPLE_FPS * projectParams->video_scale / projectParams->video_rate;
+	float scale = (float)Volume::Resolution * projectParams->video_scale / projectParams->video_rate;
 	MY_TRACE_REAL(scale);
 
 	for (auto pair : audioParamsMap)
@@ -56,7 +56,7 @@ BOOL App::recalcFullSamples()
 		const CachePtr& cache = cacheManager.getCache(params->fileName);
 		if (!cache) continue;
 
-		// 現在のフレームレートの1フレーム毎のサンプルに変換する。
+		// 現在のフレームレートでの1フレーム毎の音量に変換する。
 
 		int32_t frameBegin = params->frameBegin;
 		int32_t frameEnd = std::min(params->frameEnd + 1, projectParams->frameNumber);
@@ -68,23 +68,23 @@ BOOL App::recalcFullSamples()
 			int32_t src = (int32_t)(temp1 + temp2);
 			int32_t dst = i + frameBegin;
 
-			if (src < 0 || src >= (int32_t)cache->samples.size())
+			if (src < 0 || src >= (int32_t)cache->volumes.size())
 				break;
 
-			if (dst < 0 || dst >= (int32_t)fullSamples.size())
+			if (dst < 0 || dst >= (int32_t)totals.size())
 				break;
 
-			fullSamples[dst].level += cache->samples[src].level * params->volume;
+			totals[dst].level += cache->volumes[src].level * params->volume;
 		}
 	}
 
-	int c = (int)fullSamples.size();
+	int c = (int)totals.size();
 	MY_TRACE_INT(c);
 	for (int i = 0; i < c; i++)
 	{
-		fullSamples[i].rms = 20 * log10f(fullSamples[i].level);
+		totals[i].rms = 20 * log10f(totals[i].level);
 
-//		MY_TRACE(_T("%d : %f, %f\n"), i, fullSamples[i].level, fullSamples[i].rms);
+//		MY_TRACE(_T("%d : %f, %f\n"), i, totals[i].level, totals[i].rms);
 	}
 
 	mainWindow.recalcLayout();
@@ -134,7 +134,7 @@ BOOL App::setProjectParams(const ProjectParamsPtr& params)
 	if (::IsWindowVisible(mainWindow))
 	{
 		// 全体の音声波形を再計算する。
-		recalcFullSamples();
+		recalcTotals();
 	}
 
 	return TRUE;
@@ -162,15 +162,15 @@ BOOL App::setAudioParams(const AudioParamsPtr& params)
 	if (::IsWindowVisible(mainWindow))
 	{
 		// 全体の音声波形を再計算する。
-		recalcFullSamples();
+		recalcTotals();
 	}
 
 	return TRUE;
 }
 
-BOOL App::setFullSamplesParams(const FullSamplesParamsPtr& params)
+BOOL App::setTotalsParams(const TotalsParamsPtr& params)
 {
-	MY_TRACE(_T("App::setFullSamplesParams()\n"));
+	MY_TRACE(_T("App::setTotalsParams()\n"));
 
 	MY_TRACE_INT(params->showBPM);
 	MY_TRACE_INT(params->tempo.orig);

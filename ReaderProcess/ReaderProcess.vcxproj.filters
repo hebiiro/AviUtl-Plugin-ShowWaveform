@@ -4,6 +4,9 @@
     <Filter Include="Framework">
       <UniqueIdentifier>{b2b8b579-a036-4aeb-aa10-399e689a71f3}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Calc">
+      <UniqueIdentifier>{6fb733bc-2940-49c6-a089-11b3123c8b78}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pch.h">
@@ -15,8 +18,14 @@
     <ClInclude Include="targetver.h">
       <Filter>Framework</Filter>
     </ClInclude>
-    <ClInclude Include="ReaderProcess.h" />
     <ClInclude Include="Plugin.h" />
+    <ClInclude Include="App.h" />
+    <ClInclude Include="Calc\Hive.h">
+      <Filter>Calc</Filter>
+    </ClInclude>
+    <ClInclude Include="Calc\Worker.h">
+      <Filter>Calc</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="pch.cpp">

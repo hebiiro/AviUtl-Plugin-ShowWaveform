@@ -21,15 +21,14 @@ struct SendID {
 	static const int requestCache = 1;
 	static const int notifyProjectChanged = 2;
 	static const int notifyItemChanged = 3;
-	static const int notifyFullSamplesChanged = 4;
+	static const int notifyTotalsChanged = 4;
 };
 
 //--------------------------------------------------------------------
 
-static const int32_t SAMPLE_FPS = 30;
-static const int32_t MAX_SAMPLE_COUNT = SAMPLE_FPS * 60 * 60 * 4; // 最大 4 時間
-
-struct Sample {
+struct Volume {
+	static const int32_t Resolution = 30; // 時間軸方向の分解能を FPS で指定します。
+	static const int32_t MaxCount = Resolution * 60 * 60 * 4; // 最大 4 時間
 	float level;
 };
 
@@ -39,14 +38,14 @@ struct SenderBottle {
 
 struct ReceiverBottle {
 	char fileName[MAX_PATH];
-	int32_t sampleCount;
-	Sample samples[MAX_SAMPLE_COUNT];
+	int32_t volumeCount;
+	Volume volumes[Volume::MaxCount];
 };
 
 struct ReaderBottle {
 	char fileName[MAX_PATH];
-	int32_t sampleCount;
-	Sample samples[MAX_SAMPLE_COUNT];
+	int32_t volumeCount;
+	Volume volumes[Volume::MaxCount];
 };
 
 struct ProjectParams {
@@ -70,7 +69,7 @@ struct AudioParams {
 	uint32_t layerFlag = 0;
 };
 
-struct FullSamplesParams {
+struct TotalsParams {
 	BOOL showBPM = FALSE; // BPM を表示するかどうか。
 	struct Tempo {
 		int32_t orig = 0; // テンポの基準となるフレーム番号。
@@ -117,14 +116,14 @@ inline FormatText getSharedAudioParamsName(HWND hwnd)
 	return FormatText(_T("ShowWaveform.Shared.AudioParams.%08X"), hwnd);
 }
 
-inline FormatText getSharedSenderFullSamplesParamsName(HWND hwnd)
+inline FormatText getSharedSenderTotalsParamsName(HWND hwnd)
 {
-	return FormatText(_T("ShowWaveform.Shared.SenderFullSamplesParams.%08X"), hwnd);
+	return FormatText(_T("ShowWaveform.Shared.SenderTotalsParams.%08X"), hwnd);
 }
 
-inline FormatText getSharedReceiverFullSamplesParamsName(HWND hwnd)
+inline FormatText getSharedReceiverTotalsParamsName(HWND hwnd)
 {
-	return FormatText(_T("ShowWaveform.Shared.ReceiverFullSamplesParams.%08X"), hwnd);
+	return FormatText(_T("ShowWaveform.Shared.ReceiverTotalsParams.%08X"), hwnd);
 }
 
 //--------------------------------------------------------------------
@@ -133,7 +132,7 @@ typedef std::shared_ptr<SenderBottle> SenderBottlePtr;
 typedef std::shared_ptr<ReceiverBottle> ReceiverBottlePtr;
 typedef std::shared_ptr<ProjectParams> ProjectParamsPtr;
 typedef std::shared_ptr<AudioParams> AudioParamsPtr;
-typedef std::shared_ptr<FullSamplesParams> FullSamplesParamsPtr;
+typedef std::shared_ptr<TotalsParams> TotalsParamsPtr;
 
 //--------------------------------------------------------------------
 
@@ -143,8 +142,8 @@ struct Shared {
 	SimpleFileMappingT<ReceiverBottle> receiverBottle;
 	SimpleFileMappingT<ProjectParams> projectParams;
 	SimpleFileMappingT<AudioParams> audioParams;
-	SimpleFileMappingT<FullSamplesParams> senderFullSamplesParams;
-	SimpleFileMappingT<FullSamplesParams> receiverFullSamplesParams;
+	SimpleFileMappingT<TotalsParams> senderTotalsParams;
+	SimpleFileMappingT<TotalsParams> receiverTotalsParams;
 
 	BOOL init(HWND hwnd)
 	{
@@ -155,8 +154,8 @@ struct Shared {
 		receiverBottle.init(getSharedReceiverBottleName(hwnd));
 		projectParams.init(getSharedProjectParamsName(hwnd));
 		audioParams.init(getSharedAudioParamsName(hwnd));
-		senderFullSamplesParams.init(getSharedSenderFullSamplesParamsName(hwnd));
-		receiverFullSamplesParams.init(getSharedReceiverFullSamplesParamsName(hwnd));
+		senderTotalsParams.init(getSharedSenderTotalsParamsName(hwnd));
+		receiverTotalsParams.init(getSharedReceiverTotalsParamsName(hwnd));
 
 		return TRUE;
 	}
@@ -193,41 +192,41 @@ struct Shared {
 		return std::make_shared<AudioParams>(*shared);
 	}
 
-	FullSamplesParamsPtr getSenderFullSamplesParams()
+	TotalsParamsPtr getSenderTotalsParams()
 	{
-		MY_TRACE(_T("Shared::getSenderFullSamplesParams()\n"));
+		MY_TRACE(_T("Shared::getSenderTotalsParams()\n"));
 
-		FullSamplesParams* shared = senderFullSamplesParams.getBuffer();
+		TotalsParams* shared = senderTotalsParams.getBuffer();
 		if (!shared) return 0;
-		return std::make_shared<FullSamplesParams>(*shared);
+		return std::make_shared<TotalsParams>(*shared);
 	}
 
-	BOOL setSenderFullSamplesParams(const FullSamplesParams* params)
+	BOOL setSenderTotalsParams(const TotalsParams* params)
 	{
-		MY_TRACE(_T("Shared::setSenderFullSamplesParams()\n"));
+		MY_TRACE(_T("Shared::setSenderTotalsParams()\n"));
 
 		Synchronizer sync(mutex);
-		FullSamplesParams* shared = senderFullSamplesParams.getBuffer();
+		TotalsParams* shared = senderTotalsParams.getBuffer();
 		if (!shared) return FALSE;
 		*shared = *params;
 		return TRUE;
 	}
 
-	FullSamplesParamsPtr getReceiverFullSamplesParams()
+	TotalsParamsPtr getReceiverTotalsParams()
 	{
-		MY_TRACE(_T("Shared::getReceiverFullSamplesParams()\n"));
+		MY_TRACE(_T("Shared::getReceiverTotalsParams()\n"));
 
-		FullSamplesParams* shared = receiverFullSamplesParams.getBuffer();
+		TotalsParams* shared = receiverTotalsParams.getBuffer();
 		if (!shared) return 0;
-		return std::make_shared<FullSamplesParams>(*shared);
+		return std::make_shared<TotalsParams>(*shared);
 	}
 
-	BOOL setReceiverFullSamplesParams(const FullSamplesParams* params)
+	BOOL setReceiverTotalsParams(const TotalsParams* params)
 	{
-		MY_TRACE(_T("Shared::setReceiverFullSamplesParams()\n"));
+		MY_TRACE(_T("Shared::setReceiverTotalsParams()\n"));
 
 		Synchronizer sync(mutex);
-		FullSamplesParams* shared = receiverFullSamplesParams.getBuffer();
+		TotalsParams* shared = receiverTotalsParams.getBuffer();
 		if (!shared) return FALSE;
 		*shared = *params;
 		return TRUE;

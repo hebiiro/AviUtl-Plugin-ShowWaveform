@@ -45,14 +45,14 @@ BOOL FileCacheManager::receiveCache()
 	if (!shared) return FALSE;
 
 	MY_TRACE_STR(shared->fileName);
-	MY_TRACE_INT(shared->sampleCount);
+	MY_TRACE_INT(shared->volumeCount);
 
 	// キャッシュを更新する。
 	FileCachePtr cache = std::make_shared<FileCache>();
 	cache->video_scale = theApp.m_fi.video_scale;
 	cache->video_rate = theApp.m_fi.video_rate;
-	cache->samples.insert(cache->samples.end(),
-		shared->samples, shared->samples + shared->sampleCount);
+	cache->volumes.insert(cache->volumes.end(),
+		shared->volumes, shared->volumes + shared->volumeCount);
 	cacheMap[shared->fileName] = cache;
 
 	return TRUE;

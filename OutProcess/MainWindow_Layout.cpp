@@ -96,7 +96,7 @@ void MainWindow::recalcLayout()
 {
 	MY_TRACE(_T("MainWindow::recalcLayout()\n"));
 
-	int c = (int)theApp.fullSamples.size();
+	int c = (int)theApp.totals.size();
 	if (c <= 1) return;
 
 	LayoutContext context = {};
@@ -303,19 +303,19 @@ void MainWindow::outputFrames()
 
 	TCHAR text[1024] = {};
 
-	int c = (int)theApp.fullSamples.size();
+	int c = (int)theApp.totals.size();
 	int currentFrame = theApp.projectParams->currentFrame;
 	int hotFrame = getHotFrame();
 
 	if (currentFrame >= 0 && currentFrame < c)
 	{
-		FormatText subText(_T("現在位置 : %.2fdB @%d\r\n"), theApp.fullSamples[currentFrame].rms, currentFrame);
+		FormatText subText(_T("現在位置 : %.2fdB @%d\r\n"), theApp.totals[currentFrame].rms, currentFrame);
 		::StringCbCat(text, sizeof(text), subText);
 	}
 
 	if (hotFrame >= 0 && hotFrame < c)
 	{
-		FormatText subText(_T("マウス位置 : %.2fdB @%d\r\n"), theApp.fullSamples[hotFrame].rms, hotFrame);
+		FormatText subText(_T("マウス位置 : %.2fdB @%d\r\n"), theApp.totals[hotFrame].rms, hotFrame);
 		::StringCbCat(text, sizeof(text), subText);
 	}
 

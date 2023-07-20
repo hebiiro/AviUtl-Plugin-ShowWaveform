@@ -7,10 +7,10 @@
 
 ## 導入方法
 
-以下のファイルを AviUtl の Plugins フォルダに入れてください。
-* ShowWaveform.auf
-* ShowWaveform (フォルダ)
-* lwinput.aui (L-SMASH Works)
+1. [L-SMASH Works](https://github.com/Mr-Ojii/L-SMASH-Works-Auto-Builds/releases) を AviUtl の Plugins フォルダに導入してください。
+2. 以下のファイルを AviUtl の Plugins フォルダに入れてください。
+  * ShowWaveform.auf
+  * ShowWaveform (フォルダ)
 
 ## 使用方法
 
@@ -226,6 +226,8 @@ bpm.secondary.stroke.color=255, 255, 255, 128
 
 ## 更新履歴
 
+* 7.2.0 - 2023/08/23 リファクタリング
+* 7.1.0 - 2023/07/17 リーダープロセスをマルチスレッド化
 * 7.0.0 - 2023/07/07 BPM 表示機能を追加
 * 6.4.1 - 2023/04/14 音声アイテムにフィルタを付けたときの問題を修正
 * 6.4.0 - 2023/03/30 音声波形をテキストより後ろに描画する機能を追加

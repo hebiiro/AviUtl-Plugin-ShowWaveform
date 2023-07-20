@@ -79,7 +79,7 @@ void TopDownMode::drawVertScale(MainWindow& window, const LayoutContext& context
 
 void TopDownMode::drawGraph(MainWindow& window, const LayoutContext& context)
 {
-	int c = (int)theApp.fullSamples.size();
+	int c = (int)theApp.totals.size();
 
 	if (c <= 0) return;
 	if (window.m_limitVolume <= 0) return;
@@ -101,7 +101,7 @@ void TopDownMode::drawGraph(MainWindow& window, const LayoutContext& context)
 
 		for (int i = 0; i < c; i++)
 		{
-			float level = theApp.fullSamples[i].level;
+			float level = theApp.totals[i].level;
 			float x = (float)window.frame2client(i);
 			float y = (float)graph.top + lh * level;
 

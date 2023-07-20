@@ -14,7 +14,10 @@ struct Mode
 {
 	virtual int getID() const = 0;
 
+	static NVGpaint nvgVertGradient(NVGcontext* vg, const XYWHRect& rc, const Design::GradientFill& design);
 	static void nvgStrokeDesign(NVGcontext* vg, const Design::Stroke& stroke);
+	static void nvgXYWHRect(NVGcontext* vg, const XYWHRect& rc);
+	static void drawImage(NVGcontext* vg, int image, const XYWHRect& rc, const Design::Image& design);
 	static void drawLine(NVGcontext* vg, float mx, float my, float lx, float ly, const Design::Stroke& stroke);
 	static void drawText(NVGcontext* vg, LPCSTR text, float x, float y, const Design::Text& design);
 	static void drawMarker(MainWindow& window, const LayoutContext& context, int frame, const Design::Marker& marker);

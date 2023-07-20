@@ -5,7 +5,7 @@
 //---------------------------------------------------------------------
 
 struct ItemCache {
-	SampleArray samples;
+	VolumeArray volumes;
 	AudioParamsPtr params;
 };
 

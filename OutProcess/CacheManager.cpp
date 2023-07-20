@@ -13,7 +13,7 @@ CachePtr CacheManager::getCache(LPCSTR fileName)
 	return it->second;
 }
 
-// リーダーがボトルに詰め込んだ音声サンプルからキャッシュを作成する。
+// リーダーがボトルに詰め込んだ音量からキャッシュを作成する。
 CachePtr CacheManager::createCache(const ReaderPtr& reader)
 {
 	MY_TRACE(_T("CacheManager::createCache()\n"));
@@ -25,8 +25,8 @@ CachePtr CacheManager::createCache(const ReaderPtr& reader)
 
 	CachePtr cache = std::make_shared<Cache>();
 	cache->fileName = shared->fileName;
-	cache->samples.insert(cache->samples.end(),
-		shared->samples, shared->samples + shared->sampleCount);
+	cache->volumes.insert(cache->volumes.end(),
+		shared->volumes, shared->volumes + shared->volumeCount);
 	cacheMap[cache->fileName] = cache;
 	return cache;
 }

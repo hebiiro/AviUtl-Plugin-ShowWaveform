@@ -190,7 +190,7 @@ BOOL App::func_WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam, Av
 }
 
 struct ProjectData {
-	FullSamplesParams fullSamplesParams;
+	TotalsParams totalsParams;
 };
 
 BOOL App::func_project_load(AviUtl::FilterPlugin* fp, AviUtl::EditHandle* editp, void* data, int32_t size)
@@ -204,9 +204,9 @@ BOOL App::func_project_load(AviUtl::FilterPlugin* fp, AviUtl::EditHandle* editp,
 
 	// サブプロセスのウィンドウがまだ作成されていない場合は更新を遅らせる。
 	if (!m_subProcess.m_windowContainer.m_inner)
-		m_subProcess.m_windowContainer.delayedSendFullSamplesParams(&projectData->fullSamplesParams);
+		m_subProcess.m_windowContainer.delayedSendTotalsParams(&projectData->totalsParams);
 	else
-		sendFullSamplesParams(&projectData->fullSamplesParams);
+		sendTotalsParams(&projectData->totalsParams);
 
 	return TRUE;
 }
@@ -222,10 +222,10 @@ BOOL App::func_project_save(AviUtl::FilterPlugin* fp, AviUtl::EditHandle* editp,
 	{
 		auto projectData = (ProjectData*)data;
 
-		FullSamplesParamsPtr params = receiveFullSamplesParams();
+		TotalsParamsPtr params = receiveTotalsParams();
 
 		if (params)
-			projectData->fullSamplesParams = *params;
+			projectData->totalsParams = *params;
 	}
 
 	return TRUE;
@@ -253,8 +253,8 @@ void App::load()
 	getPrivateProfileInt(fileName, L"Config", L"showText", m_showText);
 	getPrivateProfileInt(fileName, L"Config", L"noScrollText", m_noScrollText);
 	getPrivateProfileInt(fileName, L"Config", L"behind", m_behind);
-	getPrivateProfileWindow(fileName, L"FullSamplesWindowContainer", m_subProcess.m_windowContainer.m_hwnd);
-	getPrivateProfileWindow(fileName, L"FullSamplesDialogContainer", m_subProcess.m_dialogContainer.m_hwnd);
+	getPrivateProfileWindow(fileName, L"TotalsWindowContainer", m_subProcess.m_windowContainer.m_hwnd);
+	getPrivateProfileWindow(fileName, L"TotalsDialogContainer", m_subProcess.m_dialogContainer.m_hwnd);
 }
 
 void App::save()
@@ -279,8 +279,8 @@ void App::save()
 	setPrivateProfileInt(fileName, L"Config", L"showText", m_showText);
 	setPrivateProfileInt(fileName, L"Config", L"noScrollText", m_noScrollText);
 	setPrivateProfileInt(fileName, L"Config", L"behind", m_behind);
-	setPrivateProfileWindow(fileName, L"FullSamplesWindowContainer", m_subProcess.m_windowContainer.m_hwnd);
-	setPrivateProfileWindow(fileName, L"FullSamplesDialogContainer", m_subProcess.m_dialogContainer.m_hwnd);
+	setPrivateProfileWindow(fileName, L"TotalsWindowContainer", m_subProcess.m_windowContainer.m_hwnd);
+	setPrivateProfileWindow(fileName, L"TotalsDialogContainer", m_subProcess.m_dialogContainer.m_hwnd);
 }
 
 BOOL App::createDialog()
@@ -359,21 +359,21 @@ BOOL App::updateItemCache(BOOL send)
 }
 
 // サブプロセスに値を送る。
-BOOL App::sendFullSamplesParams(FullSamplesParams* _params)
+BOOL App::sendTotalsParams(TotalsParams* _params)
 {
-	MY_TRACE(_T("App::sendFullSamplesParams()\n"));
+	MY_TRACE(_T("App::sendTotalsParams()\n"));
 
-	FullSamplesParamsPtr params = std::make_shared<FullSamplesParams>(*_params);
+	TotalsParamsPtr params = std::make_shared<TotalsParams>(*_params);
 
-	return m_subThreadManager.notifyFullSamplesChanged(params);
+	return m_subThreadManager.notifyTotalsChanged(params);
 }
 
 // 共有メモリから値を取得する。
-FullSamplesParamsPtr App::receiveFullSamplesParams()
+TotalsParamsPtr App::receiveTotalsParams()
 {
-	MY_TRACE(_T("App::receiveFullSamplesParams()\n"));
+	MY_TRACE(_T("App::receiveTotalsParams()\n"));
 
-	return shared.getReceiverFullSamplesParams();
+	return shared.getReceiverTotalsParams();
 }
 
 inline BOOL checkMin(std::vector<POINT>& points, int x, int y)
@@ -409,7 +409,7 @@ void App::drawWaveform(HDC dc, LPCRECT rcClip, LPCRECT rcItem)
 	int h = rcItem->bottom - rcItem->top;
 	int cy = (rcItem->top + rcItem->bottom) / 2;
 
-	int c = cache->samples.size();
+	int c = cache->volumes.size();
 	MY_TRACE_INT(c);
 
 	std::vector<POINT> points;
@@ -435,9 +435,9 @@ void App::drawWaveform(HDC dc, LPCRECT rcClip, LPCRECT rcItem)
 
 			for (; i < c; i++)
 			{
-				const Sample& sample = cache->samples[i];
+				const Volume& volume = cache->volumes[i];
 				int x = (int)m_auin.FrameToX(i + m_currentDrawObject->frame_begin);
-				int y = cy - (int)(sample.level * scale);
+				int y = cy - (int)(volume.level * scale);
 
 				if (i != checkIndex && checkMin(points, x, y))
 					points.emplace_back(x, y);
@@ -456,9 +456,9 @@ void App::drawWaveform(HDC dc, LPCRECT rcClip, LPCRECT rcItem)
 
 			for (; i >= 0; i--)
 			{
-				const Sample& sample = cache->samples[i];
+				const Volume& volume = cache->volumes[i];
 				int x = (int)m_auin.FrameToX(i + m_currentDrawObject->frame_begin);
-				int y = cy + (int)(sample.level * scale);
+				int y = cy + (int)(volume.level * scale);
 
 				if (i != checkIndex && checkMax(points, x, y))
 					points.emplace_back(x, y);
@@ -487,9 +487,9 @@ void App::drawWaveform(HDC dc, LPCRECT rcClip, LPCRECT rcItem)
 
 			for (; i < c; i++)
 			{
-				const Sample& sample = cache->samples[i];
+				const Volume& volume = cache->volumes[i];
 				int x = (int)m_auin.FrameToX(i + m_currentDrawObject->frame_begin);
-				int y = rcItem->bottom - (int)(sample.level * scale);
+				int y = rcItem->bottom - (int)(volume.level * scale);
 
 				if (i != checkIndex && checkMin(points, x, y))
 					points.emplace_back(x, y);
@@ -524,9 +524,9 @@ void App::drawWaveform(HDC dc, LPCRECT rcClip, LPCRECT rcItem)
 
 			for (; i < c; i++)
 			{
-				const Sample& sample = cache->samples[i];
+				const Volume& volume = cache->volumes[i];
 				int x = (int)m_auin.FrameToX(i + m_currentDrawObject->frame_begin);
-				int y = rcItem->top + (int)(sample.level * scale);
+				int y = rcItem->top + (int)(volume.level * scale);
 
 				if (i != checkIndex && checkMax(points, x, y))
 					points.emplace_back(x, y);

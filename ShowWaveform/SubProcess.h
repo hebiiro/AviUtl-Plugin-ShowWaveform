@@ -24,11 +24,11 @@ struct SubProcess
 	struct WindowContainer : Container {
 		struct TimerID {
 			static const int Update = 1000;
-			static const int SendFullSamplesParams = 1001;
+			static const int SendTotalsParams = 1001;
 		};
-		FullSamplesParams m_delayedFullSampleParams;
+		TotalsParams m_delayedTotalsParams;
 		void delayedUpdate();
-		void delayedSendFullSamplesParams(const FullSamplesParams* params);
+		void delayedSendTotalsParams(const TotalsParams* params);
 		LRESULT onWndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam);
 	} m_windowContainer;
 

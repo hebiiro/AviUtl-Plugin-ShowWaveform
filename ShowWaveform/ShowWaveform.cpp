@@ -2,16 +2,6 @@
 #include "ShowWaveform.h"
 #include "App.h"
 
-//--------------------------------------------------------------------
-
-// デバッグ用コールバック関数。デバッグメッセージを出力する。
-void ___outputLog(LPCTSTR text, LPCTSTR output)
-{
-	::OutputDebugString(output);
-}
-
-//--------------------------------------------------------------------
-
 BOOL func_init(AviUtl::FilterPlugin* fp)
 {
 	return theApp.func_init(fp);
@@ -52,12 +42,10 @@ BOOL APIENTRY DllMain(HINSTANCE instance, DWORD reason, LPVOID reserved)
 	return theApp.DllMain(instance, reason, reserved);
 }
 
-//--------------------------------------------------------------------
-
 AviUtl::FilterPluginDLL* WINAPI GetFilterTable()
 {
 	LPCSTR name = "アイテム内音声波形";
-	LPCSTR information = "アイテム内音声波形 7.0.0 by 蛇色";
+	LPCSTR information = "アイテム内音声波形 7.2.0 by 蛇色";
 
 	static AviUtl::FilterPluginDLL filter =
 	{
@@ -82,5 +70,3 @@ AviUtl::FilterPluginDLL* WINAPI GetFilterTable()
 
 	return &filter;
 }
-
-//--------------------------------------------------------------------

@@ -7,7 +7,7 @@
 
 struct Cache {
 	std::string fileName;
-	std::vector<Sample> samples;
+	std::vector<Volume> volumes;
 };
 
 typedef std::shared_ptr<Cache> CachePtr;

@@ -7,7 +7,7 @@
 struct FileCache {
 	int32_t video_scale;
 	int32_t video_rate;
-	SampleArray samples;
+	VolumeArray volumes;
 };
 
 struct FileCacheManager {

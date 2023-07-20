@@ -6,15 +6,15 @@
 
 BOOL MainWindow::getShowBPM()
 {
-	return m_fullSamplesParams.showBPM;
+	return m_totalsParams.showBPM;
 }
 
 BOOL MainWindow::setShowBPM(BOOL showBPM)
 {
-	if (m_fullSamplesParams.showBPM == showBPM)
+	if (m_totalsParams.showBPM == showBPM)
 		return FALSE;
 
-	m_fullSamplesParams.showBPM = showBPM;
+	m_totalsParams.showBPM = showBPM;
 	redraw();
 	updateShared();
 
@@ -23,15 +23,15 @@ BOOL MainWindow::setShowBPM(BOOL showBPM)
 
 int MainWindow::getOrig()
 {
-	return m_fullSamplesParams.tempo.orig;
+	return m_totalsParams.tempo.orig;
 }
 
 BOOL MainWindow::setOrig(int orig)
 {
-	if (m_fullSamplesParams.tempo.orig == orig)
+	if (m_totalsParams.tempo.orig == orig)
 		return FALSE;
 
-	m_fullSamplesParams.tempo.orig = orig;
+	m_totalsParams.tempo.orig = orig;
 	redraw();
 	updateShared();
 
@@ -40,15 +40,15 @@ BOOL MainWindow::setOrig(int orig)
 
 int MainWindow::getBPM()
 {
-	return m_fullSamplesParams.tempo.bpm;
+	return m_totalsParams.tempo.bpm;
 }
 
 BOOL MainWindow::setBPM(int bpm)
 {
-	if (m_fullSamplesParams.tempo.bpm == bpm)
+	if (m_totalsParams.tempo.bpm == bpm)
 		return FALSE;
 
-	m_fullSamplesParams.tempo.bpm = bpm;
+	m_totalsParams.tempo.bpm = bpm;
 	redraw();
 	updateShared();
 
@@ -57,17 +57,17 @@ BOOL MainWindow::setBPM(int bpm)
 
 int MainWindow::getAbove()
 {
-	return m_fullSamplesParams.tempo.above;
+	return m_totalsParams.tempo.above;
 }
 
 BOOL MainWindow::setAbove(int above)
 {
 	above = std::max(1, above);
 
-	if (m_fullSamplesParams.tempo.above == above)
+	if (m_totalsParams.tempo.above == above)
 		return FALSE;
 
-	m_fullSamplesParams.tempo.above = above;
+	m_totalsParams.tempo.above = above;
 	redraw();
 	updateShared();
 
@@ -76,17 +76,17 @@ BOOL MainWindow::setAbove(int above)
 
 int MainWindow::getBelow()
 {
-	return m_fullSamplesParams.tempo.below;
+	return m_totalsParams.tempo.below;
 }
 
 BOOL MainWindow::setBelow(int below)
 {
 	below = std::max(1, below);
 
-	if (m_fullSamplesParams.tempo.below == below)
+	if (m_totalsParams.tempo.below == below)
 		return FALSE;
 
-	m_fullSamplesParams.tempo.below = below;
+	m_totalsParams.tempo.below = below;
 	redraw();
 	updateShared();
 
@@ -218,7 +218,7 @@ BOOL MainWindow::updateShared()
 {
 	MY_TRACE(_T("MainWindow::updateShared()\n"));
 
-	return shared.setReceiverFullSamplesParams(&m_fullSamplesParams);
+	return shared.setReceiverTotalsParams(&m_totalsParams);
 }
 
 //--------------------------------------------------------------------
