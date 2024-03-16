@@ -243,6 +243,9 @@ void App::load()
 	::PathAppendW(fileName, L"ShowWaveform.ini");
 	MY_TRACE_WSTR(fileName);
 
+	_bstr_t includeLayers = L"";
+	_bstr_t excludeLayers = L"";
+
 	getPrivateProfileColor(fileName, L"Config", L"penColor", m_penColor);
 	getPrivateProfileColor(fileName, L"Config", L"brushColor", m_brushColor);
 	getPrivateProfileInt(fileName, L"Config", L"scale", m_scale);
@@ -253,8 +256,14 @@ void App::load()
 	getPrivateProfileInt(fileName, L"Config", L"showText", m_showText);
 	getPrivateProfileInt(fileName, L"Config", L"noScrollText", m_noScrollText);
 	getPrivateProfileInt(fileName, L"Config", L"behind", m_behind);
+	getPrivateProfileBSTR(fileName, L"Config", L"includeLayers", includeLayers);
+	getPrivateProfileBSTR(fileName, L"Config", L"excludeLayers", excludeLayers);
+	getPrivateProfileBSTR(fileName, L"Config", L"excludeDir", m_excludeDir);
 	getPrivateProfileWindow(fileName, L"TotalsWindowContainer", m_subProcess.m_windowContainer.m_hwnd);
 	getPrivateProfileWindow(fileName, L"TotalsDialogContainer", m_subProcess.m_dialogContainer.m_hwnd);
+
+	text_to_set(m_includeLayers, includeLayers);
+	text_to_set(m_excludeLayers, excludeLayers);
 }
 
 void App::save()
@@ -279,6 +288,9 @@ void App::save()
 	setPrivateProfileInt(fileName, L"Config", L"showText", m_showText);
 	setPrivateProfileInt(fileName, L"Config", L"noScrollText", m_noScrollText);
 	setPrivateProfileInt(fileName, L"Config", L"behind", m_behind);
+	setPrivateProfileBSTR(fileName, L"Config", L"includeLayers", set_to_text(m_includeLayers));
+	setPrivateProfileBSTR(fileName, L"Config", L"excludeLayers", set_to_text(m_excludeLayers));
+	setPrivateProfileBSTR(fileName, L"Config", L"excludeDir", m_excludeDir);
 	setPrivateProfileWindow(fileName, L"TotalsWindowContainer", m_subProcess.m_windowContainer.m_hwnd);
 	setPrivateProfileWindow(fileName, L"TotalsDialogContainer", m_subProcess.m_dialogContainer.m_hwnd);
 }
@@ -332,6 +344,10 @@ BOOL App::createDialog()
 
 	HWND behind = ::GetDlgItem(m_mainDialog, IDC_BEHIND);
 	Button_SetCheck(behind, m_behind ? BST_CHECKED : BST_UNCHECKED);
+
+	::SetDlgItemText(m_mainDialog, IDC_INCLUDE_LAYERS, set_to_text(m_includeLayers));
+	::SetDlgItemText(m_mainDialog, IDC_EXCLUDE_LAYERS, set_to_text(m_excludeLayers));
+	::SetDlgItemText(m_mainDialog, IDC_EXCLUDE_DIR, m_excludeDir);
 
 	m_mainDialog.ignoreNotification(FALSE);
 
@@ -667,6 +683,67 @@ void App::setBehind(BOOL behind)
 
 	// 拡張編集ウィンドウを再描画する。
 	::InvalidateRect(m_auin.GetExEditWindow(), 0, FALSE);
+}
+
+void App::setIncludeLayers(LPCTSTR text)
+{
+	text_to_set(m_includeLayers, text);
+}
+
+void App::setExcludeLayers(LPCTSTR text)
+{
+	text_to_set(m_excludeLayers, text);
+}
+
+void App::setExcludeDir(LPCTSTR text)
+{
+	m_excludeDir = text;
+}
+
+_bstr_t App::set_to_text(const std::set<int>& set)
+{
+	_bstr_t text;
+
+	for (auto layer : set)
+	{
+		if (!text)
+			text = std::to_wstring(layer + 1).c_str();
+		else
+			text += (L"," + std::to_wstring(layer + 1)).c_str();
+	}
+
+	return text;
+}
+
+void App::text_to_set(std::set<int>& set, LPCTSTR text)
+{
+	set.clear();
+
+	std::stringstream stream(text);
+	std::string layer;
+	while (std::getline(stream, layer, ',')) {
+		set.emplace(_ttoi(layer.c_str()) - 1);
+	}
+}
+
+BOOL App::isCacheRequired(ExEdit::Object* object, const AudioParamsPtr& params)
+{
+	if (!m_includeLayers.empty())
+	{
+		if (!m_includeLayers.contains(object->layer_set))
+			return FALSE;
+	}
+
+	if (!m_excludeLayers.empty())
+	{
+		if (m_excludeLayers.contains(object->layer_set))
+			return FALSE;
+	}
+
+	if (::StrStrI(params->fileName, m_excludeDir))
+		return FALSE;
+
+	return TRUE;
 }
 
 //--------------------------------------------------------------------

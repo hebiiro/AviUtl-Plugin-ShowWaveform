@@ -103,7 +103,7 @@
       <AdditionalLibraryDirectories>../../</AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent>
-      <Command>copy /B /Y "$(TargetDir)$(TargetFileName)" "C:\AviUtl110_test\Plugins\$(SolutionName)\$(TargetFileName)"</Command>
+      <Command>copy /B /Y "$(TargetDir)$(TargetFileName)" "C:\MySpace\AviUtl\AviUtl110_test\Plugins\$(SolutionName)\$(TargetFileName)"</Command>
     </PostBuildEvent>
     <Manifest />
   </ItemDefinitionGroup>
@@ -128,7 +128,7 @@
       <AdditionalLibraryDirectories>../../</AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent>
-      <Command>copy /B /Y "$(TargetDir)$(TargetFileName)" "C:\AviUtl110_test\Plugins\$(SolutionName)\$(TargetFileName)"</Command>
+      <Command>copy /B /Y "$(TargetDir)$(TargetFileName)" "C:\MySpace\AviUtl\AviUtl110_test\Plugins\$(SolutionName)\$(TargetFileName)"</Command>
     </PostBuildEvent>
     <Manifest />
   </ItemDefinitionGroup>

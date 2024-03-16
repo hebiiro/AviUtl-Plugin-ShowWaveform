@@ -1,6 +1,6 @@
-//{{NO_DEPENDENCIES}}
-// Microsoft Visual C++ �Ő������ꂽ�C���N���[�h �t�@�C���B
-// OutProcess.rc �Ŏg�p
+﻿//{{NO_DEPENDENCIES}}
+// Microsoft Visual C++ で生成されたインクルード ファイル。
+// OutProcess.rc で使用
 //
 #define IDD_CONFIG_DIALOG               101
 #define IDC_SHOW_BPM                    1010

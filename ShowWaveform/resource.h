@@ -1,6 +1,6 @@
-//{{NO_DEPENDENCIES}}
-// Microsoft Visual C++ Ç≈ê∂ê¨Ç≥ÇÍÇΩÉCÉìÉNÉãÅ[Éh ÉtÉ@ÉCÉãÅB
-// ShowWaveform.rc Ç≈égóp
+Ôªø//{{NO_DEPENDENCIES}}
+// Microsoft Visual C++ „ÅßÁîüÊàê„Åï„Çå„Åü„Ç§„É≥„ÇØ„É´„Éº„Éâ „Éï„Ç°„Ç§„É´„ÄÇ
+// ShowWaveform.rc „Åß‰ΩøÁî®
 //
 #define IDD_MAIN_DIALOG                 101
 #define IDC_SHOW_TYPE                   1001
@@ -16,6 +16,10 @@
 #define IDC_SHOW_TEXT                   1011
 #define IDC_NO_SCROLL_TEXT              1012
 #define IDC_BEHIND                      1013
+#define IDC_INCLUDE_LAYERS              1014
+#define IDC_EXCLUDE_LAYERS              1015
+#define IDC_EXCLUDE_FOLDER              1016
+#define IDC_EXCLUDE_DIR                 1016
 
 // Next default values for new objects
 // 

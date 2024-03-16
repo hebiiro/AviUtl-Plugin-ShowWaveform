@@ -1,4 +1,4 @@
-#pragma once
+ï»¿#pragma once
 
 #include "ShowWaveform.h"
 
@@ -12,7 +12,7 @@ struct CacheRequest
 {
 	std::string fileName;
 
-	// ƒƒCƒ“ƒXƒŒƒbƒh‘¤‚Ìˆ—B
+	// ãƒ¡ã‚¤ãƒ³ã‚¹ãƒ¬ãƒƒãƒ‰å´ã®å‡¦ç†ã€‚
 	CacheRequest(LPCSTR fileName);
 };
 
@@ -28,7 +28,7 @@ struct SubThread
 
 	std::map<std::string, const CacheRequest*> cacheRequestMap;
 
-	// ƒTƒuƒXƒŒƒbƒh‘¤‚Ìˆ—B
+	// ã‚µãƒ–ã‚¹ãƒ¬ãƒƒãƒ‰å´ã®å‡¦ç†ã€‚
 	SubThread();
 	~SubThread();
 	void onPostCacheRequest(const CacheRequest* cacheRequest);
@@ -46,7 +46,7 @@ struct SubThreadManager
 	DWORD m_tid = 0;
 	Handle m_handle;
 
-	// ƒƒCƒ“ƒXƒŒƒbƒh‘¤‚Ìˆ—B
+	// ãƒ¡ã‚¤ãƒ³ã‚¹ãƒ¬ãƒƒãƒ‰å´ã®å‡¦ç†ã€‚
 	BOOL init(AviUtl::FilterPlugin* fp);
 	BOOL exit(AviUtl::FilterPlugin* fp);
 	BOOL requestCache(LPCSTR fileName);
@@ -56,7 +56,7 @@ struct SubThreadManager
 	BOOL requestClear();
 	BOOL requestRedraw();
 
-	// ƒTƒuƒXƒŒƒbƒh‘¤‚Ìˆ—B
+	// ã‚µãƒ–ã‚¹ãƒ¬ãƒƒãƒ‰å´ã®å‡¦ç†ã€‚
 	static DWORD CALLBACK threadProc(LPVOID param);
 };
 

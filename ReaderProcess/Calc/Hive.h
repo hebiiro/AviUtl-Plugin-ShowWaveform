@@ -1,10 +1,10 @@
-#pragma once
+﻿#pragma once
 
 namespace Calc
 {
 #pragma pack(1)
 	//
-	// ���̍\���̂� 24bit �����v�Z���s�����߂Ɏg�p����܂��B
+	// この構造体は 24bit 整数計算を行うために使用されます。
 	//
 	struct int24_t {
 		BYTE n[3];
@@ -18,23 +18,23 @@ namespace Calc
 #pragma pack()
 
 	//
-	// ���̃N���X�͌v�Z�ɕK�v�ȕϐ���ێ����܂��B
+	// このクラスは計算に必要な変数を保持します。
 	//
 	inline struct Hive
 	{
 		//
-		// �v�Z���ʂ��i�[���邽�߂̕ϐ��ł��B
+		// 計算結果を格納するための変数です。
 		//
 		ReaderBottle* bottle;
 
 		//
-		// �v�Z�ɕK�v�ȕϐ��ł��B
+		// 計算に必要な変数です。
 		//
 		WAVEFORMATEX audio_format;
 
 		//
-		// �v�Z�����s����O�ɂ��̊֐����Ăяo����
-		// �v�Z���ʂ��i�[����{�g�����Z�b�g���Ă��������B
+		// 計算を実行する前にこの関数を呼び出して
+		// 計算結果を格納するボトルをセットしてください。
 		//
 		void setBottle(ReaderBottle* bottle)
 		{
@@ -42,8 +42,8 @@ namespace Calc
 		}
 
 		//
-		// �v�Z�����s����O�ɂ��̊֐����Ăяo����
-		// �v�Z�ɕK�v�ȃI�[�f�B�I�t�H�[�}�b�g���Z�b�g���Ă��������B
+		// 計算を実行する前にこの関数を呼び出して
+		// 計算に必要なオーディオフォーマットをセットしてください。
 		//
 		void setAudioFormat(const WAVEFORMATEX& audio_format)
 		{

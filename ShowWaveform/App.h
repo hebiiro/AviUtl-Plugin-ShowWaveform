@@ -60,6 +60,9 @@ struct App
 	BOOL m_showText = TRUE;
 	BOOL m_noScrollText = TRUE;
 	BOOL m_behind = FALSE;
+	std::set<int> m_includeLayers;
+	std::set<int> m_excludeLayers;
+	_bstr_t m_excludeDir = L"";
 
 	App();
 	~App();
@@ -94,6 +97,14 @@ struct App
 	void setShowText(BOOL showText);
 	void setNoScrollText(BOOL noScrollText);
 	void setBehind(BOOL behind);
+	void setIncludeLayers(LPCTSTR text);
+	void setExcludeLayers(LPCTSTR text);
+	void setExcludeDir(LPCTSTR text);
+
+	_bstr_t set_to_text(const std::set<int>& set);
+	void text_to_set(std::set<int>& set, LPCTSTR text);
+
+	BOOL isCacheRequired(ExEdit::Object* object, const AudioParamsPtr& params);
 };
 
 extern App theApp;

@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include "CacheManager.h"
 #include "ReaderManager.h"

@@ -22,6 +22,8 @@
 #include <vector>
 #include <map>
 #include <set>
+#include <sstream>
+#include <istream>
 
 #include "AviUtl/aviutl_exedit_sdk/aviutl.hpp"
 #include "AviUtl/aviutl_exedit_sdk/exedit.hpp"

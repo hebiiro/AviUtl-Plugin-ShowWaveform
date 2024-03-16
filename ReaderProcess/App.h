@@ -1,4 +1,4 @@
-#pragma once
+ï»¿#pragma once
 
 #include "Plugin.h"
 #include "Calc/Hive.h"
@@ -19,14 +19,14 @@ inline struct App
 
 		m_instance = instance;
 
-		// ƒNƒ‰ƒCƒAƒ“ƒgƒvƒƒZƒX‚ÌƒEƒBƒ“ƒhƒEƒnƒ“ƒhƒ‹‚ğæ“¾‚·‚éB
+		// ã‚¯ãƒ©ã‚¤ã‚¢ãƒ³ãƒˆãƒ—ãƒ­ã‚»ã‚¹ã®ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ãƒãƒ³ãƒ‰ãƒ«ã‚’å–å¾—ã™ã‚‹ã€‚
 		m_client = (HWND)_tcstoul(::GetCommandLine(), 0, 0);
 		MY_TRACE_HEX(m_client);
 		if (!m_client) return FALSE;
 
-		// ‚±‚±‚ÍƒNƒ‰ƒCƒAƒ“ƒgƒvƒƒZƒX‚æ‚èæ‚Éˆ—‚³‚ê‚é‰Â”\«‚ª‚ ‚éB
-		// ‚»‚Ìê‡AƒCƒxƒ“ƒg‚ÌƒI[ƒvƒ“‚É‚Í¸”s‚µ‚Ä‚à‚æ‚¢B
-		// ‹¤—Lƒƒ‚ƒŠ‚ÌŠm•Û‚Í¬Œ÷‚·‚é‚Ì‚ª‘O’ñ‚È‚Ì‚Å open() ‚Íg—p‚Å‚«‚È‚¢B
+		// ã“ã“ã¯ã‚¯ãƒ©ã‚¤ã‚¢ãƒ³ãƒˆãƒ—ãƒ­ã‚»ã‚¹ã‚ˆã‚Šå…ˆã«å‡¦ç†ã•ã‚Œã‚‹å¯èƒ½æ€§ãŒã‚ã‚‹ã€‚
+		// ãã®å ´åˆã€ã‚¤ãƒ™ãƒ³ãƒˆã®ã‚ªãƒ¼ãƒ—ãƒ³ã«ã¯å¤±æ•—ã—ã¦ã‚‚ã‚ˆã„ã€‚
+		// å…±æœ‰ãƒ¡ãƒ¢ãƒªã®ç¢ºä¿ã¯æˆåŠŸã™ã‚‹ã®ãŒå‰æãªã®ã§ open() ã¯ä½¿ç”¨ã§ããªã„ã€‚
 
 		DWORD tid = ::GetCurrentThreadId();
 		m_event.open(EVENT_ALL_ACCESS, FALSE, getReaderEventName(tid));
@@ -67,38 +67,38 @@ inline struct App
 	}
 
 	//
-	// “ü—Íƒvƒ‰ƒOƒCƒ“‚©‚ç‰¹ºM†‚ğó‚¯æ‚è‚Ü‚·B
-	// “¯•Às‚µ‚Ä‰¹—Ê‚ğZo‚µ‚Ü‚·B
+	// å…¥åŠ›ãƒ—ãƒ©ã‚°ã‚¤ãƒ³ã‹ã‚‰éŸ³å£°ä¿¡å·ã‚’å—ã‘å–ã‚Šã¾ã™ã€‚
+	// åŒæ™‚ä¸¦è¡Œã—ã¦éŸ³é‡ã‚’ç®—å‡ºã—ã¾ã™ã€‚
 	//
 	BOOL receive()
 	{
 		MY_TRACE(_T("App::receive()\n"));
 
-		// ƒCƒxƒ“ƒg‚ª”­¶‚·‚é‚Ü‚Å‘Ò‚ÂB
+		// ã‚¤ãƒ™ãƒ³ãƒˆãŒç™ºç”Ÿã™ã‚‹ã¾ã§å¾…ã¤ã€‚
 		if (m_event)
 			::WaitForSingleObject(m_event, INFINITE);
 
-		// ‹¤—Lƒƒ‚ƒŠ‚ğæ“¾‚·‚éB
+		// å…±æœ‰ãƒ¡ãƒ¢ãƒªã‚’å–å¾—ã™ã‚‹ã€‚
 		ReaderBottle* shared = m_shared.getBuffer();
 		if (!shared) return FALSE;
 
-		// “ü—Íƒvƒ‰ƒOƒCƒ“‚ÌƒCƒ“ƒ^[ƒtƒFƒCƒX‚ğæ“¾‚·‚éB
+		// å…¥åŠ›ãƒ—ãƒ©ã‚°ã‚¤ãƒ³ã®ã‚¤ãƒ³ã‚¿ãƒ¼ãƒ•ã‚§ã‚¤ã‚¹ã‚’å–å¾—ã™ã‚‹ã€‚
 		AviUtl::InputPluginDLL* ip = m_plugin->getInputPlugin();
 		MY_TRACE_HEX(ip);
 		if (!ip) return FALSE;
 
-		// ƒƒfƒBƒA‚ğŠJ‚­B
+		// ãƒ¡ãƒ‡ã‚£ã‚¢ã‚’é–‹ãã€‚
 		Input::MediaPtr media = std::make_shared<Input::Media>(m_plugin, shared->fileName);
 
-		// ƒƒfƒBƒA‚Ìƒnƒ“ƒhƒ‹‚ğæ“¾‚·‚éB
+		// ãƒ¡ãƒ‡ã‚£ã‚¢ã®ãƒãƒ³ãƒ‰ãƒ«ã‚’å–å¾—ã™ã‚‹ã€‚
 		AviUtl::InputHandle handle = media->getInputHandle();
 		MY_TRACE_HEX(handle);
 		if (!handle) return FALSE;
 
-		// ƒƒfƒBƒAî•ñ‚ğæ“¾‚·‚éB
+		// ãƒ¡ãƒ‡ã‚£ã‚¢æƒ…å ±ã‚’å–å¾—ã™ã‚‹ã€‚
 		MediaInfo* mi = media->getMediaInfo();
 
-		// ƒoƒbƒtƒ@‚ÌƒTƒCƒY‚ğZo‚µAƒoƒbƒtƒ@‚ğŠm•Û‚·‚éB
+		// ãƒãƒƒãƒ•ã‚¡ã®ã‚µã‚¤ã‚ºã‚’ç®—å‡ºã—ã€ãƒãƒƒãƒ•ã‚¡ã‚’ç¢ºä¿ã™ã‚‹ã€‚
 		int32_t start = 0;
 		int32_t length = mi->audio_format.nSamplesPerSec / Volume::Resolution;
 		int32_t bufferSize = length * mi->audio_format.nBlockAlign;
@@ -112,64 +112,64 @@ inline struct App
 		MY_TRACE_INT(length);
 		MY_TRACE_INT(bufferSize);
 
-		// “ü—Íƒvƒ‰ƒOƒCƒ“‚ğg—p‚µ‚Ä‰¹ºM†‚ğ“Ç‚İ‚ŞB
+		// å…¥åŠ›ãƒ—ãƒ©ã‚°ã‚¤ãƒ³ã‚’ä½¿ç”¨ã—ã¦éŸ³å£°ä¿¡å·ã‚’èª­ã¿è¾¼ã‚€ã€‚
 
 		DWORD startTime = ::timeGetTime();
 
-		// ŒvZ‚É•K—v‚Èƒf[ƒ^‚ğƒnƒCƒu‚ÉŠi”[‚µ‚Ä‚¨‚­B
+		// è¨ˆç®—ã«å¿…è¦ãªãƒ‡ãƒ¼ã‚¿ã‚’ãƒã‚¤ãƒ–ã«æ ¼ç´ã—ã¦ãŠãã€‚
 		Calc::hive.setBottle(shared);
 		Calc::hive.setAudioFormat(mi->audio_format);
 
-		// ƒ[ƒN‚Ì”z—ñB
+		// ãƒ¯ãƒ¼ã‚¯ã®é…åˆ—ã€‚
 		std::vector<PTP_WORK> works(Volume::MaxCount);
 
-		// “Ç‚İ‚ñ‚¾ƒtƒŒ[ƒ€”B
+		// èª­ã¿è¾¼ã‚“ã ãƒ•ãƒ¬ãƒ¼ãƒ æ•°ã€‚
 		int c = Volume::MaxCount;
 
-		// Å‘åƒtƒŒ[ƒ€”‚Ü‚Åƒ‹[ƒv‚·‚éB
-		// ‚½‚¾‚µA“Ç‚İ‚Ş‰¹ºM†‚ª‚È‚­‚È‚Á‚½ê‡‚Í‚»‚±‚Åƒ‹[ƒv‚ÍI—¹‚·‚éB
+		// æœ€å¤§ãƒ•ãƒ¬ãƒ¼ãƒ æ•°ã¾ã§ãƒ«ãƒ¼ãƒ—ã™ã‚‹ã€‚
+		// ãŸã ã—ã€èª­ã¿è¾¼ã‚€éŸ³å£°ä¿¡å·ãŒãªããªã£ãŸå ´åˆã¯ãã“ã§ãƒ«ãƒ¼ãƒ—ã¯çµ‚äº†ã™ã‚‹ã€‚
 		for (int i = 0; i < Volume::MaxCount; i++)
 		{
-			// ‰¹ºM†‚ğó‚¯æ‚é‚½‚ß‚Ìƒoƒbƒtƒ@‚ğŠm•Û‚·‚éB
+			// éŸ³å£°ä¿¡å·ã‚’å—ã‘å–ã‚‹ãŸã‚ã®ãƒãƒƒãƒ•ã‚¡ã‚’ç¢ºä¿ã™ã‚‹ã€‚
 			Calc::BufferPtr buffer = std::make_shared<Calc::Buffer>(bufferSize);
 
-			// AviUtl ‚Ì“ü—Íƒvƒ‰ƒOƒCƒ“‚ğg—p‚µ‚Ä‰¹ºM†‚ğæ“¾‚·‚éB
+			// AviUtl ã®å…¥åŠ›ãƒ—ãƒ©ã‚°ã‚¤ãƒ³ã‚’ä½¿ç”¨ã—ã¦éŸ³å£°ä¿¡å·ã‚’å–å¾—ã™ã‚‹ã€‚
 			int32_t read = ip->func_read_audio(handle, start, length, buffer->data());
 
-			if (read == 0) // ‰¹ºM†‚ğ“Ç‚İ‚ß‚È‚©‚Á‚½ê‡‚Í
+			if (read == 0) // éŸ³å£°ä¿¡å·ã‚’èª­ã¿è¾¼ã‚ãªã‹ã£ãŸå ´åˆã¯
 			{
-				c = i; // “Ç‚İ‚ñ‚¾ƒtƒŒ[ƒ€”‚ğƒZƒbƒg‚µ‚Ä‚©‚ç
+				c = i; // èª­ã¿è¾¼ã‚“ã ãƒ•ãƒ¬ãƒ¼ãƒ æ•°ã‚’ã‚»ãƒƒãƒˆã—ã¦ã‹ã‚‰
 
-				break; // ƒ‹[ƒv‚ğI—¹‚·‚éB
+				break; // ãƒ«ãƒ¼ãƒ—ã‚’çµ‚äº†ã™ã‚‹ã€‚
 			}
 
-			// “Ç‚İæ‚Á‚½•ª‚¾‚¯ start ‚ği‚ß‚éB
+			// èª­ã¿å–ã£ãŸåˆ†ã ã‘ start ã‚’é€²ã‚ã‚‹ã€‚
 			start += read;
 
-			// ƒoƒbƒtƒ@‚ÌƒTƒCƒY‚ğ“Ç‚İæ‚Á‚½•ª‚¾‚¯‚É‚·‚éB
+			// ãƒãƒƒãƒ•ã‚¡ã®ã‚µã‚¤ã‚ºã‚’èª­ã¿å–ã£ãŸåˆ†ã ã‘ã«ã™ã‚‹ã€‚
 			buffer->resize(read * mi->audio_format.nBlockAlign);
 
-			// ƒ[ƒJ[‚ğì¬‚·‚éB
+			// ãƒ¯ãƒ¼ã‚«ãƒ¼ã‚’ä½œæˆã™ã‚‹ã€‚
 			Calc::Worker* worker = Calc::Worker::create(i, buffer);
 
-			// ƒXƒŒƒbƒhƒv[ƒ‹ƒ[ƒN‚ğì¬‚·‚éB
+			// ã‚¹ãƒ¬ãƒƒãƒ‰ãƒ—ãƒ¼ãƒ«ãƒ¯ãƒ¼ã‚¯ã‚’ä½œæˆã™ã‚‹ã€‚
 			works[i] = ::CreateThreadpoolWork(Calc::Worker::WorkCallback, worker, 0);
 
-			// ƒXƒŒƒbƒhƒv[ƒ‹ƒ[ƒN‚ğŠJn‚·‚éB
+			// ã‚¹ãƒ¬ãƒƒãƒ‰ãƒ—ãƒ¼ãƒ«ãƒ¯ãƒ¼ã‚¯ã‚’é–‹å§‹ã™ã‚‹ã€‚
 			::SubmitThreadpoolWork(works[i]);
 
-			if (read < length) // ‰¹ºM†‚ª‘z’è‚æ‚è­‚È‚©‚Á‚½ê‡‚Í
+			if (read < length) // éŸ³å£°ä¿¡å·ãŒæƒ³å®šã‚ˆã‚Šå°‘ãªã‹ã£ãŸå ´åˆã¯
 			{
-				c = i + 1; // “Ç‚İ‚ñ‚¾ƒtƒŒ[ƒ€”‚ğƒZƒbƒg‚µ‚Ä‚©‚ç
+				c = i + 1; // èª­ã¿è¾¼ã‚“ã ãƒ•ãƒ¬ãƒ¼ãƒ æ•°ã‚’ã‚»ãƒƒãƒˆã—ã¦ã‹ã‚‰
 
-				break; // ƒ‹[ƒv‚ğI—¹‚·‚éB
+				break; // ãƒ«ãƒ¼ãƒ—ã‚’çµ‚äº†ã™ã‚‹ã€‚
 			}
 		}
 
-		// “Ç‚İ‚ñ‚¾ƒtƒŒ[ƒ€”B
+		// èª­ã¿è¾¼ã‚“ã ãƒ•ãƒ¬ãƒ¼ãƒ æ•°ã€‚
 		shared->volumeCount = c;
 
-		// “Ç‚İ‚ñ‚¾ƒtƒŒ[ƒ€”‚Ì•ª‚¾‚¯AƒXƒŒƒbƒhƒv[ƒ‹ƒ[ƒN‚ÌI—¹‚ğ‘Ò‚ÂB
+		// èª­ã¿è¾¼ã‚“ã ãƒ•ãƒ¬ãƒ¼ãƒ æ•°ã®åˆ†ã ã‘ã€ã‚¹ãƒ¬ãƒƒãƒ‰ãƒ—ãƒ¼ãƒ«ãƒ¯ãƒ¼ã‚¯ã®çµ‚äº†ã‚’å¾…ã¤ã€‚
 		for (int i = 0; i < c; i++)
 		{
 			::WaitForThreadpoolWorkCallbacks(works[i], FALSE);
@@ -178,19 +178,19 @@ inline struct App
 
 		DWORD endTime = ::timeGetTime();
 
-		MY_TRACE(_T("Š—vŠÔ = %f•b\n"), (endTime - startTime) / 1000.0);
+		MY_TRACE(_T("æ‰€è¦æ™‚é–“ = %fç§’\n"), (endTime - startTime) / 1000.0);
 
 		return TRUE;
 	}
 
 	//
-	// ƒNƒ‰ƒCƒAƒ“ƒgƒvƒƒZƒX‚ÉZo‚µ‚½‰¹—Ê‚ğ‘—‚è‚Ü‚·B(ó‚¯æ‚é‚æ‚¤‚É‘£‚µ‚Ü‚·)
+	// ã‚¯ãƒ©ã‚¤ã‚¢ãƒ³ãƒˆãƒ—ãƒ­ã‚»ã‚¹ã«ç®—å‡ºã—ãŸéŸ³é‡ã‚’é€ã‚Šã¾ã™ã€‚(å—ã‘å–ã‚‹ã‚ˆã†ã«ä¿ƒã—ã¾ã™)
 	//
 	BOOL send()
 	{
 		MY_TRACE(_T("App::send()\n"));
 
-		DWORD id = ::GetCurrentThreadId(); // ‹¤—Lƒƒ‚ƒŠ‚ğ¯•Ê‚·‚é‚½‚ß‚É•K—v‚Å‚·B
+		DWORD id = ::GetCurrentThreadId(); // å…±æœ‰ãƒ¡ãƒ¢ãƒªã‚’è­˜åˆ¥ã™ã‚‹ãŸã‚ã«å¿…è¦ã§ã™ã€‚
 
 		return ::PostMessage(m_client, WM_AVIUTL_FILTER_RECEIVE, (WPARAM)id, 0);
 	}

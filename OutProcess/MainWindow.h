@@ -1,4 +1,4 @@
-#pragma once
+ï»¿#pragma once
 
 #include "OutProcess.h"
 #include "Design.h"
@@ -129,7 +129,7 @@ struct MainWindow
 	int m_minRMS = -33;
 	int m_maxRMS = 14;
 	int m_baseRMS = 0;
-	int m_zoom = 0; // ƒOƒ‰ƒt‚Ì˜_—•‚ğ‘‰Á‚³‚¹‚éB
+	int m_zoom = 0; // ã‚°ãƒ©ãƒ•ã®è«–ç†å¹…ã‚’å¢—åŠ ã•ã›ã‚‹ã€‚
 	HorzScaleSettings m_horzScaleSettings = {
 		HorzScaleSettings::VisibleStyle::both,
 		HorzScaleSettings::LineStyle::side,

@@ -96,6 +96,9 @@ ItemCachePtr ItemCacheManager::update(BOOL send, ExEdit::Object* object)
 	AudioParamsPtr params = getAudioParams(object);
 	if (!params) return 0;
 
+	// このオブジェクトのキャッシュが要求されているかチェックする。
+	if (!theApp.isCacheRequired(object, params)) return FALSE;
+
 	// ファイルキャシュを取得する。
 	FileCachePtr fileCache = theApp.m_fileCacheManager.getCache(params->fileName, send);
 	if (!fileCache) return 0; // ファイルキャッシュが作成されるまでは何もできない。

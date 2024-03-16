@@ -122,6 +122,39 @@ INT_PTR MainDialog::onDlgProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPa
 
 					break;
 				}
+			case IDC_INCLUDE_LAYERS:
+				{
+					if (code == EN_UPDATE && !m_ignoreNotification)
+					{
+						TCHAR text[MAX_PATH] = {};
+						::GetDlgItemText(hwnd, id, text, std::size(text));
+						theApp.setIncludeLayers(text);
+					}
+
+					break;
+				}
+			case IDC_EXCLUDE_LAYERS:
+				{
+					if (code == EN_UPDATE && !m_ignoreNotification)
+					{
+						TCHAR text[MAX_PATH] = {};
+						::GetDlgItemText(hwnd, id, text, std::size(text));
+						theApp.setExcludeLayers(text);
+					}
+
+					break;
+				}
+			case IDC_EXCLUDE_DIR:
+				{
+					if (code == EN_UPDATE && !m_ignoreNotification)
+					{
+						TCHAR text[MAX_PATH] = {};
+						::GetDlgItemText(hwnd, id, text, std::size(text));
+						theApp.setExcludeDir(text);
+					}
+
+					break;
+				}
 			}
 
 			break;
