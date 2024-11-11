@@ -34,15 +34,15 @@
 
 #include "NanoVG/nanovg.h"
 #pragma comment(lib, "NanoVG/NanoVGd32.lib")
-#include "AviUtl/aviutl_exedit_sdk/aviutl.hpp"
-#include "AviUtl/aviutl_exedit_sdk/exedit.hpp"
+#include "aviutl.hpp"
+#include "exedit.hpp"
 #include "Common/Tracer.h"
 #include "Common/WinUtility.h"
 #include "Common/Gdi.h"
 #include "Common/Dialog.h"
 #include "Common/Profile.h"
 #include "Common/FileUpdateChecker.h"
-#include "ShowWaveform/ShowWaveform/Share.h"
+#include "../ShowWaveform/Share.h"
 
 //#ifdef _UNICODE
 #if defined _M_IX86

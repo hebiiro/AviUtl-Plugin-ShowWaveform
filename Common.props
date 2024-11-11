@@ -1,7 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ImportGroup Label="PropertySheets" />
-  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Label="UserMacros">
+    <my_source>$(UserProfile)\source</my_source>
+    <my_packages>$(my_source)\packages</my_packages>
+  </PropertyGroup>
   <PropertyGroup>
     <OutDir>$(SolutionDir)_bin\</OutDir>
     <IntDir>$(SolutionDir)_obj\$(PlatformTarget)\$(Configuration)\$(ProjectName)\</IntDir>
@@ -14,7 +17,18 @@
   <ItemDefinitionGroup>
     <ClCompile>
       <ObjectFileName>$(IntDir)</ObjectFileName>
+      <AdditionalIncludeDirectories>$(my_packages)\detours.4.0.1;$(my_packages)\glad.2.0.4;$(my_packages)\nanovg.rgb2hsv;$(my_packages)\aviutl_exedit_sdk;$(my_packages)\my;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
+    <Link>
+      <AdditionalLibraryDirectories>$(my_packages)\detours.4.0.1;$(my_packages)\nanovg.rgb2hsv;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+    </Link>
   </ItemDefinitionGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <BuildMacro Include="my_source">
+      <Value>$(my_source)</Value>
+    </BuildMacro>
+    <BuildMacro Include="my_packages">
+      <Value>$(my_packages)</Value>
+    </BuildMacro>
+  </ItemGroup>
 </Project>
