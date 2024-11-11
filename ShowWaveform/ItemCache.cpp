@@ -4,9 +4,9 @@
 
 //---------------------------------------------------------------------
 
-ItemCachePtr ItemCacheManager::getCache(ExEdit::Object* object)
+ItemCachePtr ItemCacheManager::getCache(int32_t object_index)
 {
-	auto it = cacheMap.find(object);
+	auto it = cacheMap.find(object_index);
 	if (it == cacheMap.end()) return 0;
 	return it->second;
 }
@@ -20,7 +20,7 @@ BOOL ItemCacheManager::update(BOOL send)
 	// 無効なキャッシュを削除する。
 	for (auto it = cacheMap.begin(); it != cacheMap.end();)
 	{
-		ExEdit::Object* object = it->first;
+		auto object = theApp.m_auin.GetObject(it->first);
 
 		if (!(object->flag & ExEdit::Object::Flag::Exist) ||
 			!(object->flag & ExEdit::Object::Flag::Sound))
@@ -48,8 +48,12 @@ BOOL ItemCacheManager::update(BOOL send)
 		if (!(object->flag & ExEdit::Object::Flag::Sound))
 			continue; // 音声波形を取得できるのはサウンドタイプのアイテムのみ。
 
+		// オブジェクトのインデックスを取得します。
+		auto object_index = theApp.m_auin.get_object_index(object);
+		if (object_index < 0) continue;
+
 		// すでにキャッシュが作成済みなら
-		auto it = cacheMap.find(object);
+		auto it = cacheMap.find(object_index);
 		if (it != cacheMap.end())
 		{
 			ItemCachePtr cache = it->second;
@@ -60,7 +64,7 @@ BOOL ItemCacheManager::update(BOOL send)
 		}
 
 		// キャッシュを更新する。
-		ItemCachePtr cache = update(send, object);
+		ItemCachePtr cache = update(send, object_index, object);
 		if (cache)
 		{
 			updateItems.emplace_back(cache->params);
@@ -88,9 +92,9 @@ BOOL ItemCacheManager::update(BOOL send)
 	return TRUE;
 }
 
-ItemCachePtr ItemCacheManager::update(BOOL send, ExEdit::Object* object)
+ItemCachePtr ItemCacheManager::update(BOOL send, int32_t object_index, ExEdit::Object* object)
 {
-	MY_TRACE(_T("ItemCacheManager::update(%d, 0x%08X)\n"), send, object);
+	MY_TRACE(_T("ItemCacheManager::update(%d, %d, 0x%08X)\n"), send, object_index, object);
 
 	// 音声アイテムのパラメータを取得する。
 	AudioParamsPtr params = getAudioParams(object);
@@ -105,7 +109,7 @@ ItemCachePtr ItemCacheManager::update(BOOL send, ExEdit::Object* object)
 
 	// アイテムキャッシュを作成する。
 	ItemCachePtr itemCache = std::make_shared<ItemCache>();
-	cacheMap[object] = itemCache;
+	cacheMap[object_index] = itemCache;
 
 	// オブジェクトの状態を保存しておく。
 	itemCache->params = params;

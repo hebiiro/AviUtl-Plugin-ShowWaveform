@@ -412,12 +412,15 @@ void App::drawWaveform(HDC dc, LPCRECT rcClip, LPCRECT rcItem)
 {
 	MY_TRACE(_T("App::drawWaveform()\n"));
 
-	if (!m_currentDrawObject) return;
+	if (!m_drawing_object_index) return;
 	if (!m_fi.video_scale) return;
 	if (!m_fi.video_rate) return;
 
-	ItemCachePtr cache = m_itemCacheManager.getCache(m_currentDrawObject);
+	ItemCachePtr cache = m_itemCacheManager.getCache(m_drawing_object_index);
 	if (!cache) return;
+
+	auto object = m_auin.GetObject(m_drawing_object_index);
+	if (!object) return;
 
 	int scale = std::max(1, m_scale);
 
@@ -442,7 +445,7 @@ void App::drawWaveform(HDC dc, LPCRECT rcClip, LPCRECT rcItem)
 
 			for (; i < c; i++)
 			{
-				int x = (int)m_auin.FrameToX(i + m_currentDrawObject->frame_begin);
+				int x = (int)m_auin.FrameToX(i + object->frame_begin);
 
 				if (x > rcClip->left) break;
 			}
@@ -452,7 +455,7 @@ void App::drawWaveform(HDC dc, LPCRECT rcClip, LPCRECT rcItem)
 			for (; i < c; i++)
 			{
 				const Volume& volume = cache->volumes[i];
-				int x = (int)m_auin.FrameToX(i + m_currentDrawObject->frame_begin);
+				int x = (int)m_auin.FrameToX(i + object->frame_begin);
 				int y = cy - (int)(volume.level * scale);
 
 				if (i != checkIndex && checkMin(points, x, y))
@@ -461,7 +464,7 @@ void App::drawWaveform(HDC dc, LPCRECT rcClip, LPCRECT rcItem)
 				if (x > rcClip->right) break;
 			}
 
-			int lx = (int)m_auin.FrameToX(i + m_currentDrawObject->frame_begin);
+			int lx = (int)m_auin.FrameToX(i + object->frame_begin);
 			lx = std::min<int>(lx, rcClip->right);
 
 			points.emplace_back(lx, points.back().y);
@@ -473,7 +476,7 @@ void App::drawWaveform(HDC dc, LPCRECT rcClip, LPCRECT rcItem)
 			for (; i >= 0; i--)
 			{
 				const Volume& volume = cache->volumes[i];
-				int x = (int)m_auin.FrameToX(i + m_currentDrawObject->frame_begin);
+				int x = (int)m_auin.FrameToX(i + object->frame_begin);
 				int y = cy + (int)(volume.level * scale);
 
 				if (i != checkIndex && checkMax(points, x, y))
@@ -494,7 +497,7 @@ void App::drawWaveform(HDC dc, LPCRECT rcClip, LPCRECT rcItem)
 
 			for (; i < c; i++)
 			{
-				int x = (int)m_auin.FrameToX(i + m_currentDrawObject->frame_begin);
+				int x = (int)m_auin.FrameToX(i + object->frame_begin);
 
 				if (x > rcClip->left) break;
 			}
@@ -504,7 +507,7 @@ void App::drawWaveform(HDC dc, LPCRECT rcClip, LPCRECT rcItem)
 			for (; i < c; i++)
 			{
 				const Volume& volume = cache->volumes[i];
-				int x = (int)m_auin.FrameToX(i + m_currentDrawObject->frame_begin);
+				int x = (int)m_auin.FrameToX(i + object->frame_begin);
 				int y = rcItem->bottom - (int)(volume.level * scale);
 
 				if (i != checkIndex && checkMin(points, x, y))
@@ -513,7 +516,7 @@ void App::drawWaveform(HDC dc, LPCRECT rcClip, LPCRECT rcItem)
 				if (x > rcClip->right) break;
 			}
 
-			int lx = (int)m_auin.FrameToX(i + m_currentDrawObject->frame_begin);
+			int lx = (int)m_auin.FrameToX(i + object->frame_begin);
 			lx = std::min<int>(lx, rcClip->right);
 
 			points.emplace_back(lx, points.back().y);
@@ -531,7 +534,7 @@ void App::drawWaveform(HDC dc, LPCRECT rcClip, LPCRECT rcItem)
 
 			for (; i < c; i++)
 			{
-				int x = (int)m_auin.FrameToX(i + m_currentDrawObject->frame_begin);
+				int x = (int)m_auin.FrameToX(i + object->frame_begin);
 
 				if (x > rcClip->left) break;
 			}
@@ -541,7 +544,7 @@ void App::drawWaveform(HDC dc, LPCRECT rcClip, LPCRECT rcItem)
 			for (; i < c; i++)
 			{
 				const Volume& volume = cache->volumes[i];
-				int x = (int)m_auin.FrameToX(i + m_currentDrawObject->frame_begin);
+				int x = (int)m_auin.FrameToX(i + object->frame_begin);
 				int y = rcItem->top + (int)(volume.level * scale);
 
 				if (i != checkIndex && checkMax(points, x, y))
@@ -550,7 +553,7 @@ void App::drawWaveform(HDC dc, LPCRECT rcClip, LPCRECT rcItem)
 				if (x > rcClip->right) break;
 			}
 
-			int lx = (int)m_auin.FrameToX(i + m_currentDrawObject->frame_begin);
+			int lx = (int)m_auin.FrameToX(i + object->frame_begin);
 			lx = std::min<int>(lx, rcClip->right);
 
 			points.emplace_back(lx, points.back().y);
@@ -753,10 +756,10 @@ IMPLEMENT_HOOK_PROC_NULL(void, CDECL, DrawObject, (HDC dc, int objectIndex))
 	MY_TRACE(_T("DrawObject(%d)\n"), objectIndex);
 
 	// 描画オブジェクトを保存しておく。
-	theApp.m_currentDrawObject = theApp.m_auin.GetObject(objectIndex);
+	theApp.m_drawing_object_index = objectIndex;
 	true_DrawObject(dc, objectIndex);
 	// 描画オブジェクトをクリアする。
-	theApp.m_currentDrawObject = 0;
+	theApp.m_drawing_object_index = -1;
 }
 
 IMPLEMENT_HOOK_PROC_NULL(BOOL, WINAPI, DrawObjectText, (HDC dc, int x, int y, UINT options, LPCRECT rc, LPCSTR text, UINT c, CONST INT* dx))
@@ -768,7 +771,10 @@ IMPLEMENT_HOOK_PROC_NULL(BOOL, WINAPI, DrawObjectText, (HDC dc, int x, int y, UI
 	if (theApp.m_noScrollText)
 		x = std::max(70, x);
 
-	if (!(theApp.m_currentDrawObject->flag & ExEdit::Object::Flag::Sound))
+	auto object = theApp.m_auin.GetObject(theApp.m_drawing_object_index);
+	if (!object) return true_DrawObjectText(dc, x, y, options, rc, text, c, dx);
+
+	if (!(object->flag & ExEdit::Object::Flag::Sound))
 		return true_DrawObjectText(dc, x, y, options, rc, text, c, dx);
 
 	if (!theApp.m_behind)

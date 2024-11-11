@@ -15,7 +15,7 @@ typedef std::shared_ptr<FileCache> FileCachePtr;
 typedef std::map<std::string, FileCachePtr> FileCacheMap;
 
 typedef std::shared_ptr<ItemCache> ItemCachePtr;
-typedef std::map<ExEdit::Object*, ItemCachePtr> ItemCacheMap;
+typedef std::map<int32_t, ItemCachePtr> ItemCacheMap;
 
 typedef std::shared_ptr<SenderBottle> SenderBottlePtr;
 typedef std::shared_ptr<ReceiverBottle> ReceiverBottlePtr;

@@ -40,7 +40,7 @@ struct App
 	AviUtl::FilterPlugin* m_fp = 0;
 	AviUtl::FileInfo m_fi = {};
 	int32_t m_currentFrame = 0;
-	ExEdit::Object* m_currentDrawObject = 0;
+	int32_t m_drawing_object_index = -1;
 	FileCacheManager m_fileCacheManager;
 	ItemCacheManager m_itemCacheManager;
 	SubProcess m_subProcess;
