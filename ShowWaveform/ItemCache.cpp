@@ -98,14 +98,14 @@ ItemCachePtr ItemCacheManager::update(BOOL send, int32_t object_index, ExEdit::O
 
 	// 音声アイテムのパラメータを取得する。
 	AudioParamsPtr params = getAudioParams(object);
-	if (!params) return 0;
+	if (!params) return nullptr;
 
 	// このオブジェクトのキャッシュが要求されているかチェックする。
-	if (!theApp.isCacheRequired(object, params)) return FALSE;
+	if (!theApp.isCacheRequired(object, params)) return nullptr;
 
 	// ファイルキャシュを取得する。
 	FileCachePtr fileCache = theApp.m_fileCacheManager.getCache(params->fileName, send);
-	if (!fileCache) return 0; // ファイルキャッシュが作成されるまでは何もできない。
+	if (!fileCache) return nullptr; // ファイルキャッシュが作成されるまでは何もできない。
 
 	// アイテムキャッシュを作成する。
 	ItemCachePtr itemCache = std::make_shared<ItemCache>();
@@ -159,23 +159,13 @@ AudioParamsPtr ItemCacheManager::getAudioParams(ExEdit::Object* object)
 	ExEdit::LayerSetting* layer = theApp.m_auin.GetLayerSetting(object->layer_set);
 	params->layerFlag = (uint32_t)layer->flag;
 
+	// 動画ファイルと連携している場合は動画ファイルから再生位置を取得します。
 	if (object->check_value[1])
 	{
-		// 同じグループの動画アイテムを探す。
-		int c = theApp.m_auin.GetObjectCount();
-		for (int i = 0; i < c; i++)
+		if (auto object2 = get_movie_file_item(object))
 		{
-			ExEdit::Object* object2 = theApp.m_auin.GetObjectA(i);
-			if (!object2) continue;
-			if (object2->group_belong != object->group_belong) continue;
-			if (object2->scene_set != object->scene_set) continue;
-			if (object2->exdata_size != 288) continue;
-
-			int movieFileIndex = theApp.m_auin.GetFilterIndex(object2, 0); // 動画ファイル
-			if (movieFileIndex == -1) continue;
-
-			int playBeginIndex = object2->filter_param[movieFileIndex].track_begin + 0;
-			int playSpeedIndex = object2->filter_param[movieFileIndex].track_begin + 1;
+			auto playBeginIndex = object2->filter_param[0].track_begin + 0;
+			auto playSpeedIndex = object2->filter_param[0].track_begin + 1;
 
 			// 拡張データを取得する。
 			auto exdata = (ExEdit::Exdata::efMovieFile*)theApp.m_auin.GetExdata(object2, 0);
@@ -183,10 +173,9 @@ AudioParamsPtr ItemCacheManager::getAudioParams(ExEdit::Object* object)
 			copyFileName(params->fileName, sizeof(params->fileName), exdata->file);
 			params->playBegin = object2->track_value_left[playBeginIndex];
 			params->playSpeed = object2->track_value_left[playSpeedIndex] / 1000.0f;
-
-			break;
 		}
 	}
+	// それ以外の場合は音声ファイルから再生位置を取得します。
 	else
 	{
 		// 拡張データを取得する。
