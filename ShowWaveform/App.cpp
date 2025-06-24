@@ -743,8 +743,11 @@ BOOL App::isCacheRequired(ExEdit::Object* object, const AudioParamsPtr& params)
 			return FALSE;
 	}
 
-	if (::StrStrI(params->fileName, m_excludeDir))
-		return FALSE;
+	if (m_excludeDir.length())
+	{
+		if (::StrStrI(params->fileName, m_excludeDir))
+			return FALSE;
+	}
 
 	return TRUE;
 }
