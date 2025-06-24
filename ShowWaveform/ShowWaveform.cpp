@@ -45,7 +45,7 @@ BOOL APIENTRY DllMain(HINSTANCE instance, DWORD reason, LPVOID reserved)
 AviUtl::FilterPluginDLL* WINAPI GetFilterTable()
 {
 	LPCSTR name = "アイテム内音声波形";
-	LPCSTR information = "アイテム内音声波形 7.3.1 by 蛇色";
+	LPCSTR information = "アイテム内音声波形 7.3.2 by 蛇色";
 
 	static AviUtl::FilterPluginDLL filter =
 	{
