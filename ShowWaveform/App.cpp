@@ -412,9 +412,9 @@ void App::drawWaveform(HDC dc, LPCRECT rcClip, LPCRECT rcItem)
 {
 	MY_TRACE(_T("App::drawWaveform()\n"));
 
-	if (!m_drawing_object_index) return;
-	if (!m_fi.video_scale) return;
-	if (!m_fi.video_rate) return;
+	if (m_drawing_object_index == -1) return;
+	if (m_fi.video_scale == 0) return;
+	if (m_fi.video_rate == 0) return;
 
 	ItemCachePtr cache = m_itemCacheManager.getCache(m_drawing_object_index);
 	if (!cache) return;
